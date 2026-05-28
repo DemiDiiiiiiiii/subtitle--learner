@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>追剧字幕</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+:root {
+  --bg: #0c0c0f; --text: #e8e2d9; --text-dim: rgba(232,226,217,0.4);
+  --gold: #c8a96e; --border: rgba(255,255,255,0.08);
+}
+html, body { height: 100%; background: var(--bg); color: var(--text);
+  font-family: 'Noto Serif SC', serif; overflow: hidden; -webkit-font-smoothing: antialiased; }
+#app { height: 100vh; display: flex; flex-direction: column; }
+.screen { position: absolute; inset: 0; display: flex; flex-direction: column;
+  opacity: 0; pointer-events: none; transition: opacity 0.25s ease;
+  overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.screen.active { opacity: 1; pointer-events: all; }
+#home { justify-content: center; align-items: center; padding: 40px 32px; gap: 28px; }
+.home-title { font-size: 28px; font-weight: 300; letter-spacing: 2px; text-align: center; line-height: 1.5; }
+.home-stats { display: flex; gap: 24px; }
+.stat { text-align: center; }
+.stat-n { font-size: 32px; font-weight: 600; color: var(--gold); line-height: 1; }
+.stat-l { font-size: 11px; color: var(--text-dim); margin-top: 4px; letter-spacing: 1px; }
+.btn { width: 100%; padding: 15px; border: none; border-radius: 12px;
+  font-family: 'Noto Serif SC', serif; font-size: 15px; cursor: pointer;
+  transition: opacity 0.15s, transform 0.15s; }
+.btn:active { opacity: 0.75; transform: scale(0.98); }
+.btn-primary { background: var(--gold); color: #0c0c0f; font-weight: 600; }
+.btn-secondary { background: rgba(255,255,255,0.06); color: var(--text); border: 1px solid var(--border); }
+.btn-ghost { background: none; color: var(--text-dim); border: 1px solid var(--border); }
+#upload { padding: 0; }
+.upload-header { padding: 52px 24px 20px; display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+.back-btn { width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.06);
+  border: none; color: var(--text-dim); font-size: 18px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; }
+.upload-zone { margin: 0 24px; border: 1.5px dashed rgba(200,169,110,0.3); border-radius: 16px;
+  padding: 44px 24px; text-align: center; cursor: pointer; transition: background 0.2s; }
+.upload-zone:active, .upload-zone.drag { background: rgba(200,169,110,0.06); border-color: var(--gold); }
+.upload-icon { font-size: 36px; margin-bottom: 12px; }
+.upload-label { font-size: 16px; color: var(--gold); margin-bottom: 6px; }
+.upload-hint { font-size: 12px; color: var(--text-dim); line-height: 1.8; }
+.progress-wrap { margin: 20px 24px 0; display: none; flex-direction: column; gap: 10px; }
+.progress-wrap.show { display: flex; }
+.progress-row { display: flex; justify-content: space-between; font-size: 13px; }
+.progress-bar-track { height: 2px; background: rgba(255,255,255,0.06); border-radius: 1px; }
+.progress-bar-fill { height: 100%; background: var(--gold); border-radius: 1px; transition: width 0.4s ease; width: 0%; }
+.progress-items { display: flex; flex-direction: column; gap: 6px; max-height: 160px; overflow-y: auto; }
+.progress-item { font-size: 12px; color: var(--text-dim); display: flex; justify-content: space-between; }
+#swipe { padding: 0; background: #000; }
+.swipe-header { position: absolute; top: 0; left: 0; right: 0; z-index: 10;
+  padding: 52px 24px 16px; display: flex; justify-content: space-between; align-items: center; }
+.swipe-counter { font-size: 13px; color: rgba(255,255,255,0.5); }
+.swipe-close { background: none; border: none; color: rgba(255,255,255,0.5); font-size: 20px; cursor: pointer; padding: 4px; }
+.card-stack { position: absolute; inset: 0; }
+.swipe-card { position: absolute; inset: 0; display: flex; flex-direction: column;
+  opacity: 0; transition: opacity 0.35s ease; pointer-events: none; }
+.swipe-card.active { opacity: 1; pointer-events: all; }
+.card-image-wrap { flex: 1; position: relative; overflow: hidden; }
+.card-image { width: 100%; height: 100%; object-fit: cover; display: block; }
+.card-image-placeholder { width: 100%; height: 100%; background: #111; }
+.card-gradient { position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.1) 45%, transparent 70%); }
+.card-subtitle-area { position: absolute; bottom: 0; left: 0; right: 0; padding: 24px 24px 48px; }
+.card-subtitle { font-size: 18px; font-weight: 400; line-height: 1.5; color: #fff;
+  text-shadow: 0 1px 8px rgba(0,0,0,0.8); margin-bottom: 6px; }
+.card-translation { font-size: 13px; color: rgba(255,255,255,0.55); font-weight: 300; line-height: 1.5; }
+.swipe-done-bar { position: absolute; bottom: 0; left: 0; right: 0; z-index: 20;
+  padding: 16px 24px max(24px, env(safe-area-inset-bottom));
+  background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, transparent 100%);
+  display: none; flex-direction: column; gap: 10px; }
+.swipe-done-bar.show { display: flex; }
+#textlist { padding: 52px 0 40px; }
+.list-header { padding: 0 24px 20px; display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+.list-title { font-size: 18px; font-weight: 400; }
+.list-items { padding: 0 24px; display: flex; flex-direction: column; gap: 1px; }
+.list-entry { padding: 16px 0; border-bottom: 1px solid var(--border); }
+.list-en { font-size: 15px; font-weight: 400; line-height: 1.5; margin-bottom: 5px; }
+.list-zh { font-size: 13px; color: var(--text-dim); font-weight: 300; line-height: 1.5; }
+.list-num { font-size: 11px; color: rgba(200,169,110,0.5); margin-bottom: 4px; letter-spacing: 1px; }
+.list-actions { padding: 24px 24px 0; display: flex; flex-direction: column; gap: 10px; }
+#story { padding: 52px 0 40px; }
+.story-header { padding: 0 24px 20px; display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+.story-title { font-size: 18px; font-weight: 400; }
+.story-config { padding: 0 24px 20px; display: flex; flex-direction: column; gap: 14px; }
+.config-label { font-size: 11px; color: var(--text-dim); letter-spacing: 1px; margin-bottom: 6px; text-transform: uppercase; }
+.chip-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { padding: 7px 14px; border-radius: 20px; font-size: 13px;
+  border: 1px solid var(--border); background: rgba(255,255,255,0.04);
+  color: var(--text-dim); cursor: pointer; transition: all 0.15s; font-family: 'Noto Serif SC', serif; }
+.chip.selected { background: rgba(200,169,110,0.15); border-color: var(--gold); color: var(--gold); }
+.story-body { padding: 0 24px; }
+.story-loading { display: flex; flex-direction: column; gap: 10px; padding: 20px 0; }
+.shimmer { height: 14px; border-radius: 4px;
+  background: linear-gradient(90deg, #1a1a1f 25%, #222228 50%, #1a1a1f 75%);
+  background-size: 200% 100%; animation: sh 1.4s infinite; }
+@keyframes sh { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+.story-text { font-size: 15px; font-weight: 300; line-height: 2; color: var(--text); white-space: pre-wrap; }
+#toast { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%) translateY(8px);
+  background: rgba(30,30,35,0.95); border: 1px solid var(--border); color: var(--text);
+  font-size: 13px; padding: 10px 20px; border-radius: 30px; opacity: 0;
+  transition: opacity 0.2s, transform 0.2s; pointer-events: none; white-space: nowrap; z-index: 999; }
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.safe-bottom { padding-bottom: max(24px, env(safe-area-inset-bottom)); }
+</style>
+</head>
+<body>
+<div id="toast"></div>
+<div id="app">
+
+<!-- HOME -->
+<div class="screen active" id="home">
+  <div class="home-title">追剧<br>字幕收集</div>
+  <div class="home-stats">
+    <div class="stat"><div class="stat-n" id="h-total">0</div><div class="stat-l">已收集</div></div>
+    <div class="stat"><div class="stat-n" id="h-today" style="color:#7ab8d4">0</div><div class="stat-l">今日新增</div></div>
+  </div>
+  <div style="width:100%;display:flex;flex-direction:column;gap:10px">
+    <button class="btn btn-primary" id="btn-review" onclick="startSwipe()">浏览今日字幕</button>
+    <button class="btn btn-secondary" onclick="goTo('upload')">上传截图</button>
+  </div>
+  <div class="safe-bottom"></div>
+</div>
+
+<!-- UPLOAD -->
+<div class="screen" id="upload">
+  <div class="upload-header">
+    <button class="back-btn" onclick="goTo('home')">←</button>
+    <span style="font-size:18px">上传截图</span>
+  </div>
+  <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-in').click()">
+    <input type="file" id="file-in" accept="image/*" multiple style="display:none" onchange="handleFiles(this.files)">
+    <div class="upload-icon">🎬</div>
+    <div class="upload-label">选择截图</div>
+    <div class="upload-hint">支持英语 · 韩语<br>自动过滤弹幕 · 重复跳过</div>
+  </div>
+  <div class="progress-wrap" id="prog-wrap">
+    <div class="progress-row">
+      <span id="prog-label" style="color:var(--text-dim);font-size:13px"></span>
+      <span id="prog-count" style="color:var(--gold);font-size:13px"></span>
+    </div>
+    <div class="progress-bar-track"><div class="progress-bar-fill" id="prog-fill"></div></div>
+    <div class="progress-items" id="prog-items"></div>
+  </div>
+  <div id="upload-msg" style="display:none;margin:16px 24px 0;padding:14px 18px;background:rgba(126,202,156,0.08);border:1px solid rgba(126,202,156,0.2);border-radius:12px;font-size:13px;color:#7eca9c"></div>
+  <div style="margin:16px 24px 0;padding:14px 18px;background:rgba(255,255,255,0.03);border-radius:12px;display:flex;justify-content:space-between;align-items:center">
+    <span style="font-size:13px;color:var(--text-dim)">已处理图片</span>
+    <span style="font-size:20px;color:var(--gold)" id="proc-count">0</span>
+  </div>
+  <div class="safe-bottom"></div>
+</div>
+
+<!-- SWIPE -->
+<div class="screen" id="swipe">
+  <div class="swipe-header">
+    <button class="swipe-close" onclick="goTo('home')">✕</button>
+    <span class="swipe-counter" id="swipe-counter"></span>
+    <div style="width:32px"></div>
+  </div>
+  <div class="card-stack" id="card-stack"></div>
+  <div class="swipe-done-bar" id="done-bar">
+    <button class="btn btn-primary" onclick="goTo('textlist')">查看文字列表</button>
+    <button class="btn btn-secondary" onclick="goTo('story')">✦ 生成小故事</button>
+    <button class="btn btn-ghost" onclick="goTo('home')">回到主页</button>
+  </div>
+</div>
+
+<!-- TEXT LIST -->
+<div class="screen" id="textlist">
+  <div class="list-header">
+    <button class="back-btn" onclick="goTo('swipe');showDoneBar()">←</button>
+    <span class="list-title">今日字幕</span>
+  </div>
+  <div class="list-items" id="list-items"></div>
+  <div class="list-actions">
+    <button class="btn btn-primary" onclick="goTo('story')">✦ 生成小故事</button>
+  </div>
+  <div class="safe-bottom"></div>
+</div>
+
+<!-- STORY -->
+<div class="screen" id="story">
+  <div class="story-header">
+    <button class="back-btn" onclick="goTo('textlist')">←</button>
+    <span class="story-title">生成小故事</span>
+  </div>
+  <div class="story-config" id="story-config">
+    <div>
+      <div class="config-label">场景</div>
+      <div class="chip-row">
+        <div class="chip selected" data-group="scene">日常对话</div>
+        <div class="chip" data-group="scene">职场</div>
+        <div class="chip" data-group="scene">悬疑</div>
+        <div class="chip" data-group="scene">浪漫</div>
+        <div class="chip" data-group="scene">科幻</div>
+      </div>
+    </div>
+    <div>
+      <div class="config-label">风格</div>
+      <div class="chip-row">
+        <div class="chip selected" data-group="style">轻松幽默</div>
+        <div class="chip" data-group="style">正式严肃</div>
+        <div class="chip" data-group="style">文艺感</div>
+        <div class="chip" data-group="style">口语化</div>
+      </div>
+    </div>
+    <div>
+      <div class="config-label">语言</div>
+      <div class="chip-row">
+        <div class="chip selected" data-group="lang">中英双语</div>
+        <div class="chip" data-group="lang">纯英文</div>
+        <div class="chip" data-group="lang">纯中文</div>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="generateStory()">生成故事</button>
+  </div>
+  <div class="story-body">
+    <div class="story-loading" id="story-loading" style="display:none">
+      <div class="shimmer" style="width:90%"></div>
+      <div class="shimmer" style="width:75%"></div>
+      <div class="shimmer" style="width:85%"></div>
+      <div class="shimmer" style="width:60%"></div>
+    </div>
+    <div class="story-text" id="story-text"></div>
+  </div>
+  <div class="safe-bottom"></div>
+</div>
+
+</div>
+
+<script>
+const DEEPSEEK_KEY = 'sk-4e126a125433427c97678d423a2f53e2';
+const DEEPSEEK_URL = 'https://api.deepseek.com/v1/chat/completions';
+const SKEY = 'subtitles-v5';
+
+async function load() {
+  try { const r = await window.storage.get(SKEY); return r ? JSON.parse(r.value) : fresh(); }
+  catch { return fresh(); }
+}
+async function save(d) { try { await window.storage.set(SKEY, JSON.stringify(d)); } catch(e){} }
+function fresh() { return { cards:[], files:[], todayCards:[], todayDate:'' }; }
+
+let DB = null;
+let swipeCards = [], swipeIdx = 0;
+
+(async () => {
+  DB = await load();
+  const today = new Date().toDateString();
+  if (DB.todayDate !== today) { DB.todayCards = []; DB.todayDate = today; await save(DB); }
+  refreshHome();
+})();
+
+function goTo(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if (id === 'home') refreshHome();
+  if (id === 'upload') {
+    document.getElementById('proc-count').textContent = (DB.files||[]).length;
+    document.getElementById('upload-msg').style.display = 'none';
+    document.getElementById('prog-wrap').classList.remove('show');
+  }
+  if (id === 'textlist') renderTextList();
+  if (id === 'story') {
+    document.getElementById('story-text').textContent = '';
+    document.getElementById('story-config').style.display = 'flex';
+    document.getElementById('story-loading').style.display = 'none';
+  }
+}
+
+function refreshHome() {
+  if (!DB) return;
+  document.getElementById('h-total').textContent = DB.cards.length;
+  document.getElementById('h-today').textContent = DB.todayCards.length;
+  const btn = document.getElementById('btn-review');
+  if (DB.todayCards.length > 0) {
+    btn.textContent = `浏览今日字幕 · ${DB.todayCards.length} 张`;
+    btn.style.opacity = '1';
+  } else {
+    btn.textContent = '暂无今日字幕，先上传截图';
+    btn.style.opacity = '0.4';
+  }
+}
+
+function fp(f) { return `${f.name}|${f.size}|${f.lastModified}`; }
+
+async function handleFiles(files) {
+  files = Array.from(files);
+  if (!files.length) return;
+  const wrap = document.getElementById('prog-wrap');
+  const fill = document.getElementById('prog-fill');
+  const label = document.getElementById('prog-label');
+  const count = document.getElementById('prog-count');
+  const items = document.getElementById('prog-items');
+  wrap.classList.add('show');
+  items.innerHTML = '';
+  let added = 0, skipped = 0;
+
+  for (let i = 0; i < files.length; i++) {
+    const f = files[i];
+    const id = fp(f);
+    count.textContent = `${i+1}/${files.length}`;
+    fill.style.width = `${((i+1)/files.length)*100}%`;
+
+    const row = document.createElement('div');
+    row.className = 'progress-item';
+    row.innerHTML = `<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:220px">${f.name}</span><span id="ri-${i}">⏳</span>`;
+    items.appendChild(row);
+
+    if ((DB.files||[]).includes(id)) {
+      document.getElementById(`ri-${i}`).textContent = '已处理';
+      skipped++; continue;
+    }
+
+    label.textContent = `提取字幕 (${i+1}/${files.length})`;
+
+    try {
+      const b64 = await toB64(f);
+      const mt = f.type || 'image/jpeg';
+      const res = await extractSubtitle(b64, mt);
+      if (res && res.subtitle) {
+        const card = {
+          id: `${Date.now()}-${i}`,
+          subtitle: res.subtitle,
+          translation: res.translation || '',
+          thumb: `data:${mt};base64,${b64.substring(0, 120000)}`,
+          createdAt: new Date().toISOString(),
+        };
+        DB.cards.push(card);
+        DB.todayCards.push(card);
+        DB.files.push(id);
+        added++;
+        document.getElementById(`ri-${i}`).textContent = '✓';
+      } else {
+        document.getElementById(`ri-${i}`).textContent = '无字幕';
+        skipped++;
+      }
+    } catch(e) {
+      console.error(e);
+      document.getElementById(`ri-${i}`).textContent = '失败';
+      skipped++;
+    }
+  }
+
+  await save(DB);
+  wrap.classList.remove('show');
+  const msg = document.getElementById('upload-msg');
+  msg.style.display = 'block';
+  msg.textContent = `完成！新增 ${added} 张，跳过 ${skipped} 张`;
+  document.getElementById('proc-count').textContent = (DB.files||[]).length;
+  if (added > 0) setTimeout(() => startSwipe(), 800);
+}
+
+async function toB64(f) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result.split(',')[1]);
+    r.onerror = rej;
+    r.readAsDataURL(f);
+  });
+}
+
+async function extractSubtitle(b64, mt) {
+  const r = await fetch(DEEPSEEK_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${DEEPSEEK_KEY}`
+    },
+    body: JSON.stringify({
+      model: 'deepseek-chat',
+      max_tokens: 300,
+      messages: [{
+        role: 'user',
+        content: [
+          { type: 'image_url', image_url: { url: `data:${mt};base64,${b64}` } },
+          { type: 'text', text: `这是一张影视截图，可能含有字幕、弹幕、UI界面文字。
+只提取主字幕（屏幕底部或顶部的对话字幕），忽略弹幕和UI文字。
+字幕可能是英文或韩文。
+返回JSON，不要markdown：
+{"subtitle":"字幕原文，没有则返回null","translation":"中文翻译"}` }
+        ]
+      }]
+    })
+  });
+  const d = await r.json();
+  const txt = d.choices?.[0]?.message?.content || '';
+  return JSON.parse(txt.replace(/```json|```/g, '').trim());
+}
+
+function startSwipe() {
+  swipeCards = DB.todayCards;
+  if (!swipeCards.length) { toast('暂无今日字幕'); return; }
+  swipeIdx = 0;
+  goTo('swipe');
+  renderSwipe();
+}
+
+function renderSwipe() {
+  const stack = document.getElementById('card-stack');
+  stack.innerHTML = '';
+  document.getElementById('done-bar').classList.remove('show');
+  swipeCards.forEach((c, i) => {
+    const el = document.createElement('div');
+    el.className = 'swipe-card' + (i === swipeIdx ? ' active' : '');
+    el.id = `sc-${i}`;
+    el.innerHTML = `
+      <div class="card-image-wrap">
+        ${c.thumb ? `<img class="card-image" src="${c.thumb}" alt="">` : `<div class="card-image-placeholder"></div>`}
+        <div class="card-gradient"></div>
+      </div>
+      <div class="card-subtitle-area">
+        <div class="card-subtitle">${c.subtitle}</div>
+        <div class="card-translation">${c.translation}</div>
+      </div>`;
+    stack.appendChild(el);
+  });
+  updateCounter();
+}
+
+function updateCounter() {
+  document.getElementById('swipe-counter').textContent = `${swipeIdx+1} / ${swipeCards.length}`;
+}
+
+function nextCard() {
+  if (swipeIdx >= swipeCards.length - 1) { showDoneBar(); return; }
+  document.getElementById(`sc-${swipeIdx}`).classList.remove('active');
+  swipeIdx++;
+  document.getElementById(`sc-${swipeIdx}`).classList.add('active');
+  updateCounter();
+}
+
+function prevCard() {
+  if (swipeIdx <= 0) return;
+  document.getElementById(`sc-${swipeIdx}`).classList.remove('active');
+  swipeIdx--;
+  document.getElementById(`sc-${swipeIdx}`).classList.add('active');
+  updateCounter();
+}
+
+function showDoneBar() {
+  document.getElementById('done-bar').classList.add('show');
+}
+
+function renderTextList() {
+  const el = document.getElementById('list-items');
+  el.innerHTML = '';
+  swipeCards.forEach((c, i) => {
+    const d = document.createElement('div');
+    d.className = 'list-entry';
+    d.innerHTML = `
+      <div class="list-num">${String(i+1).padStart(2,'0')}</div>
+      <div class="list-en">${c.subtitle}</div>
+      <div class="list-zh">${c.translation}</div>`;
+    el.appendChild(d);
+  });
+}
+
+document.querySelectorAll('.chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    const g = chip.dataset.group;
+    document.querySelectorAll(`.chip[data-group="${g}"]`).forEach(c => c.classList.remove('selected'));
+    chip.classList.add('selected');
+  });
+});
+
+async function generateStory() {
+  const scene = document.querySelector('.chip.selected[data-group="scene"]')?.textContent || '日常对话';
+  const style = document.querySelector('.chip.selected[data-group="style"]')?.textContent || '轻松幽默';
+  const lang  = document.querySelector('.chip.selected[data-group="lang"]')?.textContent || '中英双语';
+  const sentences = swipeCards.map((c,i) => `${i+1}. ${c.subtitle}（${c.translation}）`).join('\n');
+
+  document.getElementById('story-config').style.display = 'none';
+  document.getElementById('story-loading').style.display = 'flex';
+  document.getElementById('story-text').textContent = '';
+
+  try {
+    const r = await fetch(DEEPSEEK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${DEEPSEEK_KEY}` },
+      body: JSON.stringify({
+        model: 'deepseek-chat',
+        max_tokens: 1000,
+        messages: [{
+          role: 'user',
+          content: `今天从影视剧里收集的字幕：\n${sentences}\n\n用这些句子编一个短故事。场景：${scene}，风格：${style}，语言：${lang === '中英双语' ? '中英双语，每段先英文后中文' : lang === '纯英文' ? '全程英文' : '全程中文'}。自然融入这些句子，200-300字，直接开始写，不要前言。`
+        }]
+      })
+    });
+    const d = await r.json();
+    const txt = d.choices?.[0]?.message?.content || '生成失败，请重试';
+    document.getElementById('story-loading').style.display = 'none';
+    document.getElementById('story-text').textContent = txt;
+  } catch(e) {
+    document.getElementById('story-loading').style.display = 'none';
+    document.getElementById('story-text').textContent = '网络错误，请重试';
+    document.getElementById('story-config').style.display = 'flex';
+  }
+}
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+const uz = document.getElementById('upload-zone');
+uz.addEventListener('dragover', e => { e.preventDefault(); uz.classList.add('drag'); });
+uz.addEventListener('dragleave', () => uz.classList.remove('drag'));
+uz.addEventListener('drop', e => { e.preventDefault(); uz.classList.remove('drag'); handleFiles(e.dataTransfer.files); });
+
+window.addEventListener('DOMContentLoaded', () => {
+  const sw = document.getElementById('swipe');
+  let tx = null;
+  sw.addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, {passive:true});
+  sw.addEventListener('touchend', e => {
+    if (tx===null) return;
+    const dx = e.changedTouches[0].clientX - tx;
+    if (Math.abs(dx)>40) dx<0 ? nextCard() : prevCard();
+    tx = null;
+  }, {passive:true});
+});
+</script>
+</body>
+</html>
