@@ -3,141 +3,180 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>追剧字幕</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600&display=swap" rel="stylesheet">
+<title>剧词</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
 <style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-:root {
-  --bg: #0c0c0f; --text: #e8e2d9; --dim: rgba(232,226,217,0.4);
-  --gold: #c8a96e; --border: rgba(255,255,255,0.08); --surface: rgba(255,255,255,0.05);
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#f8f5f1;--card:#fff;--text:#1c1917;--t2:#6b6560;--t3:#a8a29e;
+  --amber:#c27b0f;--amb-lt:rgba(194,123,15,.1);--amb-md:rgba(194,123,15,.15);
+  --blue:#2563eb;--blue-lt:rgba(37,99,235,.08);
+  --purple:#7c3aed;--pur-lt:rgba(124,58,237,.08);
+  --green:#16a34a;--red:#dc2626;
+  --border:rgba(0,0,0,.08);--shadow:0 2px 16px rgba(0,0,0,.07);
+  --r:16px;--rsm:10px;
 }
-html, body { height: 100%; background: var(--bg); color: var(--text);
-  font-family: 'Noto Serif SC', serif; overflow: hidden; -webkit-font-smoothing: antialiased; }
-#app { height: 100vh; position: relative; }
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Noto Serif SC',serif;overflow:hidden;-webkit-font-smoothing:antialiased}
+#app{height:100vh;position:relative}
+.screen{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity .22s ease;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column}
+.screen.active{opacity:1;pointer-events:all}
+.btn{width:100%;padding:15px;border:none;border-radius:var(--rsm);font-family:'Noto Serif SC',serif;font-size:15px;cursor:pointer;transition:opacity .15s,transform .15s}
+.btn:active{opacity:.72;transform:scale(.98)}
+.btn-amber{background:linear-gradient(135deg,#d4900f,#b8720a);color:#fff;font-weight:600}
+.btn-white{background:var(--card);color:var(--text);border:1px solid var(--border);box-shadow:var(--shadow)}
+.btn-ghost{background:none;color:var(--t2);border:1px solid var(--border);font-size:13px}
+.nav{padding:52px 22px 14px;display:flex;align-items:center;gap:14px;flex-shrink:0}
+.back{width:36px;height:36px;border-radius:50%;background:var(--card);border:1px solid var(--border);box-shadow:var(--shadow);color:var(--t2);font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.nav-title{font-size:17px}
 
-/* screens */
-.screen { position: absolute; inset: 0; opacity: 0; pointer-events: none;
-  transition: opacity 0.2s ease; overflow-y: auto; -webkit-overflow-scrolling: touch;
-  display: flex; flex-direction: column; }
-.screen.active { opacity: 1; pointer-events: all; }
+/* HOME */
+#home{padding:max(52px,env(safe-area-inset-top)) 22px 0}
+.home-hero{padding:16px 0 20px}
+.home-hero h1{font-size:28px;font-weight:300;letter-spacing:2px;line-height:1.4}
+.home-hero p{font-size:13px;color:var(--t3);margin-top:5px}
+.stats-row{display:flex;gap:10px;margin-bottom:22px}
+.stat-c{flex:1;background:var(--card);border-radius:var(--r);padding:14px 8px;text-align:center;box-shadow:var(--shadow);border:1px solid var(--border)}
+.stat-n{font-size:26px;font-weight:600;color:var(--amber);line-height:1}
+.stat-l{font-size:11px;color:var(--t3);margin-top:3px}
+.sec-lbl{font-size:11px;color:var(--t3);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px}
+.rev-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.rev-btn{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:18px 14px;text-align:left;cursor:pointer;box-shadow:var(--shadow);transition:transform .15s;width:100%}
+.rev-btn:active{transform:scale(.97)}
+.rev-icon{font-size:24px;margin-bottom:8px}
+.rev-name{font-size:14px;font-weight:600;margin-bottom:3px}
+.rev-meta{font-size:11px;color:var(--t3)}
+.rev-tag{display:inline-block;font-size:10px;padding:2px 7px;border-radius:8px;margin-top:6px}
+.rt-both{background:var(--amb-lt);color:var(--amber)}
+.rt-en{background:var(--blue-lt);color:var(--blue)}
+.home-links{display:flex;flex-direction:column;gap:10px;margin-top:0}
 
-/* ── HOME ── */
-#home { justify-content: center; align-items: center; padding: 48px 28px; gap: 32px; }
-.logo { font-size: 26px; font-weight: 300; letter-spacing: 3px; text-align: center; line-height: 1.6; }
-.stats { display: flex; gap: 20px; }
-.stat { text-align: center; background: var(--surface); border: 1px solid var(--border);
-  border-radius: 14px; padding: 16px 20px; min-width: 80px; }
-.stat-n { font-size: 30px; font-weight: 600; color: var(--gold); line-height: 1; }
-.stat-l { font-size: 11px; color: var(--dim); margin-top: 4px; }
-.home-btns { width: 100%; display: flex; flex-direction: column; gap: 10px; }
+/* STUDY */
+#study{background:#000}
+.s-img-wrap{position:relative;flex-shrink:0}
+.s-img-wrap img{width:100%;display:block;max-height:54vh;object-fit:cover}
+.s-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.4) 0%,transparent 35%,rgba(0,0,0,.1) 100%)}
+.s-topbar{position:absolute;top:0;left:0;right:0;padding:max(52px,env(safe-area-inset-top)) 20px 12px;display:flex;justify-content:space-between;align-items:center}
+.s-close{background:none;border:none;color:rgba(255,255,255,.6);font-size:20px;cursor:pointer}
+.s-counter{font-size:13px;color:rgba(255,255,255,.5)}
+.s-dots{position:absolute;bottom:8px;left:0;right:0;display:flex;gap:4px;justify-content:center;padding:0 20px;flex-wrap:wrap}
+.sdot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.2);transition:background .2s;flex-shrink:0}
+.sdot.done{background:var(--amber)}.sdot.cur{background:rgba(255,255,255,.75)}
+.s-panel{background:var(--bg);flex:1;border-radius:22px 22px 0 0;margin-top:-22px;padding:22px 22px max(28px,env(safe-area-inset-bottom));overflow-y:auto}
+.i-hint{font-size:12px;color:var(--t3);text-align:center;margin-bottom:12px}
+.i-row{display:flex;gap:10px;align-items:flex-end}
+.i-ta{flex:1;background:var(--card);border:1.5px solid var(--border);border-radius:var(--rsm);padding:13px 16px;color:var(--text);font-family:'Noto Serif SC',serif;font-size:16px;resize:none;line-height:1.5;min-height:52px;max-height:110px;outline:none;transition:border-color .15s}
+.i-ta:focus{border-color:var(--amber)}.i-ta::placeholder{color:var(--t3)}
+.i-btn{width:48px;height:48px;border-radius:12px;border:none;flex-shrink:0;background:var(--amber);color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.i-skip{text-align:center;margin-top:12px;font-size:13px;color:var(--t3);cursor:pointer}
+.spin-row{display:flex;align-items:center;justify-content:center;gap:8px;padding:20px 0}
+.sdot2{width:8px;height:8px;border-radius:50%;background:var(--amber);animation:sp 1.2s ease-in-out infinite}
+.sdot2:nth-child(2){animation-delay:.2s}.sdot2:nth-child(3){animation-delay:.4s}
+@keyframes sp{0%,100%{opacity:.2;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}
+.r-orig{font-size:17px;line-height:1.55;margin-bottom:5px}
+.lb{display:inline-block;font-size:10px;padding:2px 7px;border-radius:8px;margin-left:6px;vertical-align:middle}
+.lb-en{background:var(--blue-lt);color:var(--blue)}.lb-ko{background:var(--pur-lt);color:var(--purple)}
+.r-zh{font-size:14px;color:var(--t2);margin-bottom:16px;line-height:1.6}
+.kw-list{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.kw-i{background:var(--card);border:1px solid var(--border);border-radius:var(--rsm);padding:12px 14px;border-left:3px solid var(--amber)}
+.kw-i.ko{border-left-color:var(--purple)}
+.kw-w{font-size:14px;font-weight:600;color:var(--amber);margin-bottom:2px}
+.kw-i.ko .kw-w{color:var(--purple)}
+.kw-z{font-size:13px;color:var(--text);margin-bottom:2px}
+.kw-n{font-size:12px;color:var(--t2);line-height:1.6}
+.n-lbl{font-size:11px;color:var(--t3);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
+.n-ta{width:100%;background:var(--card);border:1px solid var(--border);border-radius:var(--rsm);padding:12px 14px;color:var(--text);font-family:'Noto Serif SC',serif;font-size:14px;resize:none;min-height:68px;outline:none;transition:border-color .15s;line-height:1.6}
+.n-ta:focus{border-color:var(--amber)}.n-ta::placeholder{color:var(--t3)}
 
-/* ── BUTTONS ── */
-.btn { width: 100%; padding: 15px; border: none; border-radius: 12px;
-  font-family: 'Noto Serif SC', serif; font-size: 15px; cursor: pointer;
-  transition: opacity 0.15s, transform 0.15s; }
-.btn:active { opacity: 0.7; transform: scale(0.98); }
-.btn-gold { background: var(--gold); color: #0c0c0f; font-weight: 600; }
-.btn-dim { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
-.btn-ghost { background: none; color: var(--dim); border: 1px solid var(--border); font-size: 13px; }
+/* CARD REVIEW */
+#cardreview{background:var(--bg)}
+.cr-progress{padding:0 22px;font-size:12px;color:var(--t3);text-align:center;margin-bottom:16px}
+.flip-area{padding:0 22px;flex:1;display:flex;flex-direction:column;justify-content:center;gap:20px}
+.flip-scene{perspective:1000px;width:100%;cursor:pointer}
+.flip-inner{position:relative;width:100%;padding-bottom:58%;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.4,0,.2,1)}
+.flip-inner.flipped{transform:rotateY(180deg)}
+.flip-face{position:absolute;inset:0;backface-visibility:hidden;background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);border:1px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px}
+.flip-back{transform:rotateY(180deg);align-items:flex-start;justify-content:flex-start;overflow:hidden}
+.flip-word{font-size:24px;font-weight:600;text-align:center;line-height:1.4;margin-bottom:8px}
+.flip-hint{font-size:12px;color:var(--t3)}
+.flip-zh{font-size:18px;font-weight:600;margin-bottom:8px;line-height:1.4}
+.flip-note{font-size:12px;color:var(--t2);line-height:1.7}
+.flip-ctx{font-size:11px;color:var(--t3);margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-style:italic;line-height:1.6}
+.rate-row{display:flex;gap:10px}
+.rate-btn{flex:1;padding:14px;border:none;border-radius:var(--rsm);cursor:pointer;font-family:'Noto Serif SC',serif;font-size:14px;transition:opacity .15s}
+.rate-btn:active{opacity:.7}
+.rate-f{background:rgba(220,38,38,.1);color:var(--red)}
+.rate-g{background:rgba(22,163,74,.1);color:var(--green)}
+.cr-empty{text-align:center;padding:60px 24px;font-size:14px;color:var(--t3)}
 
-/* ── UPLOAD ── */
-#upload { padding: 0; }
-.nav { padding: 52px 24px 16px; display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
-.back { width: 36px; height: 36px; border-radius: 50%; background: var(--surface);
-  border: 1px solid var(--border); color: var(--dim); font-size: 17px; cursor: pointer;
-  display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.nav-title { font-size: 17px; font-weight: 400; }
-.drop-zone { margin: 0 24px; border: 1.5px dashed rgba(200,169,110,0.3); border-radius: 16px;
-  padding: 44px 24px; text-align: center; cursor: pointer; transition: all 0.2s; }
-.drop-zone.drag, .drop-zone:active { background: rgba(200,169,110,0.06); border-color: var(--gold); }
-.drop-icon { font-size: 38px; margin-bottom: 12px; }
-.drop-title { font-size: 16px; color: var(--gold); margin-bottom: 6px; }
-.drop-hint { font-size: 12px; color: var(--dim); line-height: 1.9; }
-.upload-info { margin: 16px 24px 0; padding: 14px 18px;
-  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
-  display: flex; justify-content: space-between; align-items: center; }
+/* CONVERSATION */
+#conversation{background:#eef2ff}
+.cv-bar{padding:max(52px,env(safe-area-inset-top)) 20px 12px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.cv-end-btn{background:none;border:1px solid rgba(220,38,38,.3);color:var(--red);border-radius:20px;padding:6px 14px;font-size:13px;font-family:'Noto Serif SC',serif;cursor:pointer}
+.cv-id{padding:0 18px 12px;flex-shrink:0;border-bottom:1px solid rgba(0,0,0,.06)}
+.id-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.id-av{width:38px;height:38px;border-radius:50%;background:var(--amber);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;color:#fff;font-weight:600}
+.id-name{font-size:14px;font-weight:600}
+.id-sub{font-size:11px;color:var(--t2);margin-top:1px}
+.id-scene{font-size:12px;color:var(--t2);background:rgba(255,255,255,.7);border-radius:10px;padding:8px 12px;line-height:1.7}
+.chat-area{flex:1;overflow-y:auto;padding:14px 16px 8px;display:flex;flex-direction:column;gap:10px;-webkit-overflow-scrolling:touch}
+.bbl{max-width:82%;line-height:1.6;font-size:15px}
+.bbl-ai{align-self:flex-start;background:var(--card);border-radius:4px 18px 18px 18px;padding:12px 16px;box-shadow:0 1px 6px rgba(0,0,0,.08)}
+.bbl-user{align-self:flex-end;background:var(--amber);color:#fff;border-radius:18px 4px 18px 18px;padding:12px 16px}
+.bbl-sys{align-self:center;font-size:12px;color:var(--t3);background:rgba(255,255,255,.6);border-radius:20px;padding:5px 14px}
+.bbl-loading{align-self:flex-start;background:var(--card);border-radius:4px 18px 18px 18px;padding:14px 18px;box-shadow:0 1px 6px rgba(0,0,0,.08);display:flex;gap:5px}
+.bld{width:7px;height:7px;border-radius:50%;background:var(--t3);animation:sp 1.2s ease-in-out infinite}
+.bld:nth-child(2){animation-delay:.2s}.bld:nth-child(3){animation-delay:.4s}
+.cv-input-wrap{padding:10px 14px max(20px,env(safe-area-inset-bottom));background:rgba(238,242,255,.95);backdrop-filter:blur(8px);border-top:1px solid rgba(0,0,0,.06);display:flex;gap:10px;align-items:flex-end;flex-shrink:0}
+.cv-ta{flex:1;background:var(--card);border:1.5px solid var(--border);border-radius:22px;padding:11px 18px;color:var(--text);font-family:'Noto Serif SC',serif;font-size:15px;resize:none;line-height:1.5;min-height:44px;max-height:100px;outline:none;transition:border-color .15s}
+.cv-ta:focus{border-color:rgba(37,99,235,.4)}.cv-ta::placeholder{color:var(--t3)}
+.cv-send{width:44px;height:44px;border-radius:50%;border:none;flex-shrink:0;background:var(--blue);color:#fff;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.cv-loading-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:40px}
+.cv-loading-txt{font-size:14px;color:var(--t2)}
+.fb-sheet{position:absolute;bottom:0;left:0;right:0;background:var(--card);border-radius:22px 22px 0 0;padding:24px 22px max(36px,env(safe-area-inset-bottom));box-shadow:0 -4px 32px rgba(0,0,0,.12);transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);z-index:10;max-height:78vh;overflow-y:auto}
+.fb-sheet.show{transform:translateY(0)}
+.fb-handle{width:36px;height:4px;border-radius:2px;background:var(--border);margin:0 auto 18px}
+.fb-title{font-size:16px;font-weight:600;margin-bottom:14px}
+.fb-body{font-size:14px;color:var(--t2);line-height:2;white-space:pre-wrap}
+.weakness-box{background:rgba(220,38,38,.06);border:1px solid rgba(220,38,38,.15);border-radius:var(--rsm);padding:10px 14px;margin-top:16px;font-size:12px;color:#991b1b;line-height:1.7}
+.weakness-box strong{display:block;margin-bottom:3px;font-size:13px}
 
-/* ── INPUT CARDS ── */
-#inputmode { padding: 0; background: #000; }
-.card-wrap { position: absolute; inset: 0; display: flex; flex-direction: column; }
-.card-img-area { position: relative; flex: 1; overflow: hidden; min-height: 0; }
-.card-img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.card-overlay { position: absolute; inset: 0;
-  background: linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.05) 50%, transparent 75%); }
-.card-top { position: absolute; top: 0; left: 0; right: 0; padding: 52px 20px 12px;
-  display: flex; justify-content: space-between; align-items: center; z-index: 5; }
-.card-counter { font-size: 13px; color: rgba(255,255,255,0.45); }
-.card-close { background: none; border: none; color: rgba(255,255,255,0.4); font-size: 20px; cursor: pointer; }
-.card-bottom { flex-shrink: 0; background: #0c0c0f; padding: 16px 20px max(24px, env(safe-area-inset-bottom)); }
-.card-input-wrap { position: relative; }
-.card-input {
-  width: 100%; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 12px; padding: 14px 52px 14px 16px; color: var(--text);
-  font-family: 'Noto Serif SC', serif; font-size: 16px; resize: none;
-  line-height: 1.5; min-height: 52px; max-height: 120px;
-  outline: none; transition: border-color 0.15s;
-}
-.card-input:focus { border-color: rgba(200,169,110,0.5); }
-.card-input::placeholder { color: var(--dim); }
-.card-submit {
-  position: absolute; right: 10px; bottom: 10px;
-  width: 34px; height: 34px; border-radius: 8px;
-  background: var(--gold); border: none; cursor: pointer;
-  font-size: 16px; display: flex; align-items: center; justify-content: center;
-  transition: opacity 0.15s;
-}
-.card-submit:disabled { opacity: 0.3; }
-.skip-btn { margin-top: 10px; width: 100%; background: none; border: none;
-  color: var(--dim); font-size: 13px; font-family: 'Noto Serif SC', serif;
-  cursor: pointer; padding: 6px; }
+/* LIST */
+#textlist{background:var(--bg)}
+.entries{padding:0 22px}
+.e-row{display:flex;gap:12px;padding:14px 0;border-bottom:1px solid var(--border)}
+.e-thumb{width:50px;height:38px;border-radius:8px;object-fit:cover;flex-shrink:0;background:var(--border)}
+.e-body{flex:1;overflow:hidden;min-width:0}
+.e-num{font-size:10px;color:var(--t3);letter-spacing:2px;margin-bottom:3px}
+.e-en{font-size:14px;line-height:1.5;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.e-zh{font-size:12px;color:var(--t2);line-height:1.5}
+.e-note{font-size:11px;color:var(--amber);margin-top:2px;font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.list-acts{padding:16px 22px;display:flex;flex-direction:column;gap:10px;flex-shrink:0}
 
-/* progress dots */
-.dots { display: flex; gap: 4px; justify-content: center; padding: 10px 20px 0; }
-.dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.15); transition: background 0.2s; }
-.dot.done { background: var(--gold); }
-.dot.active { background: rgba(255,255,255,0.6); }
+/* STORY */
+#story{background:var(--bg)}
+.chips-sec{margin-bottom:16px}
+.chip-lbl{font-size:11px;color:var(--t3);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{padding:7px 14px;border-radius:20px;font-size:13px;cursor:pointer;border:1px solid var(--border);background:var(--card);color:var(--t2);font-family:'Noto Serif SC',serif;transition:all .15s;box-shadow:var(--shadow)}
+.chip.on{background:var(--amb-lt);border-color:var(--amber);color:var(--amber)}
+.story-txt{font-size:15px;font-weight:300;line-height:2.1;white-space:pre-wrap;padding-bottom:40px}
+.shim-wrap{display:flex;flex-direction:column;gap:10px;padding:8px 0}
+.shimmer{height:14px;border-radius:4px;background:linear-gradient(90deg,var(--border) 25%,rgba(0,0,0,.04) 50%,var(--border) 75%);background-size:200% 100%;animation:sh 1.4s infinite}
+@keyframes sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
 
-/* ── TEXT LIST ── */
-#textlist { padding: 0; }
-.entries { padding: 0 24px; display: flex; flex-direction: column; }
-.entry { padding: 16px 0; border-bottom: 1px solid var(--border); }
-.entry-n { font-size: 10px; color: rgba(200,169,110,0.5); letter-spacing: 2px; margin-bottom: 5px; }
-.entry-en { font-size: 15px; line-height: 1.55; margin-bottom: 4px; }
-.entry-zh { font-size: 13px; color: var(--dim); font-weight: 300; line-height: 1.55; }
-.entry-zh.loading { color: rgba(200,169,110,0.4); font-style: italic; }
-.list-actions { padding: 20px 24px; display: flex; flex-direction: column; gap: 10px; flex-shrink: 0; }
+/* SHORTCUTS */
+#shortcuts{background:var(--bg)}
+.step-c{margin:0 22px 10px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;display:flex;gap:12px;box-shadow:var(--shadow)}
+.step-n{width:26px;height:26px;border-radius:50%;flex-shrink:0;background:var(--amber);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:600}
+.step-t{font-size:14px;font-weight:600;margin-bottom:3px}
+.step-d{font-size:12px;color:var(--t2);line-height:1.7}
 
-/* ── STORY ── */
-#story { padding: 0; }
-.story-body { padding: 0 24px; flex: 1; }
-.chips-section { margin-bottom: 16px; }
-.chip-label { font-size: 11px; color: var(--dim); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
-.chips { display: flex; flex-wrap: wrap; gap: 8px; }
-.chip { padding: 7px 14px; border-radius: 20px; font-size: 13px; cursor: pointer;
-  border: 1px solid var(--border); background: var(--surface); color: var(--dim);
-  font-family: 'Noto Serif SC', serif; transition: all 0.15s; }
-.chip.on { background: rgba(200,169,110,0.12); border-color: var(--gold); color: var(--gold); }
-.story-result { font-size: 15px; font-weight: 300; line-height: 2.1; white-space: pre-wrap; padding: 4px 0 40px; }
-.shimmer-wrap { display: flex; flex-direction: column; gap: 10px; padding: 8px 0; }
-.shimmer { height: 14px; border-radius: 4px;
-  background: linear-gradient(90deg, #1a1a1f 25%, #252530 50%, #1a1a1f 75%);
-  background-size: 200% 100%; animation: sh 1.4s infinite; }
-@keyframes sh { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
-
-/* ── DONE SCREEN ── */
-#done { justify-content: center; align-items: center; padding: 48px 28px; gap: 24px; text-align: center; }
-.done-emoji { font-size: 56px; }
-.done-title { font-size: 24px; font-weight: 300; }
-.done-sub { font-size: 14px; color: var(--dim); line-height: 1.8; }
-.done-btns { width: 100%; display: flex; flex-direction: column; gap: 10px; }
-
-/* toast */
-#toast { position: fixed; bottom: 36px; left: 50%; transform: translateX(-50%) translateY(8px);
-  background: rgba(28,28,34,0.96); border: 1px solid var(--border); color: var(--text);
-  font-size: 13px; padding: 10px 20px; border-radius: 30px; opacity: 0;
-  transition: opacity 0.2s, transform 0.2s; pointer-events: none; white-space: nowrap; z-index: 999; }
-#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-.safe { padding-bottom: max(24px, env(safe-area-inset-bottom)); }
+/* COMMON */
+#toast{position:fixed;bottom:36px;left:50%;transform:translateX(-50%) translateY(8px);background:rgba(28,25,23,.92);color:#f8f5f1;font-size:13px;padding:10px 20px;border-radius:30px;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;white-space:nowrap;z-index:999}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.safe{padding-bottom:max(24px,env(safe-area-inset-bottom))}
+::-webkit-scrollbar{width:2px}
+::-webkit-scrollbar-thumb{background:var(--border)}
 </style>
 </head>
 <body>
@@ -146,43 +185,86 @@ html, body { height: 100%; background: var(--bg); color: var(--text);
 
 <!-- HOME -->
 <div class="screen active" id="home">
-  <div class="logo">追剧<br>字幕收集</div>
-  <div class="stats">
-    <div class="stat"><div class="stat-n" id="h-total">0</div><div class="stat-l">总收集</div></div>
-    <div class="stat"><div class="stat-n" id="h-today" style="color:#7ab8d4">0</div><div class="stat-l">今日输入</div></div>
-    <div class="stat"><div class="stat-n" id="h-days" style="color:#a78bfa">0</div><div class="stat-l">累计天数</div></div>
+  <div class="home-hero">
+    <h1>剧词</h1>
+    <p>追剧积词，每天进一点</p>
   </div>
-  <div class="home-btns">
-    <button class="btn btn-gold" id="btn-continue" onclick="continueToday()">继续今日输入</button>
-    <button class="btn btn-dim" onclick="goTo('upload')">📸 上传新截图</button>
-    <button class="btn btn-ghost" onclick="goTo('textlist'); renderList()">查看今日记录</button>
+  <div class="stats-row">
+    <div class="stat-c"><div class="stat-n" id="h-total">0</div><div class="stat-l">词库</div></div>
+    <div class="stat-c"><div class="stat-n" id="h-today" style="color:var(--blue)">0</div><div class="stat-l">今日新增</div></div>
+    <div class="stat-c"><div class="stat-n" id="h-streak" style="color:var(--green)">0</div><div class="stat-l">连续天数</div></div>
+  </div>
+  <div class="sec-lbl">今日学习</div>
+  <button class="btn btn-amber" style="margin-bottom:22px" onclick="document.getElementById('fp').click()">
+    📸 &nbsp;上传截图，开始输入
+  </button>
+  <input type="file" id="fp" accept="image/*" multiple style="display:none" onchange="startSession(this.files)">
+  <div class="sec-lbl">复习</div>
+  <div class="rev-grid">
+    <button class="rev-btn" onclick="startCardReview()">
+      <div class="rev-icon">🗂</div>
+      <div class="rev-name">卡片复习</div>
+      <div class="rev-meta" id="card-meta">词库加载中</div>
+      <span class="rev-tag rt-both">英语 + 韩语</span>
+    </button>
+    <button class="rev-btn" onclick="startConversation()">
+      <div class="rev-icon">💬</div>
+      <div class="rev-name">对话练习</div>
+      <div class="rev-meta" id="conv-meta">随机词汇</div>
+      <span class="rev-tag rt-en">仅英语</span>
+    </button>
+  </div>
+  <div class="home-links">
+    <button class="btn btn-white" id="btn-list" style="display:none" onclick="goTo('textlist');renderList()">查看今日字幕列表</button>
+    <button class="btn btn-ghost" onclick="goTo('story');resetStory()">✦ 生成故事</button>
+    <button class="btn btn-ghost" onclick="goTo('shortcuts')" style="font-size:12px;color:var(--t3)">📱 快捷指令配置</button>
   </div>
   <div class="safe"></div>
 </div>
 
-<!-- UPLOAD -->
-<div class="screen" id="upload">
+<!-- STUDY -->
+<div class="screen" id="study">
+  <div id="study-inner" style="display:flex;flex-direction:column;min-height:100vh"></div>
+</div>
+
+<!-- CARD REVIEW -->
+<div class="screen" id="cardreview">
   <div class="nav">
     <div class="back" onclick="goTo('home')">←</div>
-    <span class="nav-title">上传截图</span>
+    <span class="nav-title">卡片复习</span>
+    <span style="margin-left:auto;font-size:13px;color:var(--t3)" id="cr-counter"></span>
   </div>
-  <div class="drop-zone" id="drop-zone" onclick="document.getElementById('fin').click()">
-    <input type="file" id="fin" accept="image/*" multiple style="display:none" onchange="loadImages(this.files)">
-    <div class="drop-icon">🎬</div>
-    <div class="drop-title">选择截图（最多25张）</div>
-    <div class="drop-hint">选好后逐张显示<br>你手动输入每张的字幕<br>输入本身就是一次记忆</div>
-  </div>
-  <div class="upload-info">
-    <span style="font-size:13px;color:var(--dim)">今日已上传</span>
-    <span style="font-size:20px;color:var(--gold)" id="up-count">0</span>
-  </div>
-  <div class="safe"></div>
+  <div id="cr-body" style="flex:1;display:flex;flex-direction:column"></div>
+  <div class="safe" style="flex-shrink:0"></div>
 </div>
 
-<!-- INPUT MODE -->
-<div class="screen" id="inputmode">
-  <div class="card-wrap" id="card-wrap">
-    <!-- injected -->
+<!-- CONVERSATION -->
+<div class="screen" id="conversation" style="position:relative">
+  <div id="cv-loading" class="cv-loading-wrap">
+    <div class="spin-row"><div class="sdot2"></div><div class="sdot2"></div><div class="sdot2"></div></div>
+    <div class="cv-loading-txt">AI 正在准备场景和角色…</div>
+  </div>
+  <div id="cv-main" style="display:none;flex:1;display:none;flex-direction:column">
+    <div class="cv-bar">
+      <div style="font-size:15px;font-weight:600">对话练习</div>
+      <button class="cv-end-btn" onclick="endConversation()">结束对话</button>
+    </div>
+    <div class="cv-id" id="cv-id"></div>
+    <div class="chat-area" id="chat-area"></div>
+    <div class="cv-input-wrap">
+      <textarea class="cv-ta" id="cv-ta" placeholder="用英文回复…" rows="1" oninput="autoR(this)" onkeydown="cvEnter(event)"></textarea>
+      <button class="cv-send" onclick="sendMsg()">↑</button>
+    </div>
+  </div>
+  <div class="fb-sheet" id="fb-sheet">
+    <div class="fb-handle"></div>
+    <div class="fb-title">本次对话反馈</div>
+    <div class="fb-body" id="fb-body"></div>
+    <div id="weakness-box"></div>
+    <div style="margin-top:18px;display:flex;flex-direction:column;gap:10px">
+      <button class="btn btn-amber" onclick="saveWeaknessAndClose()">保存反馈，回主页</button>
+      <button class="btn btn-ghost" onclick="startConversation()">再来一轮</button>
+    </div>
   </div>
 </div>
 
@@ -193,8 +275,9 @@ html, body { height: 100%; background: var(--bg); color: var(--text);
     <span class="nav-title">今日字幕</span>
   </div>
   <div class="entries" id="entries"></div>
-  <div class="list-actions">
-    <button class="btn btn-gold" onclick="goTo('story'); resetStory()">✦ 用这些句子生成故事</button>
+  <div class="list-acts">
+    <button class="btn btn-amber" onclick="goTo('story');resetStory()">✦ 生成小故事</button>
+    <button class="btn btn-ghost" onclick="document.getElementById('fp').click()">继续上传截图</button>
   </div>
   <div class="safe"></div>
 </div>
@@ -205,343 +288,500 @@ html, body { height: 100%; background: var(--bg); color: var(--text);
     <div class="back" onclick="goTo('textlist')">←</div>
     <span class="nav-title">生成小故事</span>
   </div>
-  <div class="story-body" id="story-body">
-    <div id="story-config">
-      <div class="chips-section">
-        <div class="chip-label">场景</div>
-        <div class="chips">
-          <div class="chip on" data-g="scene">日常对话</div>
-          <div class="chip" data-g="scene">职场</div>
-          <div class="chip" data-g="scene">悬疑</div>
-          <div class="chip" data-g="scene">浪漫</div>
-          <div class="chip" data-g="scene">科幻</div>
-        </div>
-      </div>
-      <div class="chips-section">
-        <div class="chip-label">风格</div>
-        <div class="chips">
-          <div class="chip on" data-g="style">轻松幽默</div>
-          <div class="chip" data-g="style">文艺感</div>
-          <div class="chip" data-g="style">紧张刺激</div>
-          <div class="chip" data-g="style">温情治愈</div>
-        </div>
-      </div>
-      <div class="chips-section">
-        <div class="chip-label">语言</div>
-        <div class="chips">
-          <div class="chip on" data-g="lang">中英双语</div>
-          <div class="chip" data-g="lang">纯英文</div>
-          <div class="chip" data-g="lang">纯中文</div>
-        </div>
-      </div>
-      <button class="btn btn-gold" style="margin-top:8px" onclick="generateStory()">生成故事</button>
+  <div style="padding:0 22px;flex:1">
+    <div id="story-cfg">
+      <div class="chips-sec"><div class="chip-lbl">场景</div><div class="chips">
+        <div class="chip on" data-g="scene">日常对话</div><div class="chip" data-g="scene">职场</div>
+        <div class="chip" data-g="scene">悬疑</div><div class="chip" data-g="scene">浪漫</div><div class="chip" data-g="scene">科幻</div>
+      </div></div>
+      <div class="chips-sec"><div class="chip-lbl">风格</div><div class="chips">
+        <div class="chip on" data-g="style">轻松幽默</div><div class="chip" data-g="style">文艺感</div>
+        <div class="chip" data-g="style">温情治愈</div><div class="chip" data-g="style">紧张刺激</div>
+      </div></div>
+      <div class="chips-sec"><div class="chip-lbl">语言</div><div class="chips">
+        <div class="chip on" data-g="lang">中英双语</div><div class="chip" data-g="lang">纯英文</div><div class="chip" data-g="lang">纯中文</div>
+      </div></div>
+      <button class="btn btn-amber" style="margin-top:8px" onclick="genStory()">生成故事</button>
     </div>
-    <div id="story-shimmer" class="shimmer-wrap" style="display:none">
-      <div class="shimmer" style="width:88%"></div>
-      <div class="shimmer" style="width:72%"></div>
-      <div class="shimmer" style="width:82%"></div>
-      <div class="shimmer" style="width:65%"></div>
-      <div class="shimmer" style="width:79%"></div>
+    <div id="story-shim" class="shim-wrap" style="display:none">
+      <div class="shimmer" style="width:88%"></div><div class="shimmer" style="width:72%"></div>
+      <div class="shimmer" style="width:82%"></div><div class="shimmer" style="width:65%"></div>
     </div>
-    <div class="story-result" id="story-result"></div>
+    <div class="story-txt" id="story-txt"></div>
   </div>
   <div class="safe" style="flex-shrink:0"></div>
 </div>
 
-<!-- DONE -->
-<div class="screen" id="done">
-  <div class="done-emoji">🎉</div>
-  <div class="done-title">今日完成！</div>
-  <div class="done-sub" id="done-sub"></div>
-  <div class="done-btns">
-    <button class="btn btn-gold" onclick="goTo('textlist'); renderList()">查看今日字幕列表</button>
-    <button class="btn btn-dim" onclick="goTo('story'); resetStory()">✦ 生成小故事</button>
-    <button class="btn btn-ghost" onclick="goTo('home')">回主页</button>
+<!-- SHORTCUTS -->
+<div class="screen" id="shortcuts">
+  <div class="nav"><div class="back" onclick="goTo('home')">←</div><span class="nav-title">快捷指令配置</span></div>
+  <div style="margin:0 22px 14px;background:var(--amb-lt);border:1px solid rgba(194,123,15,.2);border-radius:var(--rsm);padding:14px 16px">
+    <p style="font-size:12px;color:#92530a;line-height:1.7">配置完成后，每天快捷指令自动从截图相册随机抽取25张存入「今日学习」相簿，打开此工具选图即可。只需配置一次。</p>
   </div>
+  <div class="step-c"><div class="step-n">1</div><div><div class="step-t">打开「快捷指令」App</div><div class="step-d">iPhone 自带，搜索「快捷指令」找到</div></div></div>
+  <div class="step-c"><div class="step-n">2</div><div><div class="step-t">新建快捷指令 → 添加「查找照片」</div><div class="step-d">搜索「查找照片」（不是获取最新照片）<br>过滤：相簿 = 截屏；排序：随机；限制：25张</div></div></div>
+  <div class="step-c"><div class="step-n">3</div><div><div class="step-t">添加「存储到相簿」</div><div class="step-d">新建相簿「今日学习」，把查找到的照片存入</div></div></div>
+  <div class="step-c"><div class="step-n">4</div><div><div class="step-t">设置每日自动触发</div><div class="step-d">「自动化」→ 新建 → 一天中的某时间<br>选早上时间，关闭「运行前询问」</div></div></div>
+  <div class="step-c"><div class="step-n">5</div><div><div class="step-t">每天从「今日学习」相簿选图</div><div class="step-d">回到剧词 → 上传截图 → 选相簿「今日学习」→ 全选<br>已处理过的图片自动跳过，不会重复</div></div></div>
+  <div style="margin:10px 22px 0;background:rgba(22,163,74,.08);border:1px solid rgba(22,163,74,.2);border-radius:var(--rsm);padding:12px 16px">
+    <p style="font-size:12px;color:#166534;line-height:1.7">指纹记忆：每张图处理后记录唯一标识，3000张图选过的不会重复出现。</p>
+  </div>
+  <div class="safe"></div>
 </div>
 
 </div>
-
 <script>
-const DS_KEY = 'sk-4e126a125433427c97678d423a2f53e2';
-const DS_URL = 'https://api.deepseek.com/v1/chat/completions';
-const SKEY   = 'stv6';
+const DS_KEY='sk-4e126a125433427c97678d423a2f53e2';
+const DS_URL='https://api.deepseek.com/v1/chat/completions';
+const DKEY='jc11-data';
+const IKEY='jc11-img-';
 
 // ── Storage ──────────────────────────────────────────────────────
-async function load() {
-  try { const r = await window.storage.get(SKEY); return r ? JSON.parse(r.value) : mk(); }
-  catch { return mk(); }
+async function loadDB(){
+  try{const r=await window.storage.get(DKEY);return r?JSON.parse(r.value):mkDB();}
+  catch{return mkDB();}
 }
-async function persist() {
-  try { await window.storage.set(SKEY, JSON.stringify(DB)); } catch(e){}
-}
-function mk() { return { allEntries:[], days:{} }; }
+async function saveDB(){try{await window.storage.set(DKEY,JSON.stringify(DB));}catch(e){}}
+async function saveImg(id,b64){try{await window.storage.set(IKEY+id,b64);}catch(e){}}
+async function loadImg(id){try{const r=await window.storage.get(IKEY+id);return r?r.value:null;}catch{return null;}}
+function mkDB(){return{entries:[],fps:[],days:{},weaknessProfile:'',reviewLog:[]};}
 
 // ── State ─────────────────────────────────────────────────────────
-let DB = null;
-let todayKey = new Date().toLocaleDateString('zh-CN');
-let session = { images:[], idx:0, entries:[] }; // current session
+let DB=null;
+let studySess=null;
+let convSess=null;
+let pendingWeakness='';
+let todayKey=new Date().toLocaleDateString('zh-CN');
 
-(async () => {
-  DB = await load();
-  if (!DB.days[todayKey]) DB.days[todayKey] = [];
-  refreshHome();
-})();
+(async()=>{DB=await loadDB();if(!DB.days[todayKey])DB.days[todayKey]=[];refreshHome();})();
+
+// ── Nav ───────────────────────────────────────────────────────────
+function goTo(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if(id==='home')refreshHome();
+}
 
 // ── Helpers ───────────────────────────────────────────────────────
-function todayEntries() { return DB?.days?.[todayKey] || []; }
-function goTo(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  if (id === 'home') refreshHome();
+function toast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),2200);
 }
-function toast(msg) {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), 2000);
+function autoR(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,100)+'px';}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function fp(f){return f.name+'|'+f.size+'|'+f.lastModified;}
+async function callDS(msgs,max=600){
+  const r=await fetch(DS_URL,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+DS_KEY},
+    body:JSON.stringify({model:'deepseek-chat',max_tokens:max,messages:msgs})});
+  const d=await r.json();
+  return d.choices?.[0]?.message?.content||'';
 }
 
 // ── Home ──────────────────────────────────────────────────────────
-function refreshHome() {
-  if (!DB) return;
-  const today = todayEntries();
-  const total = DB.allEntries.length;
-  const days  = Object.keys(DB.days).filter(d => DB.days[d].length > 0).length;
-  document.getElementById('h-total').textContent = total;
-  document.getElementById('h-today').textContent = today.length;
-  document.getElementById('h-days').textContent  = days;
-
-  const btn = document.getElementById('btn-continue');
-  if (session.images.length > session.idx && session.idx > 0) {
-    btn.textContent = `继续今日输入 (${session.idx}/${session.images.length})`;
-    btn.style.opacity = '1';
-  } else if (today.length > 0) {
-    btn.textContent = `今日已输入 ${today.length} 条 ✓`;
-    btn.style.opacity = '0.5';
-  } else {
-    btn.textContent = '暂无今日图片，先上传截图';
-    btn.style.opacity = '0.4';
-  }
+function refreshHome(){
+  if(!DB)return;
+  const todayIds=DB.days[todayKey]||[];
+  const todayE=todayIds.map(id=>DB.entries.find(e=>e.id===id)).filter(Boolean);
+  const days=Object.values(DB.days).filter(d=>d.length>0).length;
+  const enKws=getEnKeywords();
+  document.getElementById('h-total').textContent=DB.entries.length;
+  document.getElementById('h-today').textContent=todayE.length;
+  document.getElementById('h-streak').textContent=days;
+  document.getElementById('card-meta').textContent=getAllKeywords().length+'个词汇';
+  document.getElementById('conv-meta').textContent=enKws.length>0?'从'+enKws.length+'个词中选':'先积累一些词汇';
+  const bl=document.getElementById('btn-list');
+  bl.style.display=todayE.length>0?'block':'none';
 }
 
-function continueToday() {
-  if (session.images.length === 0) { goTo('upload'); return; }
-  goTo('inputmode');
-  showCard(session.idx);
-}
-
-// ── Upload ────────────────────────────────────────────────────────
-async function loadImages(files) {
-  files = Array.from(files).slice(0, 25);
-  if (!files.length) return;
-  session = { images:[], idx:0, entries:[] };
-
-  for (const f of files) {
-    const b64 = await toB64(f);
-    session.images.push({ src: `data:${f.type||'image/jpeg'};base64,${b64}`, name: f.name });
-  }
-
-  document.getElementById('up-count').textContent = session.images.length;
-  toast(`已加载 ${session.images.length} 张，开始输入吧`);
-  setTimeout(() => { goTo('inputmode'); showCard(0); }, 600);
-}
-
-function toB64(f) {
-  return new Promise((res,rej) => {
-    const r = new FileReader();
-    r.onload = () => res(r.result.split(',')[1]);
-    r.onerror = rej;
-    r.readAsDataURL(f);
+// ── Get keywords ──────────────────────────────────────────────────
+function getAllKeywords(){
+  const kws=[];
+  DB.entries.forEach(e=>{
+    (e.keywords||[]).forEach(k=>{
+      kws.push({word:k.word,zh:k.zh,note:k.note,lang:e.lang,context:e.text,entryId:e.id});
+    });
+    if((!e.keywords||!e.keywords.length)&&e.text){
+      kws.push({word:e.text,zh:e.zh||'',note:'',lang:e.lang,context:e.text,entryId:e.id});
+    }
   });
+  return kws;
+}
+function getEnKeywords(){return getAllKeywords().filter(k=>k.lang==='en');}
+
+// ── STUDY SESSION ─────────────────────────────────────────────────
+function startSession(files){
+  files=Array.from(files);if(!files.length)return;
+  shuffle(files);
+  const fresh=files.filter(f=>!DB.fps.includes(fp(f)));
+  const dupes=files.length-fresh.length;
+  if(!fresh.length){toast('这批图片都处理过了，请选新的截图');return;}
+  if(dupes>0)toast('已过滤'+dupes+'张重复图片');
+  studySess={
+    images:fresh.slice(0,25).map(f=>({file:f,fp:fp(f),src:URL.createObjectURL(f)})),
+    idx:0,state:'input',res:null,notes:''
+  };
+  goTo('study');renderStudy();
 }
 
-// ── Input Cards ───────────────────────────────────────────────────
-function showCard(idx) {
-  session.idx = idx;
-  const total  = session.images.length;
-  const img    = session.images[idx];
-  const saved  = session.entries[idx] || '';
-
-  // dots
-  const dotsHtml = session.images.map((_,i) =>
-    `<div class="dot ${i < idx ? 'done' : i === idx ? 'active' : ''}"></div>`
-  ).join('');
-
-  document.getElementById('card-wrap').innerHTML = `
-    <div class="card-img-area">
-      <img class="card-img" src="${img.src}" alt="">
-      <div class="card-overlay"></div>
-      <div class="card-top">
-        <button class="card-close" onclick="goTo('home')">✕</button>
-        <span class="card-counter">${idx+1} / ${total}</span>
+function renderStudy(){
+  const el=document.getElementById('study-inner');
+  if(studySess.state==='done'){renderStudyDone(el);return;}
+  const img=studySess.images[studySess.idx];
+  const total=studySess.images.length;
+  const dots=studySess.images.map((_,i)=>'<div class="sdot '+(i<studySess.idx?'done':i===studySess.idx?'cur':'')+'"></div>').join('');
+  el.innerHTML=`
+    <div class="s-img-wrap">
+      <img src="${img.src}" alt="">
+      <div class="s-overlay"></div>
+      <div class="s-topbar">
+        <button class="s-close" onclick="goTo('home')">✕</button>
+        <span class="s-counter">${studySess.idx+1} / ${total}</span>
         <div style="width:28px"></div>
       </div>
-      <div class="dots">${dotsHtml}</div>
+      <div class="s-dots">${dots}</div>
     </div>
-    <div class="card-bottom">
-      <div class="card-input-wrap">
-        <textarea class="card-input" id="txt-input" placeholder="输入这张截图里的字幕…" rows="2"
-          oninput="autoResize(this)">${saved}</textarea>
-        <button class="card-submit" id="submit-btn" onclick="submitCard()">→</button>
-      </div>
-      <button class="skip-btn" onclick="skipCard()">跳过这张</button>
+    <div class="s-panel" id="s-panel">
+      ${studySess.state==='input'?renderSInput():studySess.state==='analyzing'?renderSAnalyzing():renderSResult()}
     </div>`;
-
-  // focus input
-  setTimeout(() => {
-    const el = document.getElementById('txt-input');
-    if (el) el.focus();
-  }, 300);
-}
-
-function autoResize(el) {
-  el.style.height = 'auto';
-  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
-}
-
-async function submitCard() {
-  const txt = document.getElementById('txt-input').value.trim();
-  if (!txt) { toast('请先输入字幕内容'); return; }
-
-  session.entries[session.idx] = txt;
-
-  // save entry
-  const entry = { text: txt, img: session.images[session.idx].src, zh: '', ts: Date.now() };
-  DB.days[todayKey].push(entry);
-  DB.allEntries.push(entry);
-  await persist();
-
-  // translate in background (non-blocking)
-  translateEntry(DB.days[todayKey].length - 1, txt);
-
-  nextCard();
-}
-
-function skipCard() {
-  session.entries[session.idx] = '';
-  nextCard();
-}
-
-function nextCard() {
-  const next = session.idx + 1;
-  if (next >= session.images.length) {
-    finishSession();
-  } else {
-    showCard(next);
+  if(studySess.state==='input')setTimeout(()=>{const t=document.getElementById('s-ta');if(t)t.focus();},300);
+  if(studySess.state==='result'){
+    const ni=document.getElementById('s-notes');
+    if(ni){ni.value=studySess.notes||'';ni.oninput=()=>{studySess.notes=ni.value;};}
   }
 }
 
-async function translateEntry(idx, txt) {
-  try {
-    const r = await fetch(DS_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${DS_KEY}` },
-      body: JSON.stringify({
-        model: 'deepseek-chat', max_tokens: 150,
-        messages: [{ role: 'user', content:
-          `翻译成中文，只返回翻译结果，不要任何解释：${txt}` }]
-      })
+function renderSInput(){
+  return`<p class="i-hint">照着图片，输入字幕内容</p>
+    <div class="i-row">
+      <textarea class="i-ta" id="s-ta" placeholder="输入这张截图的字幕…" rows="2" oninput="autoR(this)"></textarea>
+      <button class="i-btn" onclick="submitS()">→</button>
+    </div>
+    <div class="i-skip" onclick="skipS()">跳过这张</div>`;
+}
+function renderSAnalyzing(){
+  return`<div class="spin-row"><div class="sdot2"></div><div class="sdot2"></div><div class="sdot2"></div></div>
+    <p style="text-align:center;font-size:13px;color:var(--t2)">AI 分析中…</p>`;}
+function renderSResult(){
+  const r=studySess.res;if(!r)return renderSInput();
+  const isKo=r.lang==='ko';
+  const kws=(r.keywords||[]).map(k=>`<div class="kw-i ${isKo?'ko':''}"><div class="kw-w">${k.word}</div><div class="kw-z">${k.zh}</div><div class="kw-n">${k.note}</div></div>`).join('');
+  return`<div class="r-orig">${r.orig}<span class="lb ${isKo?'lb-ko':'lb-en'}">${isKo?'韩':'英'}</span></div>
+    <div class="r-zh">${r.zh}</div>
+    ${kws?'<div class="kw-list">'+kws+'</div>':''}
+    <div class="n-lbl">随手记</div>
+    <textarea class="n-ta" id="s-notes" placeholder="碎碎念…"></textarea>
+    <div style="margin-top:16px">
+      <button class="btn btn-amber" onclick="saveNext()">${studySess.idx>=studySess.images.length-1?'完成 ✓':'下一张 →'}</button>
+    </div>`;}
+
+async function submitS(){
+  const txt=(document.getElementById('s-ta')?.value||'').trim();
+  if(!txt){toast('请先输入字幕内容');return;}
+  studySess.state='analyzing';renderStudy();
+  try{
+    const raw=await callDS([{role:'user',content:`分析影视字幕（英文或韩文）："${txt}"
+返回JSON不要markdown：{"orig":"原文","zh":"自然中文翻译","lang":"en或ko","keywords":[{"word":"原文词/短语","zh":"中文含义","note":"地道用法；韩文注明반말/존댓말和典型场景"}]}
+提取2-3个值得学的词或短语。`}],500);
+    studySess.res=JSON.parse(raw.replace(/\`\`\`json|\`\`\`/g,'').trim());
+  }catch(e){studySess.res={orig:txt,zh:'',lang:'en',keywords:[]};}
+  studySess.state='result';studySess.notes='';renderStudy();
+}
+function skipS(){studySess.res=null;studySess.notes='';advanceS();}
+async function saveNext(){
+  const r=studySess.res;
+  if(r){
+    const id=Date.now()+'-'+studySess.idx;
+    const entry={id,text:r.orig,lang:r.lang,zh:r.zh,keywords:r.keywords||[],notes:studySess.notes||'',date:todayKey,ts:Date.now()};
+    DB.entries.push(entry);
+    DB.fps.push(studySess.images[studySess.idx].fp);
+    if(!DB.days[todayKey])DB.days[todayKey]=[];
+    DB.days[todayKey].push(id);
+    await saveDB();
+    compressStore(id,studySess.images[studySess.idx].file);
+  }
+  advanceS();
+}
+function advanceS(){
+  studySess.res=null;studySess.notes='';
+  if(studySess.idx>=studySess.images.length-1){studySess.state='done';}
+  else{studySess.idx++;studySess.state='input';}
+  renderStudy();
+}
+function renderStudyDone(el){
+  const cnt=(DB.days[todayKey]||[]).length;
+  el.style.background='var(--bg)';
+  el.innerHTML=`<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 26px;gap:18px;text-align:center">
+    <div style="font-size:52px">🎉</div>
+    <div style="font-size:22px;font-weight:300">今日完成！</div>
+    <div style="font-size:14px;color:var(--t2);line-height:1.8">今天输入了 ${cnt} 条字幕</div>
+    <div style="width:100%;display:flex;flex-direction:column;gap:10px;margin-top:8px">
+      <button class="btn btn-amber" onclick="goTo('textlist');renderList()">查看今日字幕列表</button>
+      <button class="btn btn-white" onclick="goTo('story');resetStory()">✦ 生成小故事</button>
+      <button class="btn btn-ghost" onclick="goTo('home')">回主页</button>
+    </div>
+  </div>`;}
+
+async function compressStore(id,file){
+  try{
+    const b64=await new Promise(res=>{
+      const img=new Image();
+      img.onload=()=>{const c=document.createElement('canvas');const s=Math.min(400/img.width,400/img.height,1);c.width=img.width*s;c.height=img.height*s;c.getContext('2d').drawImage(img,0,0,c.width,c.height);res(c.toDataURL('image/jpeg',.7).split(',')[1]);};
+      img.src=URL.createObjectURL(file);
     });
-    const d = await r.json();
-    const zh = d.choices?.[0]?.message?.content?.trim() || '';
-    if (zh && DB.days[todayKey][idx]) {
-      DB.days[todayKey][idx].zh = zh;
-      DB.allEntries.find(e => e.ts === DB.days[todayKey][idx].ts && !e.zh && (e.zh = zh));
-      await persist();
-      // update list if visible
-      const el = document.getElementById(`zh-${idx}`);
-      if (el) { el.textContent = zh; el.classList.remove('loading'); }
-    }
-  } catch(e) {}
+    await saveImg(id,b64);
+  }catch(e){}
 }
 
-function finishSession() {
-  const count = todayEntries().length;
-  document.getElementById('done-sub').textContent = `今天输入了 ${count} 条字幕\n翻译正在后台完成…`;
-  goTo('done');
+// ── CARD REVIEW ───────────────────────────────────────────────────
+let crCards=[],crIdx=0,crFlipped=false;
+
+function startCardReview(){
+  const all=getAllKeywords();
+  if(!all.length){toast('词库还没有内容，先上传截图积累词汇吧');return;}
+  crCards=shuffle([...all]).slice(0,20);
+  crIdx=0;crFlipped=false;
+  goTo('cardreview');renderCR();
 }
 
-// ── Text List ─────────────────────────────────────────────────────
-function renderList() {
-  const el = document.getElementById('entries');
-  const today = todayEntries();
-  if (!today.length) {
-    el.innerHTML = '<div style="padding:40px 0;text-align:center;color:var(--dim);font-size:14px">今日暂无记录</div>';
+function renderCR(){
+  const el=document.getElementById('cr-body');
+  document.getElementById('cr-counter').textContent=crIdx+1+' / '+crCards.length;
+  if(crIdx>=crCards.length){
+    el.innerHTML='<div class="cr-empty">本轮完成！<br><br><button class="btn btn-amber" style="max-width:200px;margin:0 auto" onclick="startCardReview()">再来一轮</button><br><br><button class="btn btn-ghost" style="max-width:200px;margin:0 auto" onclick="goTo('home')">回主页</button></div>';
     return;
   }
-  el.innerHTML = today.map((e,i) => `
-    <div class="entry">
-      <div class="entry-n">${String(i+1).padStart(2,'0')}</div>
-      <div class="entry-en">${e.text}</div>
-      <div class="entry-zh ${e.zh ? '' : 'loading'}" id="zh-${i}">${e.zh || '翻译中…'}</div>
-    </div>`).join('');
+  const c=crCards[crIdx];
+  const isKo=c.lang==='ko';
+  el.innerHTML=`
+    <div class="flip-area">
+      <div class="flip-scene" onclick="flipCR()">
+        <div class="flip-inner ${crFlipped?'flipped':''}" id="flip-inner">
+          <div class="flip-face">
+            <span class="lb ${isKo?'lb-ko':'lb-en'}" style="margin-bottom:14px;margin-left:0">${isKo?'🇰🇷 韩语':'🇺🇸 英语'}</span>
+            <div class="flip-word">${c.word}</div>
+            <div class="flip-hint">点击查看释义</div>
+          </div>
+          <div class="flip-face flip-back">
+            <div class="flip-zh">${c.zh||'—'}</div>
+            ${c.note?'<div class="flip-note">'+c.note+'</div>':''}
+            ${c.context&&c.context!==c.word?'<div class="flip-ctx">出自："'+c.context+'"</div>':''}
+          </div>
+        </div>
+      </div>
+      ${crFlipped?`<div class="rate-row">
+        <button class="rate-btn rate-f" onclick="rateCR(false)">没记住</button>
+        <button class="rate-btn rate-g" onclick="rateCR(true)">记住了 ✓</button>
+      </div>`:'<div style="height:54px"></div>'}
+    </div>`;
 }
 
-// ── Story ─────────────────────────────────────────────────────────
-document.addEventListener('click', e => {
-  const chip = e.target.closest('.chip');
-  if (!chip) return;
-  const g = chip.dataset.g;
-  if (!g) return;
-  document.querySelectorAll(`.chip[data-g="${g}"]`).forEach(c => c.classList.remove('on'));
-  chip.classList.add('on');
-});
-
-function resetStory() {
-  document.getElementById('story-config').style.display = 'block';
-  document.getElementById('story-shimmer').style.display = 'none';
-  document.getElementById('story-result').textContent = '';
+function flipCR(){crFlipped=!crFlipped;renderCR();}
+function rateCR(got){
+  if(!got)crCards.push(crCards[crIdx]);// push to end if not got
+  crIdx++;crFlipped=false;renderCR();
 }
 
-async function generateStory() {
-  const today = todayEntries();
-  if (!today.length) { toast('今日没有字幕记录'); return; }
+// ── CONVERSATION ─────────────────────────────────────────────────
+async function startConversation(){
+  const enKws=getEnKeywords();
+  if(enKws.length<3){toast('英语词汇太少了，先多输入一些截图吧');return;}
+  goTo('conversation');
+  document.getElementById('cv-loading').style.display='flex';
+  document.getElementById('cv-main').style.display='none';
+  document.getElementById('fb-sheet').classList.remove('show');
 
-  const scene = document.querySelector('.chip.on[data-g="scene"]')?.textContent || '日常对话';
-  const style = document.querySelector('.chip.on[data-g="style"]')?.textContent || '轻松幽默';
-  const lang  = document.querySelector('.chip.on[data-g="lang"]')?.textContent  || '中英双语';
+  const picked=shuffle([...enKws]).slice(0,Math.min(6,enKws.length));
+  const wordsBlock=picked.map(w=>'- "'+w.word+'" ('+w.zh+(w.note?'，'+w.note:'')+')').join('\n');
+  const weakness=DB.weaknessProfile?'【用户英语弱点档案】\n'+DB.weaknessProfile:'';
 
-  const lines = today.map((e,i) => `${i+1}. ${e.text}${e.zh ? `（${e.zh}）` : ''}`).join('\n');
+  try{
+    const raw=await callDS([{role:'user',content:`你是一个沉浸式英语口语练习助手。
 
-  document.getElementById('story-config').style.display = 'none';
-  document.getElementById('story-shimmer').style.display = 'flex';
-  document.getElementById('story-result').textContent = '';
+任务：生成一个真实自然的对话场景和角色，然后写出你的第一句话。
 
-  try {
-    const r = await fetch(DS_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${DS_KEY}` },
-      body: JSON.stringify({
-        model: 'deepseek-chat', max_tokens: 1200,
-        messages: [{ role: 'user', content:
-`今天从影视剧截图里手动输入的字幕句子：
-${lines}
+【秘密目标词汇】（对话中自然创造机会，绝不能直接提示这是练习词）
+${wordsBlock}
 
-请把这些句子自然地融入一个短故事。
-场景：${scene}
-风格：${style}
-语言：${lang === '中英双语' ? '中英双语——每个段落先写英文，换行再写对应中文' : lang === '纯英文' ? '全程英文' : '全程中文'}
+${weakness}
 
-要求：真实融入原句，有起承转合，200-350字。直接开始写故事，不要标题和前言。` }]
-      })
-    });
-    const d = await r.json();
-    const txt = d.choices?.[0]?.message?.content || '生成失败，请重试';
-    document.getElementById('story-shimmer').style.display = 'none';
-    document.getElementById('story-result').textContent = txt;
-  } catch(e) {
-    document.getElementById('story-shimmer').style.display = 'none';
-    document.getElementById('story-result').textContent = '网络错误，请重试';
-    document.getElementById('story-config').style.display = 'block';
+生成一个虚拟角色，返回JSON（不要markdown）：
+{"name":"英文名","nationality":"国籍（中文）","job":"职业（中文）","relationship":"和用户的关系（中文，1句，自然真实）","scene":"当前场景（中文，细节真实，2句话）","firstMessage":"你的第一句英文话（自然口语，符合场景角色）"}`}],400);
+    const setup=JSON.parse(raw.replace(/\`\`\`json|\`\`\`/g,'').trim());
+    setup.targetWords=picked;
+    convSess={setup,messages:[],state:'chatting'};
+
+    // build system prompt
+    const sys=`你扮演${setup.name}，${setup.nationality}人，${setup.job}。${setup.relationship}。当前场景：${setup.scene}
+
+【秘密目标】对话中自然创造机会让用户使用以下词汇，绝不能直接说出这些词或暗示是练习：
+${wordsBlock}
+
+规则：全程英文；语气真实自然；每次1-3句，保持节奏；像真人聊天有情感有逻辑。`;
+
+    convSess.messages=[
+      {role:'system',content:sys},
+      {role:'assistant',content:setup.firstMessage}
+    ];
+
+    // render
+    document.getElementById('cv-loading').style.display='none';
+    const cvMain=document.getElementById('cv-main');
+    cvMain.style.display='flex';
+    cvMain.style.flexDirection='column';
+
+    document.getElementById('cv-id').innerHTML=`
+      <div class="id-row">
+        <div class="id-av">${setup.name.charAt(0)}</div>
+        <div><div class="id-name">${setup.name}</div><div class="id-sub">${setup.nationality} · ${setup.job}</div></div>
+      </div>
+      <div class="id-scene">${setup.relationship}。${setup.scene}</div>`;
+
+    const ca=document.getElementById('chat-area');
+    ca.innerHTML='';
+    addBubble('ai',setup.firstMessage);
+  }catch(e){
+    toast('生成场景失败，请重试');
+    document.getElementById('cv-loading').style.display='none';
+    goTo('home');
   }
 }
 
-// ── Drag drop ─────────────────────────────────────────────────────
-const dz = document.getElementById('drop-zone');
-dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag'); });
-dz.addEventListener('dragleave', () => dz.classList.remove('drag'));
-dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('drag'); loadImages(e.dataTransfer.files); });
+function addBubble(type,text){
+  const ca=document.getElementById('chat-area');
+  if(!ca)return;
+  const div=document.createElement('div');
+  div.className='bbl '+(type==='ai'?'bbl-ai':type==='user'?'bbl-user':'bbl-sys');
+  div.textContent=text;
+  ca.appendChild(div);
+  ca.scrollTop=ca.scrollHeight;
+}
+
+function addLoadingBubble(){
+  const ca=document.getElementById('chat-area');
+  if(!ca)return;
+  const div=document.createElement('div');
+  div.className='bbl-loading';div.id='bbl-loading';
+  div.innerHTML='<div class="bld"></div><div class="bld"></div><div class="bld"></div>';
+  ca.appendChild(div);ca.scrollTop=ca.scrollHeight;
+}
+function removeLoadingBubble(){const el=document.getElementById('bbl-loading');if(el)el.remove();}
+
+async function sendMsg(){
+  const ta=document.getElementById('cv-ta');
+  const txt=(ta?.value||'').trim();
+  if(!txt||convSess?.state!=='chatting')return;
+  ta.value='';ta.style.height='auto';
+  addBubble('user',txt);
+  convSess.messages.push({role:'user',content:txt});
+  addLoadingBubble();
+  try{
+    const reply=await callDS(convSess.messages,250);
+    removeLoadingBubble();
+    convSess.messages.push({role:'assistant',content:reply});
+    addBubble('ai',reply);
+  }catch(e){removeLoadingBubble();toast('网络错误，请重试');}
+}
+
+function cvEnter(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}}
+
+async function endConversation(){
+  if(!convSess)return;
+  convSess.state='ending';
+  addBubble('sys','对话结束，正在生成反馈…');
+  const history=convSess.messages.filter(m=>m.role!=='system')
+    .map(m=>(m.role==='user'?'学习者':convSess.setup.name)+': '+m.content).join('\n');
+  const words=convSess.setup.targetWords.map(w=>w.word).join('、');
+  try{
+    const fb=await callDS([{role:'user',content:`分析这段英语对话练习，用中文反馈：
+
+${history}
+
+本次目标词汇：${words}
+
+请简洁反馈（说人话，不打分）：
+语感：哪些表达自然地道，哪里不像母语者说的
+词汇：用到了哪些目标词，用得准吗（没用到的不提）
+建议：一个最值得改进的具体点
+弱点记录：（一句话，将存入档案，供下次对话参考）`}],600);
+
+    const fbSheet=document.getElementById('fb-sheet');
+    // extract weakness line
+    const weakMatch=fb.match(/弱点记录[：:]\s*(.+)/);
+    pendingWeakness=weakMatch?weakMatch[1].trim():'';
+    const displayFb=fb.replace(/弱点记录[：:].*$/,'').trim();
+
+    document.getElementById('fb-body').textContent=displayFb;
+    document.getElementById('weakness-box').innerHTML=pendingWeakness?
+      '<div class="weakness-box"><strong>📌 本次弱点记录</strong>'+pendingWeakness+'</div>':'';
+    fbSheet.classList.add('show');
+  }catch(e){toast('获取反馈失败');}
+}
+
+async function saveWeaknessAndClose(){
+  if(pendingWeakness){
+    const lines=(DB.weaknessProfile||'').split('\n').filter(Boolean);
+    lines.push(new Date().toLocaleDateString('zh-CN')+': '+pendingWeakness);
+    DB.weaknessProfile=lines.slice(-5).join('\n');// keep last 5
+    await saveDB();
+  }
+  pendingWeakness='';
+  document.getElementById('fb-sheet').classList.remove('show');
+  goTo('home');
+}
+
+// ── TEXT LIST ─────────────────────────────────────────────────────
+async function renderList(){
+  const el=document.getElementById('entries');
+  const ids=DB.days[todayKey]||[];
+  const today=ids.map(id=>DB.entries.find(e=>e.id===id)).filter(Boolean);
+  if(!today.length){el.innerHTML='<div style="padding:40px 0;text-align:center;color:var(--t3);font-size:14px">今日暂无记录</div>';return;}
+  el.innerHTML=today.map((e,i)=>`
+    <div class="e-row">
+      <img class="e-thumb" id="et-${e.id}" src="" alt="">
+      <div class="e-body">
+        <div class="e-num">${String(i+1).padStart(2,'0')} <span class="lb ${e.lang==='ko'?'lb-ko':'lb-en'}">${e.lang==='ko'?'韩':'英'}</span></div>
+        <div class="e-en">${e.text}</div>
+        <div class="e-zh">${e.zh||''}</div>
+        ${e.notes?'<div class="e-note">'+e.notes+'</div>':''}
+      </div>
+    </div>`).join('');
+  today.forEach(e=>{loadImg(e.id).then(b64=>{if(b64){const el2=document.getElementById('et-'+e.id);if(el2)el2.src='data:image/jpeg;base64,'+b64;}});});
+}
+
+// ── STORY ─────────────────────────────────────────────────────────
+document.addEventListener('click',e=>{
+  const c=e.target.closest('.chip');if(!c)return;
+  const g=c.dataset.g;if(!g)return;
+  document.querySelectorAll('.chip[data-g="'+g+'"]').forEach(x=>x.classList.remove('on'));
+  c.classList.add('on');
+});
+function resetStory(){
+  document.getElementById('story-cfg').style.display='block';
+  document.getElementById('story-shim').style.display='none';
+  document.getElementById('story-txt').textContent='';
+}
+async function genStory(){
+  const ids=DB.days[todayKey]||[];
+  const today=ids.map(id=>DB.entries.find(e=>e.id===id)).filter(Boolean);
+  if(!today.length){toast('今日没有字幕记录');return;}
+  const scene=document.querySelector('.chip.on[data-g="scene"]')?.textContent||'日常对话';
+  const style=document.querySelector('.chip.on[data-g="style"]')?.textContent||'轻松幽默';
+  const lang=document.querySelector('.chip.on[data-g="lang"]')?.textContent||'中英双语';
+  const lines=today.map((e,i)=>(i+1)+'. '+e.text+(e.zh?'（'+e.zh+'）':'')).join('\n');
+  document.getElementById('story-cfg').style.display='none';
+  document.getElementById('story-shim').style.display='flex';
+  document.getElementById('story-txt').textContent='';
+  try{
+    const txt=await callDS([{role:'user',content:`今天从影视剧截图里手动输入的字幕：\n${lines}\n\n用这些句子编一个短故事。场景：${scene}，风格：${style}，语言：${lang==='中英双语'?'中英双语，每段先英文后中文':lang==='纯英文'?'全程英文':'全程中文'}。自然融入原句，200-350字，直接开始写，不要标题前言。`}],1200);
+    document.getElementById('story-shim').style.display='none';
+    document.getElementById('story-txt').textContent=txt;
+  }catch(e){
+    document.getElementById('story-shim').style.display='none';
+    document.getElementById('story-cfg').style.display='block';
+    toast('网络错误，请重试');
+  }
+}
 </script>
 </body>
 </html>
