@@ -46,7 +46,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:"Noto S
 .rtag{display:inline-block;font-size:10px;padding:2px 7px;border-radius:8px;margin-top:6px}
 .rt-b{background:var(--amt);color:var(--amber)}.rt-e{background:var(--blt);color:var(--blue)}
 .hlinks{display:flex;flex-direction:column;gap:10px;margin-top:0}
-#loading-overlay{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:999}
+#loading-overlay{display:none!important}
 .sp{width:8px;height:8px;border-radius:50%;background:var(--amber);animation:spp 1.2s ease-in-out infinite;display:inline-block;margin:0 3px}
 .sp:nth-child(2){animation-delay:.2s}.sp:nth-child(3){animation-delay:.4s}
 @keyframes spp{0%,100%{opacity:.2;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}
@@ -158,15 +158,12 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:"Noto S
 </style>
 </head>
 <body>
-<div id="loading-overlay">
-  <div><span class="sp"></span><span class="sp"></span><span class="sp"></span></div>
-  <div style="font-size:13px;color:var(--t3)">加载中…</div>
-</div>
+<div id="loading-overlay" style="display:none"></div>
 <div id="toast"></div>
 <div id="app">
 
 <!-- HOME -->
-<div class="screen" id="home">
+<div class="screen active" id="home">
   <div class="hero"><h1>剧词</h1><p>追剧积词，每天进一点</p></div>
   <div class="stats">
     <div class="sc"><div class="sn" id="h-tot">0</div><div class="sl">词库</div></div>
