@@ -331,21 +331,29 @@ function setUID(id) {
 // ── KV via Worker ─────────────────────────────────────────────────
 async function kvGet(key) {
   try {
+    var controller = new AbortController();
+    var tid = setTimeout(function(){ controller.abort(); }, 5000);
     var r = await fetch(WORKER, {
       method: "POST",
-      headers: {"Content-Type":"application/json","X-Action":"kv-get","X-Key":getUID()+"-"+key}
+      headers: {"Content-Type":"application/json","X-Action":"kv-get","X-Key":getUID()+"-"+key},
+      signal: controller.signal
     });
+    clearTimeout(tid);
     var d = await r.json();
     return d.value || null;
   } catch(e) { return null; }
 }
 async function kvSet(key, val) {
   try {
+    var controller = new AbortController();
+    var tid = setTimeout(function(){ controller.abort(); }, 6000);
     await fetch(WORKER, {
       method: "POST",
       headers: {"Content-Type":"application/json","X-Action":"kv-set"},
-      body: JSON.stringify({key: getUID()+"-"+key, value: val})
+      body: JSON.stringify({key: getUID()+"-"+key, value: val}),
+      signal: controller.signal
     });
+    clearTimeout(tid);
   } catch(e) {}
 }
 
@@ -377,17 +385,38 @@ var crCards = [], crIdx = 0, crFlipped = false;
 
 // ── Init ──────────────────────────────────────────────────────────
 (async function init() {
-  try { DB = await loadDB(); } catch(e) {}
+  // Step 1: load from localStorage immediately — no waiting
+  try {
+    var cached = localStorage.getItem(CACHE_KEY);
+    if (cached) DB = JSON.parse(cached);
+  } catch(e) {}
   if (!DB.days) DB.days = {};
   if (!DB.entries) DB.entries = [];
   if (!DB.fps) DB.fps = [];
   if (!DB.days[todayKey]) DB.days[todayKey] = [];
+
+  // Show UI right away
   document.getElementById("loading-overlay").style.display = "none";
   document.getElementById("home").classList.add("active");
   bindEvents();
   refreshHome();
-  // show sync code
   document.getElementById("sync-code-display").textContent = getUID();
+
+  // Step 2: sync with KV in background (non-blocking)
+  try {
+    var v = await kvGet("db");
+    if (v) {
+      var remote = JSON.parse(v);
+      // Use remote if it has more entries
+      if (remote && remote.entries && remote.entries.length >= (DB.entries||[]).length) {
+        DB = remote;
+        if (!DB.days) DB.days = {};
+        if (!DB.days[todayKey]) DB.days[todayKey] = [];
+        try { localStorage.setItem(CACHE_KEY, v); } catch(e) {}
+        refreshHome();
+      }
+    }
+  } catch(e) {}
 })();
 
 // ── Events ────────────────────────────────────────────────────────
