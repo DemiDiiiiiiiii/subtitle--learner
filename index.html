@@ -171,8 +171,8 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:"Noto S
     <div class="sc"><div class="sn" id="h-days" style="color:var(--green)">0</div><div class="sl">累计天数</div></div>
   </div>
   <div class="slbl">今日学习</div>
-  <button class="btn btn-a" style="margin-bottom:22px" id="btn-upload">📸 &nbsp;上传截图，开始输入</button>
-  <input type="file" id="fp" accept="image/*" multiple style="display:none">
+  <label for="fp"><div class="btn btn-a" style="margin-bottom:22px;text-align:center;cursor:pointer">📸 &nbsp;上传截图，开始输入</div></label>
+  <input type="file" id="fp" accept="image/*" multiple style="display:none" onchange="startSession(this.files);this.value='';">
   <div class="slbl">复习</div>
   <div class="rev-grid">
     <button class="rb" id="btn-card">
@@ -249,7 +249,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:"Noto S
   <div class="entries" id="entries"></div>
   <div class="lacts">
     <button class="btn btn-a" id="tl-story">✦ 生成小故事</button>
-    <button class="btn btn-g" id="tl-more">继续上传截图</button>
+    <label for="fp"><div class="btn btn-g" style="text-align:center;cursor:pointer">继续上传截图</div></label>
   </div>
   <div class="safe"></div>
 </div>
@@ -418,8 +418,6 @@ var crCards = [], crIdx = 0, crFlipped = false;
 
 // ── Events ────────────────────────────────────────────────────────
 function bindEvents() {
-  document.getElementById("btn-upload").onclick = function(){ document.getElementById("fp").click(); };
-  document.getElementById("fp").onchange = function(){ startSession(this.files); this.value=""; };
   document.getElementById("btn-card").onclick = startCardReview;
   document.getElementById("btn-conv").onclick = startConversation;
   document.getElementById("btn-list").onclick = function(){ goTo("textlist"); renderList(); };
@@ -434,7 +432,6 @@ function bindEvents() {
   document.getElementById("fb-again").onclick = startConversation;
   document.getElementById("tl-back").onclick = function(){ goTo("home"); };
   document.getElementById("tl-story").onclick = function(){ goTo("story"); resetStory(); };
-  document.getElementById("tl-more").onclick = function(){ document.getElementById("fp").click(); };
   document.getElementById("st-back").onclick = function(){ goTo("textlist"); };
   document.getElementById("st-gen").onclick = genStory;
   document.getElementById("sc-back").onclick = function(){ goTo("home"); };
