@@ -4,206 +4,208 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>剧词</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
   --bg:#f8f5f1;--card:#fff;--text:#1c1917;--t2:#6b6560;--t3:#a8a29e;
-  --amber:#c27b0f;--amt:rgba(194,123,15,.1);--amtb:rgba(194,123,15,.15);
-  --blue:#2563eb;--blt:rgba(37,99,235,.08);
-  --purple:#7c3aed;--plt:rgba(124,58,237,.08);
+  --gold:#c27b0f;--gold-lt:rgba(194,123,15,.1);
+  --blue:#2563eb;--blue-lt:rgba(37,99,235,.08);
+  --purple:#7c3aed;--purple-lt:rgba(124,58,237,.08);
   --green:#16a34a;--red:#dc2626;
-  --bdr:rgba(0,0,0,.08);--sh:0 2px 16px rgba(0,0,0,.07);
+  --bdr:rgba(0,0,0,.08);--sh:0 2px 12px rgba(0,0,0,.07);
   --r:16px;--rs:10px;
 }
-html,body{height:100%;background:var(--bg);color:var(--text);font-family:"Noto Serif SC",serif;overflow:hidden;-webkit-font-smoothing:antialiased}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased}
 #app{height:100vh;position:relative}
-.screen{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity .22s ease;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column}
-.screen.active{opacity:1;pointer-events:all}
-.btn{width:100%;padding:15px;border:none;border-radius:var(--rs);font-family:"Noto Serif SC",serif;font-size:15px;cursor:pointer;transition:opacity .15s,transform .15s}
-.btn:active{opacity:.72;transform:scale(.98)}
-.btn-a{background:linear-gradient(135deg,#d4900f,#b8720a);color:#fff;font-weight:600}
-.btn-w{background:var(--card);color:var(--text);border:1px solid var(--bdr);box-shadow:var(--sh)}
-.btn-g{background:none;color:var(--t2);border:1px solid var(--bdr);font-size:13px}
+.screen{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity .2s;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column}
+.screen.on{opacity:1;pointer-events:all}
+/* buttons */
+.btn{width:100%;padding:15px;border:none;border-radius:var(--rs);font-size:15px;cursor:pointer;transition:opacity .15s,transform .1s;font-family:inherit}
+.btn:active{opacity:.7;transform:scale(.98)}
+.btn-gold{background:linear-gradient(135deg,#d4900f,#b8720a);color:#fff;font-weight:600}
+.btn-white{background:var(--card);color:var(--text);border:1px solid var(--bdr);box-shadow:var(--sh)}
+.btn-ghost{background:none;color:var(--t2);border:1px solid var(--bdr);font-size:13px}
+/* nav */
 .nav{padding:52px 22px 14px;display:flex;align-items:center;gap:14px;flex-shrink:0}
 .back{width:36px;height:36px;border-radius:50%;background:var(--card);border:1px solid var(--bdr);box-shadow:var(--sh);color:var(--t2);font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.nav-t{font-size:17px}
+/* home */
 #home{padding:max(52px,env(safe-area-inset-top)) 22px 0}
 .hero{padding:16px 0 20px}
 .hero h1{font-size:28px;font-weight:300;letter-spacing:2px;line-height:1.4}
 .hero p{font-size:13px;color:var(--t3);margin-top:5px}
 .stats{display:flex;gap:10px;margin-bottom:22px}
-.sc{flex:1;background:var(--card);border-radius:var(--r);padding:14px 8px;text-align:center;box-shadow:var(--sh);border:1px solid var(--bdr)}
-.sn{font-size:26px;font-weight:600;color:var(--amber);line-height:1}
-.sl{font-size:11px;color:var(--t3);margin-top:3px}
-.slbl{font-size:11px;color:var(--t3);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px}
+.stat{flex:1;background:var(--card);border-radius:var(--r);padding:14px 8px;text-align:center;box-shadow:var(--sh);border:1px solid var(--bdr)}
+.stat-n{font-size:26px;font-weight:600;color:var(--gold);line-height:1}
+.stat-l{font-size:11px;color:var(--t3);margin-top:3px}
+.sec-lbl{font-size:11px;color:var(--t3);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px}
 .rev-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
-.rb{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);padding:18px 14px;text-align:left;cursor:pointer;box-shadow:var(--sh);transition:transform .15s;width:100%;font-family:inherit}
-.rb:active{transform:scale(.97)}
-.ri{font-size:24px;margin-bottom:8px}
-.rn{font-size:14px;font-weight:600;margin-bottom:3px}
-.rm{font-size:11px;color:var(--t3)}
-.rtag{display:inline-block;font-size:10px;padding:2px 7px;border-radius:8px;margin-top:6px}
-.rt-b{background:var(--amt);color:var(--amber)}.rt-e{background:var(--blt);color:var(--blue)}
-.hlinks{display:flex;flex-direction:column;gap:10px;margin-top:0}
-#loading-overlay{display:none!important}
-.sp{width:8px;height:8px;border-radius:50%;background:var(--amber);animation:spp 1.2s ease-in-out infinite;display:inline-block;margin:0 3px}
-.sp:nth-child(2){animation-delay:.2s}.sp:nth-child(3){animation-delay:.4s}
-@keyframes spp{0%,100%{opacity:.2;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}
+.rev-card{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);padding:18px 14px;text-align:left;cursor:pointer;box-shadow:var(--sh);transition:transform .15s;font-family:inherit;width:100%}
+.rev-card:active{transform:scale(.97)}
+.rev-icon{font-size:24px;margin-bottom:8px}
+.rev-name{font-size:14px;font-weight:600;margin-bottom:3px}
+.rev-meta{font-size:11px;color:var(--t3)}
+.rev-tag{display:inline-block;font-size:10px;padding:2px 7px;border-radius:8px;margin-top:6px}
+.rt-gold{background:var(--gold-lt);color:var(--gold)}
+.rt-blue{background:var(--blue-lt);color:var(--blue)}
+/* study */
 #study{background:#000}
-.sim{position:relative;flex-shrink:0}
-.sim img{width:100%;display:block;max-height:54vh;object-fit:cover}
-.sov{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.4) 0%,transparent 35%,rgba(0,0,0,.1) 100%)}
-.stb{position:absolute;top:0;left:0;right:0;padding:max(52px,env(safe-area-inset-top)) 20px 12px;display:flex;justify-content:space-between;align-items:center}
-.scl{background:none;border:none;color:rgba(255,255,255,.6);font-size:20px;cursor:pointer}
-.sct{font-size:13px;color:rgba(255,255,255,.5)}
-.sdots{position:absolute;bottom:8px;left:0;right:0;display:flex;gap:4px;justify-content:center;padding:0 20px;flex-wrap:wrap}
+.s-img{position:relative;flex-shrink:0}
+.s-img img{width:100%;display:block;max-height:54vh;object-fit:cover}
+.s-grad{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.4) 0%,transparent 35%,rgba(0,0,0,.1) 100%)}
+.s-top{position:absolute;top:0;left:0;right:0;padding:max(52px,env(safe-area-inset-top)) 20px 12px;display:flex;justify-content:space-between;align-items:center}
+.s-x{background:none;border:none;color:rgba(255,255,255,.6);font-size:20px;cursor:pointer}
+.s-ct{font-size:13px;color:rgba(255,255,255,.5)}
+.s-dots{position:absolute;bottom:8px;left:0;right:0;display:flex;gap:4px;justify-content:center;padding:0 20px;flex-wrap:wrap}
 .dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.2);flex-shrink:0}
-.dot.done{background:var(--amber)}.dot.cur{background:rgba(255,255,255,.75)}
-.spanel{background:var(--bg);flex:1;border-radius:22px 22px 0 0;margin-top:-22px;padding:22px 22px max(28px,env(safe-area-inset-bottom));overflow-y:auto}
-.ihint{font-size:12px;color:var(--t3);text-align:center;margin-bottom:12px}
-.irow{display:flex;gap:10px;align-items:flex-end}
-.ita{flex:1;background:var(--card);border:1.5px solid var(--bdr);border-radius:var(--rs);padding:13px 16px;color:var(--text);font-family:"Noto Serif SC",serif;font-size:16px;resize:none;line-height:1.5;min-height:52px;max-height:110px;outline:none;transition:border-color .15s}
-.ita:focus{border-color:var(--amber)}.ita::placeholder{color:var(--t3)}
-.ibtn{width:48px;height:48px;border-radius:12px;border:none;flex-shrink:0;background:var(--amber);color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
-.iskip{text-align:center;margin-top:12px;font-size:13px;color:var(--t3);cursor:pointer}
-.spin{display:flex;align-items:center;justify-content:center;gap:0;padding:22px 0}
-.rorig{font-size:17px;line-height:1.55;margin-bottom:5px}
-.lb{display:inline-block;font-size:10px;padding:2px 7px;border-radius:8px;margin-left:6px;vertical-align:middle}
-.lb-e{background:var(--blt);color:var(--blue)}.lb-k{background:var(--plt);color:var(--purple)}
-.rzh{font-size:14px;color:var(--t2);margin-bottom:16px;line-height:1.6}
-.kwl{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
-.kwi{background:var(--card);border:1px solid var(--bdr);border-radius:var(--rs);padding:12px 14px;border-left:3px solid var(--amber)}
-.kwi.ko{border-left-color:var(--purple)}
-.kww{font-size:14px;font-weight:600;color:var(--amber);margin-bottom:2px}
-.kwi.ko .kww{color:var(--purple)}
-.kwz{font-size:13px;color:var(--text);margin-bottom:2px}
-.kwn{font-size:12px;color:var(--t2);line-height:1.6}
-.nlbl{font-size:11px;color:var(--t3);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
-.nta{width:100%;background:var(--card);border:1px solid var(--bdr);border-radius:var(--rs);padding:12px 14px;color:var(--text);font-family:"Noto Serif SC",serif;font-size:14px;resize:none;min-height:68px;outline:none;line-height:1.6}
-.nta::placeholder{color:var(--t3)}
+.dot.d{background:var(--gold)}.dot.c{background:rgba(255,255,255,.75)}
+.s-panel{background:var(--bg);flex:1;border-radius:22px 22px 0 0;margin-top:-22px;padding:22px 22px max(28px,env(safe-area-inset-bottom));overflow-y:auto}
+/* input */
+.i-hint{font-size:12px;color:var(--t3);text-align:center;margin-bottom:12px}
+.i-row{display:flex;gap:10px;align-items:flex-end}
+.i-ta{flex:1;background:var(--card);border:1.5px solid var(--bdr);border-radius:var(--rs);padding:13px 16px;color:var(--text);font-size:16px;font-family:inherit;resize:none;line-height:1.5;min-height:52px;max-height:110px;outline:none}
+.i-ta:focus{border-color:var(--gold)}.i-ta::placeholder{color:var(--t3)}
+.i-btn{width:48px;height:48px;border-radius:12px;border:none;flex-shrink:0;background:var(--gold);color:#fff;font-size:18px;cursor:pointer}
+.i-skip{text-align:center;margin-top:12px;font-size:13px;color:var(--t3);cursor:pointer}
+/* spinner */
+.spin{display:flex;align-items:center;justify-content:center;gap:6px;padding:24px 0}
+.sp{width:8px;height:8px;border-radius:50%;background:var(--gold);animation:sp 1.2s ease-in-out infinite}
+.sp:nth-child(2){animation-delay:.2s}.sp:nth-child(3){animation-delay:.4s}
+@keyframes sp{0%,100%{opacity:.2;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}
+/* result */
+.r-en{font-size:17px;line-height:1.55;margin-bottom:5px}
+.tag{display:inline-block;font-size:10px;padding:2px 7px;border-radius:8px;margin-left:6px;vertical-align:middle}
+.tag-en{background:var(--blue-lt);color:var(--blue)}.tag-ko{background:var(--purple-lt);color:var(--purple)}
+.r-zh{font-size:14px;color:var(--t2);margin-bottom:16px;line-height:1.6}
+.kw-list{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.kw{background:var(--card);border:1px solid var(--bdr);border-radius:var(--rs);padding:12px 14px;border-left:3px solid var(--gold)}
+.kw.ko{border-left-color:var(--purple)}
+.kw-w{font-size:14px;font-weight:600;color:var(--gold);margin-bottom:2px}
+.kw.ko .kw-w{color:var(--purple)}
+.kw-z{font-size:13px;color:var(--text);margin-bottom:2px}
+.kw-n{font-size:12px;color:var(--t2);line-height:1.6}
+.note-lbl{font-size:11px;color:var(--t3);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
+.note-ta{width:100%;background:var(--card);border:1px solid var(--bdr);border-radius:var(--rs);padding:12px 14px;color:var(--text);font-size:14px;font-family:inherit;resize:none;min-height:68px;outline:none;line-height:1.6}
+.note-ta::placeholder{color:var(--t3)}
+/* card review */
 #cardreview{background:var(--bg)}
 .flip-wrap{perspective:1000px;width:100%;cursor:pointer}
 .flip-inner{position:relative;width:100%;padding-bottom:58%;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.4,0,.2,1)}
 .flip-inner.flipped{transform:rotateY(180deg)}
 .flip-face{position:absolute;inset:0;backface-visibility:hidden;background:var(--card);border-radius:var(--r);box-shadow:var(--sh);border:1px solid var(--bdr);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px}
 .flip-back{transform:rotateY(180deg);align-items:flex-start;justify-content:flex-start;overflow:hidden}
-.fw{font-size:24px;font-weight:600;text-align:center;line-height:1.4;margin-bottom:8px}
-.fh{font-size:12px;color:var(--t3)}
-.fzh{font-size:18px;font-weight:600;margin-bottom:8px;line-height:1.4}
-.fn{font-size:12px;color:var(--t2);line-height:1.7}
-.fctx{font-size:11px;color:var(--t3);margin-top:8px;padding-top:8px;border-top:1px solid var(--bdr);font-style:italic;line-height:1.6}
-.rrow{display:flex;gap:10px}
-.rbtn{flex:1;padding:14px;border:none;border-radius:var(--rs);cursor:pointer;font-family:"Noto Serif SC",serif;font-size:14px}
-.rbtn:active{opacity:.7}
-.rf{background:rgba(220,38,38,.1);color:var(--red)}
-.rg{background:rgba(22,163,74,.1);color:var(--green)}
+.f-word{font-size:24px;font-weight:600;text-align:center;line-height:1.4;margin-bottom:8px}
+.f-hint{font-size:12px;color:var(--t3)}
+.f-zh{font-size:18px;font-weight:600;margin-bottom:8px;line-height:1.4}
+.f-note{font-size:12px;color:var(--t2);line-height:1.7}
+.f-ctx{font-size:11px;color:var(--t3);margin-top:8px;padding-top:8px;border-top:1px solid var(--bdr);font-style:italic;line-height:1.6}
+.rate-row{display:flex;gap:10px}
+.rate-btn{flex:1;padding:14px;border:none;border-radius:var(--rs);cursor:pointer;font-family:inherit;font-size:14px}
+.rate-btn:active{opacity:.7}
+.rate-no{background:rgba(220,38,38,.1);color:var(--red)}
+.rate-yes{background:rgba(22,163,74,.1);color:var(--green)}
+/* conversation */
 #conversation{background:#eef2ff}
-.cvbar{padding:max(52px,env(safe-area-inset-top)) 20px 12px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
-.cv-end{background:none;border:1px solid rgba(220,38,38,.3);color:var(--red);border-radius:20px;padding:6px 14px;font-size:13px;font-family:"Noto Serif SC",serif;cursor:pointer}
-.cvid{padding:0 18px 12px;flex-shrink:0;border-bottom:1px solid rgba(0,0,0,.06)}
-.idrow{display:flex;align-items:center;gap:10px;margin-bottom:8px}
-.idav{width:38px;height:38px;border-radius:50%;background:var(--amber);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;color:#fff;font-weight:600}
-.idname{font-size:14px;font-weight:600}
-.idsub{font-size:11px;color:var(--t2);margin-top:1px}
-.idscene{font-size:12px;color:var(--t2);background:rgba(255,255,255,.7);border-radius:10px;padding:8px 12px;line-height:1.7}
+.cv-top{padding:max(52px,env(safe-area-inset-top)) 20px 12px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.cv-end{background:none;border:1px solid rgba(220,38,38,.3);color:var(--red);border-radius:20px;padding:6px 14px;font-size:13px;font-family:inherit;cursor:pointer}
+.cv-id{padding:0 18px 12px;flex-shrink:0;border-bottom:1px solid rgba(0,0,0,.06)}
+.id-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.id-av{width:38px;height:38px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;color:#fff;font-weight:600}
+.id-name{font-size:14px;font-weight:600}
+.id-sub{font-size:11px;color:var(--t2);margin-top:1px}
+.id-scene{font-size:12px;color:var(--t2);background:rgba(255,255,255,.7);border-radius:10px;padding:8px 12px;line-height:1.7}
 .chat{flex:1;overflow-y:auto;padding:14px 16px 8px;display:flex;flex-direction:column;gap:10px;-webkit-overflow-scrolling:touch}
 .bbl{max-width:82%;line-height:1.6;font-size:15px}
-.bai{align-self:flex-start;background:var(--card);border-radius:4px 18px 18px 18px;padding:12px 16px;box-shadow:0 1px 6px rgba(0,0,0,.08)}
-.bme{align-self:flex-end;background:var(--amber);color:#fff;border-radius:18px 4px 18px 18px;padding:12px 16px}
-.bsys{align-self:center;font-size:12px;color:var(--t3);background:rgba(255,255,255,.6);border-radius:20px;padding:5px 14px}
-.bload{align-self:flex-start;background:var(--card);border-radius:4px 18px 18px 18px;padding:14px 18px;box-shadow:0 1px 6px rgba(0,0,0,.08);display:flex;gap:5px}
-.bld{width:7px;height:7px;border-radius:50%;background:var(--t3);animation:spp 1.2s ease-in-out infinite}
+.bbl-ai{align-self:flex-start;background:var(--card);border-radius:4px 18px 18px 18px;padding:12px 16px;box-shadow:0 1px 6px rgba(0,0,0,.08)}
+.bbl-me{align-self:flex-end;background:var(--gold);color:#fff;border-radius:18px 4px 18px 18px;padding:12px 16px}
+.bbl-sys{align-self:center;font-size:12px;color:var(--t3);background:rgba(255,255,255,.6);border-radius:20px;padding:5px 14px}
+.bbl-load{align-self:flex-start;background:var(--card);border-radius:4px 18px 18px 18px;padding:14px 18px;box-shadow:0 1px 6px rgba(0,0,0,.08);display:flex;gap:5px}
+.bld{width:7px;height:7px;border-radius:50%;background:var(--t3);animation:sp 1.2s ease-in-out infinite}
 .bld:nth-child(2){animation-delay:.2s}.bld:nth-child(3){animation-delay:.4s}
-.cvwrap{padding:10px 14px max(20px,env(safe-area-inset-bottom));background:rgba(238,242,255,.95);border-top:1px solid rgba(0,0,0,.06);display:flex;gap:10px;align-items:flex-end;flex-shrink:0}
-.cvta{flex:1;background:var(--card);border:1.5px solid var(--bdr);border-radius:22px;padding:11px 18px;color:var(--text);font-family:"Noto Serif SC",serif;font-size:15px;resize:none;line-height:1.5;min-height:44px;max-height:100px;outline:none}
-.cvta::placeholder{color:var(--t3)}
-.cvsend{width:44px;height:44px;border-radius:50%;border:none;flex-shrink:0;background:var(--blue);color:#fff;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center}
-.cvload{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:40px}
-.fbs{position:absolute;bottom:0;left:0;right:0;background:var(--card);border-radius:22px 22px 0 0;padding:24px 22px max(36px,env(safe-area-inset-bottom));box-shadow:0 -4px 32px rgba(0,0,0,.12);transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);z-index:10;max-height:78vh;overflow-y:auto}
-.fbs.show{transform:translateY(0)}
-.fbh{width:36px;height:4px;border-radius:2px;background:var(--bdr);margin:0 auto 18px}
-.fbbody{font-size:14px;color:var(--t2);line-height:2;white-space:pre-wrap}
-.wkbox{background:rgba(220,38,38,.06);border:1px solid rgba(220,38,38,.15);border-radius:var(--rs);padding:10px 14px;margin-top:16px;font-size:12px;color:#991b1b;line-height:1.7}
+.cv-wrap{padding:10px 14px max(20px,env(safe-area-inset-bottom));background:rgba(238,242,255,.95);border-top:1px solid rgba(0,0,0,.06);display:flex;gap:10px;align-items:flex-end;flex-shrink:0}
+.cv-ta{flex:1;background:var(--card);border:1.5px solid var(--bdr);border-radius:22px;padding:11px 18px;color:var(--text);font-size:15px;font-family:inherit;resize:none;line-height:1.5;min-height:44px;max-height:100px;outline:none}
+.cv-ta::placeholder{color:var(--t3)}
+.cv-send{width:44px;height:44px;border-radius:50%;border:none;flex-shrink:0;background:var(--blue);color:#fff;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.cv-loading{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:40px}
+/* feedback sheet */
+.fb-sheet{position:absolute;bottom:0;left:0;right:0;background:var(--card);border-radius:22px 22px 0 0;padding:24px 22px max(36px,env(safe-area-inset-bottom));box-shadow:0 -4px 32px rgba(0,0,0,.12);transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);z-index:10;max-height:78vh;overflow-y:auto}
+.fb-sheet.show{transform:translateY(0)}
+.fb-handle{width:36px;height:4px;border-radius:2px;background:var(--bdr);margin:0 auto 18px}
+.fb-body{font-size:14px;color:var(--t2);line-height:2;white-space:pre-wrap}
+.wk-box{background:rgba(220,38,38,.06);border:1px solid rgba(220,38,38,.15);border-radius:var(--rs);padding:10px 14px;margin-top:16px;font-size:12px;color:#991b1b;line-height:1.7}
+/* list */
 #textlist{background:var(--bg)}
 .entries{padding:0 22px}
-.erow{display:flex;gap:12px;padding:14px 0;border-bottom:1px solid var(--bdr)}
-.ethumb{width:50px;height:38px;border-radius:8px;object-fit:cover;flex-shrink:0;background:var(--bdr)}
-.ebody{flex:1;overflow:hidden;min-width:0}
-.enum{font-size:10px;color:var(--t3);letter-spacing:2px;margin-bottom:3px}
-.een{font-size:14px;line-height:1.5;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ezh{font-size:12px;color:var(--t2);line-height:1.5}
-.enote{font-size:11px;color:var(--amber);margin-top:2px;font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.lacts{padding:16px 22px;display:flex;flex-direction:column;gap:10px;flex-shrink:0}
+.e-row{display:flex;gap:12px;padding:14px 0;border-bottom:1px solid var(--bdr)}
+.e-thumb{width:50px;height:38px;border-radius:8px;object-fit:cover;flex-shrink:0;background:var(--bdr)}
+.e-body{flex:1;overflow:hidden;min-width:0}
+.e-num{font-size:10px;color:var(--t3);letter-spacing:2px;margin-bottom:3px}
+.e-en{font-size:14px;line-height:1.5;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.e-zh{font-size:12px;color:var(--t2);line-height:1.5}
+.e-note{font-size:11px;color:var(--gold);margin-top:2px;font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* story */
 #story{background:var(--bg)}
-.clbl{font-size:11px;color:var(--t3);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
-.chips{display:flex;flex-wrap:wrap;gap:8px}
-.chip{padding:7px 14px;border-radius:20px;font-size:13px;cursor:pointer;border:1px solid var(--bdr);background:var(--card);color:var(--t2);font-family:"Noto Serif SC",serif;box-shadow:var(--sh)}
-.chip.on{background:var(--amt);border-color:var(--amber);color:var(--amber)}
-.stxt{font-size:15px;font-weight:300;line-height:2.1;white-space:pre-wrap;padding-bottom:40px}
+.chip-lbl{font-size:11px;color:var(--t3);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.chip{padding:7px 14px;border-radius:20px;font-size:13px;cursor:pointer;border:1px solid var(--bdr);background:var(--card);color:var(--t2);font-family:inherit;box-shadow:var(--sh)}
+.chip.on{background:var(--gold-lt);border-color:var(--gold);color:var(--gold)}
+.story-txt{font-size:15px;font-weight:300;line-height:2.1;white-space:pre-wrap;padding-bottom:40px}
 .shim{height:14px;border-radius:4px;background:linear-gradient(90deg,var(--bdr) 25%,rgba(0,0,0,.04) 50%,var(--bdr) 75%);background-size:200% 100%;animation:sh 1.4s infinite}
 @keyframes sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
-#shortcuts{background:var(--bg)}
-.stpc{margin:0 22px 10px;background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);padding:14px 16px;display:flex;gap:12px;box-shadow:var(--sh)}
-.stpn{width:26px;height:26px;border-radius:50%;flex-shrink:0;background:var(--amber);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:600}
-.stpt{font-size:14px;font-weight:600;margin-bottom:3px}
-.stpd{font-size:12px;color:var(--t2);line-height:1.7}
-.sync-box{margin:0 22px 16px;background:var(--card);border:1.5px solid var(--amber);border-radius:var(--r);padding:16px 18px;box-shadow:var(--sh)}
-.sync-code{font-size:28px;font-weight:600;letter-spacing:6px;color:var(--amber);text-align:center;margin:10px 0 6px;font-family:"DM Sans",sans-serif}
-.sync-input{width:100%;background:var(--bg);border:1px solid var(--bdr);border-radius:var(--rs);padding:10px 14px;font-family:"DM Sans",sans-serif;font-size:18px;letter-spacing:4px;text-align:center;outline:none;color:var(--text);margin-top:10px}
+/* toast */
 #toast{position:fixed;bottom:36px;left:50%;transform:translateX(-50%) translateY(8px);background:rgba(28,25,23,.92);color:#f8f5f1;font-size:13px;padding:10px 20px;border-radius:30px;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;white-space:nowrap;z-index:999}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .safe{padding-bottom:max(24px,env(safe-area-inset-bottom))}
-::-webkit-scrollbar{width:2px}::-webkit-scrollbar-thumb{background:var(--bdr)}
 </style>
 </head>
 <body>
-<div id="loading-overlay" style="display:none"></div>
 <div id="toast"></div>
 <div id="app">
 
 <!-- HOME -->
-<div class="screen active" id="home">
+<div class="screen on" id="home">
   <div class="hero"><h1>剧词</h1><p>追剧积词，每天进一点</p></div>
   <div class="stats">
-    <div class="sc"><div class="sn" id="h-tot">0</div><div class="sl">词库</div></div>
-    <div class="sc"><div class="sn" id="h-today" style="color:var(--blue)">0</div><div class="sl">今日新增</div></div>
-    <div class="sc"><div class="sn" id="h-days" style="color:var(--green)">0</div><div class="sl">累计天数</div></div>
+    <div class="stat"><div class="stat-n" id="h-total">0</div><div class="stat-l">词库</div></div>
+    <div class="stat"><div class="stat-n" id="h-today" style="color:var(--blue)">0</div><div class="stat-l">今日新增</div></div>
+    <div class="stat"><div class="stat-n" id="h-days" style="color:var(--green)">0</div><div class="stat-l">累计天数</div></div>
   </div>
-  <div class="slbl">今日学习</div>
-  <label for="fp"><div class="btn btn-a" style="margin-bottom:22px;text-align:center;cursor:pointer">📸 &nbsp;上传截图，开始输入</div></label>
-  <input type="file" id="fp" accept="image/*" multiple style="opacity:0;position:fixed;top:-200px;width:1px;height:1px">
-  <div class="slbl">复习</div>
+  <div class="sec-lbl">今日学习</div>
+  <label for="fp" style="display:block;margin-bottom:22px">
+    <div class="btn btn-gold" style="text-align:center">📸 &nbsp;上传截图，开始输入</div>
+  </label>
+  <input type="file" id="fp" accept="image/*" multiple style="position:fixed;top:-200px;left:-200px;width:1px;height:1px;opacity:0">
+  <div class="sec-lbl">复习</div>
   <div class="rev-grid">
-    <button class="rb" id="btn-card">
-      <div class="ri">🗂</div><div class="rn">卡片复习</div>
-      <div class="rm" id="card-meta">加载中</div>
-      <span class="rtag rt-b">英语 + 韩语</span>
+    <button class="rev-card" onclick="startCardReview()">
+      <div class="rev-icon">🗂</div>
+      <div class="rev-name">卡片复习</div>
+      <div class="rev-meta" id="card-meta">加载中</div>
+      <span class="rev-tag rt-gold">英语 + 韩语</span>
     </button>
-    <button class="rb" id="btn-conv">
-      <div class="ri">💬</div><div class="rn">对话练习</div>
-      <div class="rm" id="conv-meta">随机词汇</div>
-      <span class="rtag rt-e">仅英语</span>
+    <button class="rev-card" onclick="startConv()">
+      <div class="rev-icon">💬</div>
+      <div class="rev-name">对话练习</div>
+      <div class="rev-meta" id="conv-meta">随机词汇</div>
+      <span class="rev-tag rt-blue">仅英语</span>
     </button>
   </div>
-  <div class="hlinks">
-    <button class="btn btn-w" id="btn-list" style="display:none">查看今日字幕列表</button>
-    <button class="btn btn-g" id="btn-story">✦ 生成故事</button>
-    <button class="btn btn-g" id="btn-sc" style="font-size:12px;color:var(--t3)">📱 设置 &amp; 多设备同步</button>
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <button class="btn btn-white" id="btn-list" style="display:none" onclick="goTo('textlist');renderList()">查看今日字幕列表</button>
+    <button class="btn btn-ghost" onclick="goTo('story');resetStory()">✦ 生成故事</button>
   </div>
   <div class="safe"></div>
 </div>
 
 <!-- STUDY -->
 <div class="screen" id="study">
-  <div id="si" style="display:flex;flex-direction:column;min-height:100vh"></div>
+  <div id="s-inner" style="display:flex;flex-direction:column;min-height:100vh"></div>
 </div>
 
 <!-- CARD REVIEW -->
 <div class="screen" id="cardreview">
   <div class="nav">
-    <div class="back" id="cr-back">←</div>
-    <span class="nav-t">卡片复习</span>
+    <div class="back" onclick="goTo('home')">←</div>
+    <span style="font-size:17px">卡片复习</span>
     <span style="margin-left:auto;font-size:13px;color:var(--t3)" id="cr-ct"></span>
   </div>
   <div id="cr-body" style="flex:1;display:flex;flex-direction:column"></div>
@@ -212,30 +214,30 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:"Noto S
 
 <!-- CONVERSATION -->
 <div class="screen" id="conversation" style="position:relative">
-  <div class="cvload" id="cv-load">
-    <div class="spin"><span class="sp"></span><span class="sp"></span><span class="sp"></span></div>
-    <div style="font-size:14px;color:var(--t2)">AI 正在准备场景和角色…</div>
+  <div class="cv-loading" id="cv-load">
+    <div class="spin"><div class="sp"></div><div class="sp"></div><div class="sp"></div></div>
+    <div style="font-size:14px;color:var(--t2)">AI 正在准备场景…</div>
   </div>
   <div id="cv-main" style="display:none;flex-direction:column;flex:1">
-    <div class="cvbar">
+    <div class="cv-top">
       <div style="font-size:15px;font-weight:600">对话练习</div>
-      <button class="cv-end" id="cv-end-btn">结束对话</button>
+      <button class="cv-end" onclick="endConv()">结束对话</button>
     </div>
-    <div class="cvid" id="cv-id"></div>
+    <div class="cv-id" id="cv-id"></div>
     <div class="chat" id="chat"></div>
-    <div class="cvwrap">
-      <textarea class="cvta" id="cv-ta" placeholder="用英文回复…" rows="1"></textarea>
-      <button class="cvsend" id="cv-send">↑</button>
+    <div class="cv-wrap">
+      <textarea class="cv-ta" id="cv-ta" placeholder="用英文回复…" rows="1"></textarea>
+      <button class="cv-send" onclick="sendMsg()">↑</button>
     </div>
   </div>
-  <div class="fbs" id="fb-sheet">
-    <div class="fbh"></div>
+  <div class="fb-sheet" id="fb-sheet">
+    <div class="fb-handle"></div>
     <div style="font-size:16px;font-weight:600;margin-bottom:14px">本次对话反馈</div>
-    <div class="fbbody" id="fb-body"></div>
+    <div class="fb-body" id="fb-body"></div>
     <div id="wk-box"></div>
     <div style="margin-top:18px;display:flex;flex-direction:column;gap:10px">
-      <button class="btn btn-a" id="fb-save">保存反馈，回主页</button>
-      <button class="btn btn-g" id="fb-again">再来一轮</button>
+      <button class="btn btn-gold" onclick="saveWeak()">保存反馈，回主页</button>
+      <button class="btn btn-ghost" onclick="startConv()">再来一轮</button>
     </div>
   </div>
 </div>
@@ -243,13 +245,13 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:"Noto S
 <!-- TEXT LIST -->
 <div class="screen" id="textlist">
   <div class="nav" style="flex-shrink:0">
-    <div class="back" id="tl-back">←</div>
-    <span class="nav-t">今日字幕</span>
+    <div class="back" onclick="goTo('home')">←</div>
+    <span style="font-size:17px">今日字幕</span>
   </div>
   <div class="entries" id="entries"></div>
-  <div class="lacts">
-    <button class="btn btn-a" id="tl-story">✦ 生成小故事</button>
-    <label for="fp"><div class="btn btn-g" style="text-align:center;cursor:pointer">继续上传截图</div></label>
+  <div style="padding:16px 22px;display:flex;flex-direction:column;gap:10px;flex-shrink:0">
+    <button class="btn btn-gold" onclick="goTo('story');resetStory()">✦ 生成小故事</button>
+    <label for="fp"><div class="btn btn-ghost" style="text-align:center">继续上传截图</div></label>
   </div>
   <div class="safe"></div>
 </div>
@@ -257,391 +259,291 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:"Noto S
 <!-- STORY -->
 <div class="screen" id="story">
   <div class="nav" style="flex-shrink:0">
-    <div class="back" id="st-back">←</div>
-    <span class="nav-t">生成小故事</span>
+    <div class="back" onclick="goTo('textlist')">←</div>
+    <span style="font-size:17px">生成小故事</span>
   </div>
   <div style="padding:0 22px;flex:1">
     <div id="st-cfg">
-      <div style="margin-bottom:16px"><div class="clbl">场景</div><div class="chips">
-        <div class="chip on" data-g="scene">日常对话</div><div class="chip" data-g="scene">职场</div>
-        <div class="chip" data-g="scene">悬疑</div><div class="chip" data-g="scene">浪漫</div>
-      </div></div>
-      <div style="margin-bottom:16px"><div class="clbl">风格</div><div class="chips">
-        <div class="chip on" data-g="style">轻松幽默</div><div class="chip" data-g="style">文艺感</div>
+      <div class="chip-lbl">场景</div>
+      <div class="chips">
+        <div class="chip on" data-g="scene">日常对话</div>
+        <div class="chip" data-g="scene">职场</div>
+        <div class="chip" data-g="scene">悬疑</div>
+        <div class="chip" data-g="scene">浪漫</div>
+      </div>
+      <div class="chip-lbl">风格</div>
+      <div class="chips">
+        <div class="chip on" data-g="style">轻松幽默</div>
+        <div class="chip" data-g="style">文艺感</div>
         <div class="chip" data-g="style">温情治愈</div>
-      </div></div>
-      <div style="margin-bottom:16px"><div class="clbl">语言</div><div class="chips">
-        <div class="chip on" data-g="lang">中英双语</div><div class="chip" data-g="lang">纯英文</div><div class="chip" data-g="lang">纯中文</div>
-      </div></div>
-      <button class="btn btn-a" id="st-gen">生成故事</button>
+      </div>
+      <div class="chip-lbl">语言</div>
+      <div class="chips">
+        <div class="chip on" data-g="lang">中英双语</div>
+        <div class="chip" data-g="lang">纯英文</div>
+        <div class="chip" data-g="lang">纯中文</div>
+      </div>
+      <button class="btn btn-gold" onclick="genStory()">生成故事</button>
     </div>
     <div id="st-shim" style="display:none;flex-direction:column;gap:10px;padding:8px 0">
       <div class="shim" style="width:88%"></div><div class="shim" style="width:72%"></div>
       <div class="shim" style="width:82%"></div><div class="shim" style="width:65%"></div>
     </div>
-    <div class="stxt" id="st-txt"></div>
+    <div class="story-txt" id="st-txt"></div>
   </div>
   <div class="safe" style="flex-shrink:0"></div>
 </div>
 
-<!-- SHORTCUTS / SETTINGS -->
-<div class="screen" id="shortcuts">
-  <div class="nav"><div class="back" id="sc-back">←</div><span class="nav-t">设置 &amp; 多设备同步</span></div>
-  <div class="sync-box">
-    <div style="font-size:13px;font-weight:600;color:var(--amber);margin-bottom:4px">📲 多设备同步码</div>
-    <div style="font-size:12px;color:var(--t2);line-height:1.7;margin-bottom:8px">在其他设备输入这个码，数据自动同步。</div>
-    <div class="sync-code" id="sync-code-display">------</div>
-    <div style="font-size:11px;color:var(--t3);text-align:center;margin-bottom:12px">你的专属同步码，截图保存备用</div>
-    <div style="font-size:12px;color:var(--t2);margin-bottom:6px">换设备？在这里输入你的同步码：</div>
-    <input class="sync-input" id="sync-input" placeholder="输入同步码" maxlength="8">
-    <button class="btn btn-a" style="margin-top:10px" id="sync-apply">应用同步码</button>
-  </div>
-  <div style="margin:0 22px 14px;background:var(--amt);border:1px solid rgba(194,123,15,.2);border-radius:var(--rs);padding:14px 16px">
-    <p style="font-size:12px;color:#92530a;line-height:1.7">快捷指令：每天自动从截图相册随机抽25张存入「今日学习」相簿，打开剧词选图即可。</p>
-  </div>
-  <div class="stpc"><div class="stpn">1</div><div><div class="stpt">打开「快捷指令」App</div><div class="stpd">搜索「查找照片」动作</div></div></div>
-  <div class="stpc"><div class="stpn">2</div><div><div class="stpt">配置查找照片</div><div class="stpd">相簿=截屏；排序=随机；限制=25张</div></div></div>
-  <div class="stpc"><div class="stpn">3</div><div><div class="stpt">存储到相簿「今日学习」</div><div class="stpd">每天早上自动触发，回来选图即可</div></div></div>
-  <div class="safe"></div>
 </div>
 
-</div>
 <script>
-var WORKER = "https://silent-star-8a3f.demi89612.workers.dev/";
-var DS_KEY = "sk-4e126a125433427c97678d423a2f53e2";
-var UID_KEY = "jc-uid";
-var CACHE_KEY = "jc-db-cache";
-
-// ── User identity ─────────────────────────────────────────────────
-function getUID() {
-  var id = localStorage.getItem(UID_KEY);
-  if (!id) {
-    id = Math.random().toString(36).substr(2,8).toUpperCase();
-    localStorage.setItem(UID_KEY, id);
-  }
-  return id;
-}
-function setUID(id) {
-  localStorage.setItem(UID_KEY, id.toUpperCase());
-}
-
-// ── KV via Worker ─────────────────────────────────────────────────
-async function kvGet(key) {
-  try {
-    var controller = new AbortController();
-    var tid = setTimeout(function(){ controller.abort(); }, 5000);
-    var r = await fetch(WORKER, {
-      method: "POST",
-      headers: {"Content-Type":"application/json","X-Action":"kv-get","X-Key":getUID()+"-"+key},
-      signal: controller.signal
-    });
-    clearTimeout(tid);
-    var d = await r.json();
-    return d.value || null;
-  } catch(e) { return null; }
-}
-async function kvSet(key, val) {
-  try {
-    var controller = new AbortController();
-    var tid = setTimeout(function(){ controller.abort(); }, 6000);
-    await fetch(WORKER, {
-      method: "POST",
-      headers: {"Content-Type":"application/json","X-Action":"kv-set"},
-      body: JSON.stringify({key: getUID()+"-"+key, value: val}),
-      signal: controller.signal
-    });
-    clearTimeout(tid);
-  } catch(e) {}
-}
+// ── Config ────────────────────────────────────────────────────────
+var WORKER = 'https://silent-star-8a3f.demi89612.workers.dev/';
+var DS_KEY  = 'sk-4e126a125433427c97678d423a2f53e2';
+var DB_KEY  = 'jc-v1';
+var IMG_PFX = 'jc-img-';
 
 // ── DB ────────────────────────────────────────────────────────────
-function mkDB() { return {entries:[],fps:[],days:{},weakness:""}; }
-async function loadDB() {
-  try {
-    var v = await kvGet("db");
-    if (v) { try{localStorage.setItem(CACHE_KEY,v);}catch(e){} return JSON.parse(v); }
-  } catch(e) {}
-  try { var c=localStorage.getItem(CACHE_KEY); if(c) return JSON.parse(c); } catch(e) {}
-  return mkDB();
-}
+var DB = {entries:[], fps:[], days:{}, weakness:''};
+var TODAY = new Date().toLocaleDateString('zh-CN');
+
+try {
+  var _s = localStorage.getItem(DB_KEY);
+  if (_s) DB = JSON.parse(_s);
+} catch(e) {}
+if (!DB.entries) DB.entries = [];
+if (!DB.fps) DB.fps = [];
+if (!DB.days) DB.days = {};
+if (!DB.weakness) DB.weakness = '';
+if (!DB.days[TODAY]) DB.days[TODAY] = [];
+
 function saveDB() {
-  var v = JSON.stringify(DB);
-  kvSet("db", v);
-  try { localStorage.setItem(CACHE_KEY, v); } catch(e) {}
+  try { localStorage.setItem(DB_KEY, JSON.stringify(DB)); } catch(e) {}
 }
-function saveImg(id, b64) { kvSet("img-"+id, b64); }
-async function loadImg(id) { return await kvGet("img-"+id); }
+function saveImg(id, b64) {
+  try { localStorage.setItem(IMG_PFX+id, b64); } catch(e) {}
+}
+function getImg(id) {
+  try { return localStorage.getItem(IMG_PFX+id); } catch(e) { return null; }
+}
 
 // ── State ─────────────────────────────────────────────────────────
-var DB = mkDB();
-var todayKey = new Date().toLocaleDateString("zh-CN");
-var studySess = null;
-var convSess = null;
-var pendingWeak = "";
-var crCards = [], crIdx = 0, crFlipped = false;
+var sess   = null; // study session
+var conv   = null; // conversation session
+var crList = [], crIdx = 0, crFlip = false;
+var pendingWeak = '';
 
-// ── Init ──────────────────────────────────────────────────────────
-(async function init() {
-  // Step 1: load from localStorage immediately — no waiting
-  try {
-    var cached = localStorage.getItem(CACHE_KEY);
-    if (cached) DB = JSON.parse(cached);
-  } catch(e) {}
-  if (!DB.days) DB.days = {};
-  if (!DB.entries) DB.entries = [];
-  if (!DB.fps) DB.fps = [];
-  if (!DB.days[todayKey]) DB.days[todayKey] = [];
+// ── Boot ──────────────────────────────────────────────────────────
+refreshHome();
 
-  // Show UI right away
-  document.getElementById("loading-overlay").style.display = "none";
-  document.getElementById("home").classList.add("active");
-  bindEvents();
-  refreshHome();
-  document.getElementById("sync-code-display").textContent = getUID();
+// ── File input ────────────────────────────────────────────────────
+document.getElementById('fp').addEventListener('change', function() {
+  if (this.files && this.files.length > 0) {
+    startStudy(this.files);
+  }
+  this.value = '';
+});
 
-  // Step 2: sync with KV in background (non-blocking)
-  try {
-    var v = await kvGet("db");
-    if (v) {
-      var remote = JSON.parse(v);
-      // Use remote if it has more entries
-      if (remote && remote.entries && remote.entries.length >= (DB.entries||[]).length) {
-        DB = remote;
-        if (!DB.days) DB.days = {};
-        if (!DB.days[todayKey]) DB.days[todayKey] = [];
-        try { localStorage.setItem(CACHE_KEY, v); } catch(e) {}
-        refreshHome();
-      }
-    }
-  } catch(e) {}
-})();
-
-// ── Events ────────────────────────────────────────────────────────
-function bindEvents() {
-  document.getElementById("btn-card").onclick = startCardReview;
-  document.getElementById("btn-conv").onclick = startConversation;
-  document.getElementById("btn-list").onclick = function(){ goTo("textlist"); renderList(); };
-  document.getElementById("btn-story").onclick = function(){ goTo("story"); resetStory(); };
-  document.getElementById("btn-sc").onclick = function(){ goTo("shortcuts"); document.getElementById("sync-code-display").textContent=getUID(); };
-  document.getElementById("cr-back").onclick = function(){ goTo("home"); };
-  document.getElementById("cv-end-btn").onclick = endConversation;
-  document.getElementById("cv-send").onclick = sendMsg;
-  document.getElementById("cv-ta").onkeydown = function(e){ if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendMsg();} };
-  document.getElementById("cv-ta").oninput = function(){ autoR(this); };
-  document.getElementById("fb-save").onclick = saveWeakClose;
-  document.getElementById("fb-again").onclick = startConversation;
-  document.getElementById("tl-back").onclick = function(){ goTo("home"); };
-  document.getElementById("tl-story").onclick = function(){ goTo("story"); resetStory(); };
-  document.getElementById("st-back").onclick = function(){ goTo("textlist"); };
-  document.getElementById("st-gen").onclick = genStory;
-  document.getElementById("sc-back").onclick = function(){ goTo("home"); };
-  document.getElementById("sync-apply").onclick = function(){
-    var code = document.getElementById("sync-input").value.trim().toUpperCase();
-    if (code.length < 4) { toast("请输入有效的同步码"); return; }
-    setUID(code);
-    document.getElementById("sync-code-display").textContent = code;
-    document.getElementById("sync-input").value = "";
-    toast("同步码已更新，正在重新加载数据…");
-    setTimeout(async function(){
-      try { DB = await loadDB(); } catch(e) { DB = mkDB(); }
-      if (!DB.days) DB.days = {};
-      if (!DB.days[todayKey]) DB.days[todayKey] = [];
-      refreshHome();
-    }, 500);
-  };
-  document.querySelectorAll(".chip").forEach(function(c){
-    c.onclick = function(){
-      var g = c.dataset.g;
-      document.querySelectorAll(".chip[data-g='"+g+"']").forEach(function(x){ x.classList.remove("on"); });
-      c.classList.add("on");
-    };
-  });
-}
+// ── Chip clicks ───────────────────────────────────────────────────
+document.addEventListener('click', function(e) {
+  var c = e.target.closest('.chip');
+  if (!c || !c.dataset.g) return;
+  var g = c.dataset.g;
+  document.querySelectorAll('.chip[data-g="'+g+'"]').forEach(function(x){ x.classList.remove('on'); });
+  c.classList.add('on');
+});
 
 // ── Nav ───────────────────────────────────────────────────────────
 function goTo(id) {
-  document.querySelectorAll(".screen").forEach(function(s){ s.classList.remove("active"); });
-  document.getElementById(id).classList.add("active");
-  if (id==="home") refreshHome();
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('on'); });
+  document.getElementById(id).classList.add('on');
+  if (id === 'home') refreshHome();
 }
-function toast(msg) {
-  var el = document.getElementById("toast");
-  el.textContent = msg; el.classList.add("show");
-  setTimeout(function(){ el.classList.remove("show"); }, 2400);
+function toast(msg, dur) {
+  var el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(function(){ el.classList.remove('show'); }, dur || 2200);
 }
-function autoR(el){ el.style.height="auto"; el.style.height=Math.min(el.scrollHeight,100)+"px"; }
-function shuffle(a){ for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;} return a; }
-function fp(f){ return f.name+"|"+f.size+"|"+f.lastModified; }
+function shuffle(a) {
+  for (var i=a.length-1; i>0; i--) {
+    var j = Math.floor(Math.random()*(i+1));
+    var t = a[i]; a[i] = a[j]; a[j] = t;
+  }
+  return a;
+}
+function fpOf(f) { return f.name+'|'+f.size+'|'+f.lastModified; }
+function autoR(el) { el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,100)+'px'; }
 
 // ── Home ──────────────────────────────────────────────────────────
 function refreshHome() {
-  if (!DB) return;
-  var todayIds = DB.days[todayKey]||[];
-  var todayE = todayIds.map(function(id){ return DB.entries.find(function(e){ return e.id===id; }); }).filter(Boolean);
+  var ids = DB.days[TODAY]||[];
+  var todayE = ids.map(function(id){ return DB.entries.find(function(e){ return e.id===id; }); }).filter(Boolean);
   var days = Object.values(DB.days).filter(function(d){ return d.length>0; }).length;
-  var allKws = getAllKws();
-  var enKws = allKws.filter(function(k){ return k.lang==="en"; });
-  document.getElementById("h-tot").textContent = DB.entries.length;
-  document.getElementById("h-today").textContent = todayE.length;
-  document.getElementById("h-days").textContent = days;
-  document.getElementById("card-meta").textContent = allKws.length+"个词汇";
-  document.getElementById("conv-meta").textContent = enKws.length>0 ? "从"+enKws.length+"个词中选" : "先积累英语词汇";
-  document.getElementById("btn-list").style.display = todayE.length>0 ? "block" : "none";
+  var allKw = getAllKw();
+  var enKw  = allKw.filter(function(k){ return k.lang==='en'; });
+  document.getElementById('h-total').textContent = DB.entries.length;
+  document.getElementById('h-today').textContent = todayE.length;
+  document.getElementById('h-days').textContent  = days;
+  document.getElementById('card-meta').textContent = allKw.length+'个词汇';
+  document.getElementById('conv-meta').textContent = enKw.length>0 ? '从'+enKw.length+'个词中选' : '先积累英语词汇';
+  document.getElementById('btn-list').style.display = todayE.length>0 ? 'block' : 'none';
 }
-function getAllKws() {
+function getAllKw() {
   var kws = [];
-  (DB.entries||[]).forEach(function(e){
+  DB.entries.forEach(function(e){
     (e.keywords||[]).forEach(function(k){
-      kws.push({word:k.word,zh:k.zh,note:k.note||"",lang:e.lang,ctx:e.text});
+      kws.push({word:k.word, zh:k.zh, note:k.note||'', lang:e.lang, ctx:e.text});
     });
-    if ((!e.keywords||!e.keywords.length)&&e.text) {
-      kws.push({word:e.text,zh:e.zh||"",note:"",lang:e.lang,ctx:e.text});
+    if ((!e.keywords||!e.keywords.length) && e.text) {
+      kws.push({word:e.text, zh:e.zh||'', note:'', lang:e.lang, ctx:e.text});
     }
   });
   return kws;
 }
 
 // ── Study ─────────────────────────────────────────────────────────
-function startSession(files) {
-  try {
-    files = Array.from(files);
-    toast("选到 "+files.length+" 张图片，处理中…");
-    if (!files.length){ toast("没有选到图片"); return; }
-    shuffle(files);
-    var fresh = files.filter(function(f){ return (DB.fps||[]).indexOf(fp(f))===-1; });
-    if (!fresh.length){ toast("这批图片都处理过了，请选新的截图"); return; }
-    var dupes = files.length - fresh.length;
-    if (dupes>0) toast("已过滤"+dupes+"张重复");
-    studySess = {
-      imgs: fresh.slice(0,25).map(function(f){ return {file:f,fp:fp(f),src:URL.createObjectURL(f)}; }),
-      idx:0, state:"input", res:null, notes:""
-    };
-    goTo("study");
-    renderStudy();
-  } catch(e) {
-    toast("错误："+e.message);
-    console.error(e);
-  }
+function startStudy(files) {
+  files = Array.from(files);
+  toast('读取 '+files.length+' 张图片…');
+  shuffle(files);
+  var fresh = files.filter(function(f){ return DB.fps.indexOf(fpOf(f))===-1; });
+  if (!fresh.length) { toast('这批图片都处理过了，请选新的'); return; }
+  var skip = files.length - fresh.length;
+  if (skip > 0) toast('过滤了'+skip+'张重复');
+  sess = {
+    imgs: fresh.slice(0,25).map(function(f){ return {file:f, fp:fpOf(f), src:URL.createObjectURL(f)}; }),
+    idx: 0, state: 'input', res: null, notes: ''
+  };
+  goTo('study');
+  renderStudy();
 }
 
 function renderStudy() {
-  var el = document.getElementById("si");
-  if (!studySess){ goTo("home"); return; }
-  if (studySess.state==="done"){ renderDone(el); return; }
-  var img = studySess.imgs[studySess.idx];
-  var total = studySess.imgs.length;
-  var dots = "";
-  for (var i=0;i<total;i++) dots+="<div class='dot"+(i<studySess.idx?" done":i===studySess.idx?" cur":"")+"'></div>";
-  var panel = "";
-  if (studySess.state==="input") {
-    panel = "<p class='ihint'>照着图片，输入字幕内容</p>"
-      +"<div class='irow'><textarea class='ita' id='s-ta' placeholder='输入这张截图的字幕…' rows='2'></textarea>"
-      +"<button class='ibtn' id='s-sub'>→</button></div>"
-      +"<div class='iskip' id='s-skip'>跳过这张</div>";
-  } else if (studySess.state==="analyzing") {
-    panel = "<div class='spin'><span class='sp'></span><span class='sp'></span><span class='sp'></span></div>"
-      +"<p style='text-align:center;font-size:13px;color:var(--t2)'>AI 分析中…</p>";
-  } else if (studySess.state==="result" && studySess.res) {
-    var r = studySess.res;
-    var isKo = r.lang==="ko";
-    var kws = "";
-    (r.keywords||[]).forEach(function(k){
-      kws += "<div class='kwi"+(isKo?" ko":"")+"'><div class='kww'>"+k.word+"</div><div class='kwz'>"+k.zh+"</div><div class='kwn'>"+k.note+"</div></div>";
-    });
-    var nxt = studySess.idx>=studySess.imgs.length-1?"完成 ✓":"下一张 →";
-    panel = "<div class='rorig'>"+r.orig+"<span class='lb "+(isKo?"lb-k":"lb-e")+"'>"+(isKo?"韩":"英")+"</span></div>"
-      +"<div class='rzh'>"+r.zh+"</div>"
-      +(kws?"<div class='kwl'>"+kws+"</div>":"")
-      +"<div class='nlbl'>随手记</div>"
-      +"<textarea class='nta' id='s-notes' placeholder='碎碎念…'></textarea>"
-      +"<div style='margin-top:16px'><button class='btn btn-a' id='s-next'>"+nxt+"</button></div>";
+  var el = document.getElementById('s-inner');
+  if (!sess) { goTo('home'); return; }
+  if (sess.state === 'done') { renderDone(el); return; }
+  var img   = sess.imgs[sess.idx];
+  var total = sess.imgs.length;
+  var dots  = '';
+  for (var i=0; i<total; i++) {
+    dots += '<div class="dot'+(i<sess.idx?' d':i===sess.idx?' c':'')+'"></div>';
   }
-  el.innerHTML = "<div class='sim'><img src='"+img.src+"' alt=''>"
-    +"<div class='sov'></div>"
-    +"<div class='stb'><button class='scl' id='s-close'>✕</button>"
-    +"<span class='sct'>"+(studySess.idx+1)+" / "+total+"</span>"
-    +"<div style='width:28px'></div></div>"
-    +"<div class='sdots'>"+dots+"</div></div>"
-    +"<div class='spanel'>"+panel+"</div>";
-  document.getElementById("s-close").onclick = function(){ goTo("home"); };
-  if (studySess.state==="input") {
-    var ta = document.getElementById("s-ta");
-    if (ta) setTimeout(function(){ ta.focus(); }, 300);
-    document.getElementById("s-sub").onclick = submitS;
-    document.getElementById("s-skip").onclick = skipS;
+  var panel = '';
+  if (sess.state === 'input') {
+    panel = '<p class="i-hint">照着图片，输入字幕内容</p>'
+      + '<div class="i-row">'
+      + '<textarea class="i-ta" id="s-ta" placeholder="输入这张截图里的字幕…" rows="2"></textarea>'
+      + '<button class="i-btn" onclick="submitS()">→</button>'
+      + '</div>'
+      + '<div class="i-skip" onclick="skipS()">跳过这张</div>';
+  } else if (sess.state === 'analyzing') {
+    panel = '<div class="spin"><div class="sp"></div><div class="sp"></div><div class="sp"></div></div>'
+      + '<p style="text-align:center;font-size:13px;color:var(--t2)">AI 分析中…</p>';
+  } else if (sess.state === 'result' && sess.res) {
+    var r = sess.res;
+    var ko = r.lang==='ko';
+    var kws = (r.keywords||[]).map(function(k){
+      return '<div class="kw'+(ko?' ko':'')+'"><div class="kw-w">'+k.word+'</div>'
+        +'<div class="kw-z">'+k.zh+'</div><div class="kw-n">'+k.note+'</div></div>';
+    }).join('');
+    var nxt = sess.idx>=sess.imgs.length-1 ? '完成 ✓' : '下一张 →';
+    panel = '<div class="r-en">'+r.orig+'<span class="tag '+(ko?'tag-ko':'tag-en')+'">'+(ko?'韩':'英')+'</span></div>'
+      + '<div class="r-zh">'+r.zh+'</div>'
+      + (kws ? '<div class="kw-list">'+kws+'</div>' : '')
+      + '<div class="note-lbl">随手记</div>'
+      + '<textarea class="note-ta" id="s-notes" placeholder="碎碎念…"></textarea>'
+      + '<div style="margin-top:16px"><button class="btn btn-gold" onclick="saveNext()">'+nxt+'</button></div>';
   }
-  if (studySess.state==="result") {
-    var ni = document.getElementById("s-notes");
-    if (ni){ ni.value=studySess.notes||""; ni.oninput=function(){ studySess.notes=ni.value; }; }
-    document.getElementById("s-next").onclick = saveNext;
+  el.innerHTML = '<div class="s-img">'
+    + '<img src="'+img.src+'" alt="">'
+    + '<div class="s-grad"></div>'
+    + '<div class="s-top">'
+    + '<button class="s-x" onclick="goTo(\'home\')">✕</button>'
+    + '<span class="s-ct">'+(sess.idx+1)+' / '+total+'</span>'
+    + '<div style="width:28px"></div>'
+    + '</div>'
+    + '<div class="s-dots">'+dots+'</div>'
+    + '</div>'
+    + '<div class="s-panel">'+panel+'</div>';
+
+  if (sess.state === 'input') {
+    setTimeout(function(){ var t=document.getElementById('s-ta'); if(t) t.focus(); }, 300);
+  }
+  if (sess.state === 'result') {
+    var ni = document.getElementById('s-notes');
+    if (ni) { ni.value = sess.notes||''; ni.oninput = function(){ sess.notes = ni.value; }; }
   }
 }
 
 function submitS() {
-  var ta = document.getElementById("s-ta");
-  var txt = ta ? ta.value.trim() : "";
-  if (!txt){ toast("请先输入字幕内容"); return; }
-  studySess.state = "analyzing"; renderStudy();
-  callDS([{role:"user",content:"分析影视字幕（英文或韩文）：""+txt+""
-返回JSON不要markdown：{"orig":"原文","zh":"自然中文翻译","lang":"en或ko","keywords":[{"word":"词/短语","zh":"中文含义","note":"地道用法；韩文注明반말/존댓말"}]}
-提取2-3个值得学的词。"}], 500)
-  .then(function(raw){
-    try { studySess.res = JSON.parse(raw.replace(/```json|```/g,"").trim()); }
-    catch(e) { studySess.res = {orig:txt,zh:"",lang:"en",keywords:[]}; }
-    studySess.state = "result"; studySess.notes = ""; renderStudy();
-  }).catch(function(){
-    studySess.res = {orig:txt,zh:"（分析失败，请检查网络）",lang:"en",keywords:[]};
-    studySess.state = "result"; studySess.notes = ""; renderStudy();
+  var ta  = document.getElementById('s-ta');
+  var txt = ta ? ta.value.trim() : '';
+  if (!txt) { toast('请先输入字幕内容'); return; }
+  sess.state = 'analyzing';
+  renderStudy();
+  callDS([{role:'user', content:'分析影视字幕（英文或韩文）："'+txt+'"\n只返回JSON，不要markdown：{"orig":"原文","zh":"中文翻译","lang":"en或ko","keywords":[{"word":"词/短语","zh":"含义","note":"地道用法；韩文注明반말/존댓말"}]}\n提取2-3个值得学的词。'}], 500)
+  .then(function(raw) {
+    try { sess.res = JSON.parse(raw.replace(/```json|```/g,'').trim()); }
+    catch(e) { sess.res = {orig:txt, zh:'', lang:'en', keywords:[]}; }
+    sess.state = 'result'; sess.notes = '';
+    renderStudy();
+  }).catch(function(e) {
+    toast('分析失败：'+e.message);
+    sess.res = {orig:txt, zh:'（分析失败）', lang:'en', keywords:[]};
+    sess.state = 'result'; sess.notes = '';
+    renderStudy();
   });
 }
-function skipS(){ studySess.res=null; studySess.notes=""; advanceS(); }
+
+function skipS() { sess.res=null; sess.notes=''; advS(); }
+
 function saveNext() {
-  var r = studySess.res;
+  var r = sess.res;
   if (r) {
-    var id = ""+Date.now()+"-"+studySess.idx;
-    var entry = {id:id,text:r.orig,lang:r.lang,zh:r.zh,keywords:r.keywords||[],notes:studySess.notes||"",date:todayKey,ts:Date.now()};
-    if (!DB.entries) DB.entries=[];
-    if (!DB.fps) DB.fps=[];
+    var id = Date.now()+'-'+sess.idx;
+    var entry = {id:id, text:r.orig, lang:r.lang, zh:r.zh, keywords:r.keywords||[], notes:sess.notes||'', date:TODAY, ts:Date.now()};
     DB.entries.push(entry);
-    DB.fps.push(studySess.imgs[studySess.idx].fp);
-    if (!DB.days[todayKey]) DB.days[todayKey]=[];
-    DB.days[todayKey].push(id);
+    DB.fps.push(sess.imgs[sess.idx].fp);
+    if (!DB.days[TODAY]) DB.days[TODAY] = [];
+    DB.days[TODAY].push(id);
     saveDB();
-    compressStore(id, studySess.imgs[studySess.idx].file);
+    compressImg(id, sess.imgs[sess.idx].file);
   }
-  advanceS();
+  advS();
 }
-function advanceS() {
-  studySess.res=null; studySess.notes="";
-  if (studySess.idx>=studySess.imgs.length-1){ studySess.state="done"; }
-  else { studySess.idx++; studySess.state="input"; }
+
+function advS() {
+  sess.res=null; sess.notes='';
+  if (sess.idx >= sess.imgs.length-1) { sess.state='done'; }
+  else { sess.idx++; sess.state='input'; }
   renderStudy();
 }
+
 function renderDone(el) {
-  var cnt = (DB.days[todayKey]||[]).length;
-  el.style.background = "var(--bg)";
-  el.innerHTML = "<div style='flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 26px;gap:18px;text-align:center'>"
-    +"<div style='font-size:52px'>🎉</div>"
-    +"<div style='font-size:22px;font-weight:300'>今日完成！</div>"
-    +"<div style='font-size:14px;color:var(--t2);line-height:1.8'>今天输入了 "+cnt+" 条字幕</div>"
-    +"<div style='width:100%;display:flex;flex-direction:column;gap:10px;margin-top:8px'>"
-    +"<button class='btn btn-a' id='done-list'>查看今日字幕列表</button>"
-    +"<button class='btn btn-w' id='done-story'>✦ 生成小故事</button>"
-    +"<button class='btn btn-g' id='done-home'>回主页</button>"
-    +"</div></div>";
-  document.getElementById("done-list").onclick = function(){ goTo("textlist"); renderList(); };
-  document.getElementById("done-story").onclick = function(){ goTo("story"); resetStory(); };
-  document.getElementById("done-home").onclick = function(){ goTo("home"); };
+  var cnt = (DB.days[TODAY]||[]).length;
+  el.style.background = 'var(--bg)';
+  el.innerHTML = '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 26px;gap:18px;text-align:center">'
+    + '<div style="font-size:52px">🎉</div>'
+    + '<div style="font-size:22px;font-weight:300">今日完成！</div>'
+    + '<div style="font-size:14px;color:var(--t2);line-height:1.8">今天输入了 '+cnt+' 条字幕</div>'
+    + '<div style="width:100%;display:flex;flex-direction:column;gap:10px;margin-top:8px">'
+    + '<button class="btn btn-gold" onclick="goTo(\'textlist\');renderList()">查看今日字幕列表</button>'
+    + '<button class="btn btn-white" onclick="goTo(\'story\');resetStory()">✦ 生成小故事</button>'
+    + '<button class="btn btn-ghost" onclick="goTo(\'home\')">回主页</button>'
+    + '</div></div>';
 }
-function compressStore(id, file) {
+
+function compressImg(id, file) {
   try {
     var img = new Image();
-    img.onload = function(){
-      var c = document.createElement("canvas");
+    img.onload = function() {
+      var c = document.createElement('canvas');
       var s = Math.min(320/img.width, 320/img.height, 1);
-      c.width=Math.round(img.width*s); c.height=Math.round(img.height*s);
-      c.getContext("2d").drawImage(img,0,0,c.width,c.height);
-      saveImg(id, c.toDataURL("image/jpeg",.65).split(",")[1]);
+      c.width  = Math.round(img.width*s);
+      c.height = Math.round(img.height*s);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      saveImg(id, c.toDataURL('image/jpeg', .65).split(',')[1]);
     };
     img.src = URL.createObjectURL(file);
   } catch(e) {}
@@ -649,243 +551,217 @@ function compressStore(id, file) {
 
 // ── Card Review ───────────────────────────────────────────────────
 function startCardReview() {
-  var all = getAllKws();
-  if (!all.length){ toast("词库还没有内容，先上传截图积累词汇"); return; }
-  crCards = shuffle(all.slice()).slice(0,20);
-  crIdx=0; crFlipped=false;
-  goTo("cardreview"); renderCR();
+  var all = getAllKw();
+  if (!all.length) { toast('词库还没有内容，先上传截图积累词汇'); return; }
+  crList = shuffle(all.slice()).slice(0,20);
+  crIdx=0; crFlip=false;
+  goTo('cardreview');
+  renderCR();
 }
 function renderCR() {
-  var el = document.getElementById("cr-body");
-  document.getElementById("cr-ct").textContent = (crIdx+1)+" / "+crCards.length;
-  if (crIdx>=crCards.length) {
-    el.innerHTML = "<div style='text-align:center;padding:60px 24px;font-size:14px;color:var(--t3)'>本轮完成！<br><br>"
-      +"<button class='btn btn-a' style='max-width:200px;margin:0 auto' id='cr-again'>再来一轮</button><br><br>"
-      +"<button class='btn btn-g' style='max-width:200px;margin:0 auto' id='cr-home'>回主页</button></div>";
-    document.getElementById("cr-again").onclick = startCardReview;
-    document.getElementById("cr-home").onclick = function(){ goTo("home"); };
+  var el = document.getElementById('cr-body');
+  document.getElementById('cr-ct').textContent = (crIdx+1)+' / '+crList.length;
+  if (crIdx >= crList.length) {
+    el.innerHTML = '<div style="text-align:center;padding:60px 24px;font-size:14px;color:var(--t3)">本轮完成！<br><br>'
+      + '<button class="btn btn-gold" style="max-width:200px;margin:0 auto" onclick="startCardReview()">再来一轮</button><br><br>'
+      + '<button class="btn btn-ghost" style="max-width:200px;margin:0 auto" onclick="goTo(\'home\')">回主页</button></div>';
     return;
   }
-  var c = crCards[crIdx]; var isKo = c.lang==="ko";
-  el.innerHTML = "<div style='padding:0 22px;flex:1;display:flex;flex-direction:column;justify-content:center;gap:20px'>"
-    +"<div class='flip-wrap' id='flip-wrap'>"
-    +"<div class='flip-inner"+(crFlipped?" flipped":"")+"' id='flip-inner'>"
-    +"<div class='flip-face'><span class='lb "+(isKo?"lb-k":"lb-e")+"' style='margin-bottom:14px;margin-left:0'>"+(isKo?"🇰🇷 韩语":"🇺🇸 英语")+"</span>"
-    +"<div class='fw'>"+c.word+"</div><div class='fh'>点击查看释义</div></div>"
-    +"<div class='flip-face flip-back'><div class='fzh'>"+(c.zh||"—")+"</div>"
-    +(c.note?"<div class='fn'>"+c.note+"</div>":"")
-    +(c.ctx&&c.ctx!==c.word?"<div class='fctx'>出自：""+c.ctx+""</div>":"")
-    +"</div></div></div>"
-    +(crFlipped?"<div class='rrow'><button class='rbtn rf' id='r-f'>没记住</button><button class='rbtn rg' id='r-g'>记住了 ✓</button></div>":"<div style='height:54px'></div>")
-    +"</div>";
-  document.getElementById("flip-wrap").onclick = function(){ crFlipped=!crFlipped; renderCR(); };
-  if (crFlipped) {
-    document.getElementById("r-f").onclick = function(e){ e.stopPropagation(); crCards.push(crCards[crIdx]); crIdx++; crFlipped=false; renderCR(); };
-    document.getElementById("r-g").onclick = function(e){ e.stopPropagation(); crIdx++; crFlipped=false; renderCR(); };
-  }
+  var c = crList[crIdx]; var ko = c.lang==='ko';
+  el.innerHTML = '<div style="padding:0 22px;flex:1;display:flex;flex-direction:column;justify-content:center;gap:20px">'
+    + '<div class="flip-wrap" id="fw" onclick="crFlip=!crFlip;renderCR()">'
+    + '<div class="flip-inner'+(crFlip?' flipped':'')+'">'
+    + '<div class="flip-face"><span class="tag '+(ko?'tag-ko':'tag-en')+'" style="margin-bottom:14px;margin-left:0">'+(ko?'🇰🇷 韩语':'🇺🇸 英语')+'</span>'
+    + '<div class="f-word">'+c.word+'</div><div class="f-hint">点击查看释义</div></div>'
+    + '<div class="flip-face flip-back"><div class="f-zh">'+(c.zh||'—')+'</div>'
+    + (c.note?'<div class="f-note">'+c.note+'</div>':'')
+    + (c.ctx&&c.ctx!==c.word?'<div class="f-ctx">出自："'+c.ctx+'"</div>':'')
+    + '</div></div></div>'
+    + (crFlip
+      ? '<div class="rate-row">'
+        + '<button class="rate-btn rate-no" onclick="event.stopPropagation();crList.push(crList[crIdx]);crIdx++;crFlip=false;renderCR()">没记住</button>'
+        + '<button class="rate-btn rate-yes" onclick="event.stopPropagation();crIdx++;crFlip=false;renderCR()">记住了 ✓</button>'
+        + '</div>'
+      : '<div style="height:54px"></div>')
+    + '</div>';
 }
 
 // ── Conversation ──────────────────────────────────────────────────
-function startConversation() {
-  var enKws = getAllKws().filter(function(k){ return k.lang==="en"; });
-  if (enKws.length<3){ toast("英语词汇太少，先多输入一些截图"); return; }
-  goTo("conversation");
-  document.getElementById("cv-load").style.display = "flex";
-  document.getElementById("cv-main").style.display = "none";
-  document.getElementById("fb-sheet").classList.remove("show");
-  var picked = shuffle(enKws.slice()).slice(0, Math.min(6,enKws.length));
-  var wb = picked.map(function(w){ return "- ""+w.word+"" ("+w.zh+(w.note?"，"+w.note:"")+")"; }).join("
-");
-  var wk = DB.weakness ? "【用户英语弱点】
-"+DB.weakness : "";
-  callDS([{role:"user",content:"你是沉浸式英语口语练习助手。
+function startConv() {
+  var enKw = getAllKw().filter(function(k){ return k.lang==='en'; });
+  if (enKw.length < 3) { toast('英语词汇太少，先多输入一些截图'); return; }
+  goTo('conversation');
+  document.getElementById('cv-load').style.display = 'flex';
+  document.getElementById('cv-main').style.display = 'none';
+  document.getElementById('fb-sheet').classList.remove('show');
 
-生成真实自然的对话场景和角色，写出第一句话。
+  var picked = shuffle(enKw.slice()).slice(0, Math.min(6, enKw.length));
+  var wb = picked.map(function(w){ return '- "'+w.word+'" ('+w.zh+(w.note?'，'+w.note:'')+')'; }).join('\n');
+  var wk = DB.weakness ? '【用户英语弱点】\n'+DB.weakness : '';
 
-【秘密目标词汇】（自然引入，绝不直接提示）
-"+wb+"
-
-"+wk+"
-
-返回JSON不要markdown：
-{"name":"英文名","nationality":"国籍（中文）","job":"职业","relationship":"和用户的关系（1句）","scene":"场景（2句细节）","firstMessage":"第一句英文话（自然口语）"}"}], 400)
-  .then(function(raw){
+  callDS([{role:'user', content:'你是沉浸式英语口语练习助手。\n\n生成真实自然的对话场景和角色，写出第一句话。\n\n【秘密目标词汇】（自然引入，绝不直接提示）\n'+wb+'\n\n'+wk+'\n\n返回JSON不要markdown：\n{"name":"英文名","nationality":"国籍（中文）","job":"职业","relationship":"和用户的关系（1句）","scene":"场景（2句细节）","firstMessage":"第一句英文话（自然口语）"}'}], 400)
+  .then(function(raw) {
     var setup;
-    try { setup = JSON.parse(raw.replace(/```json|```/g,"").trim()); }
-    catch(e){ toast("生成场景失败，请重试"); goTo("home"); return; }
-    setup.targetWords = picked;
-    var sys = "你扮演"+setup.name+"，"+setup.nationality+"人，"+setup.job+"。"+setup.relationship+"。场景："+setup.scene+"
-
-【秘密目标】自然引入以下词汇，绝不直接提示：
-"+wb+"
-
-规则：全程英文；语气自然真实；每次1-3句；像真人聊天。";
-    convSess = {setup:setup, messages:[{role:"system",content:sys},{role:"assistant",content:setup.firstMessage}], state:"chatting"};
-    document.getElementById("cv-load").style.display = "none";
-    var main = document.getElementById("cv-main");
-    main.style.display = "flex"; main.style.flexDirection = "column";
-    document.getElementById("cv-id").innerHTML = "<div class='idrow'><div class='idav'>"+setup.name.charAt(0)+"</div>"
-      +"<div><div class='idname'>"+setup.name+"</div><div class='idsub'>"+setup.nationality+" · "+setup.job+"</div></div></div>"
-      +"<div class='idscene'>"+setup.relationship+"。"+setup.scene+"</div>";
-    document.getElementById("chat").innerHTML = "";
-    addBubble("ai", setup.firstMessage);
-  }).catch(function(){ toast("生成场景失败，请重试"); goTo("home"); });
+    try { setup = JSON.parse(raw.replace(/```json|```/g,'').trim()); }
+    catch(e) { toast('生成场景失败，请重试'); goTo('home'); return; }
+    setup.words = picked;
+    var sys = '你扮演'+setup.name+'，'+setup.nationality+'人，'+setup.job+'。'+setup.relationship+'。场景：'+setup.scene
+      +'\n\n【秘密目标】自然引入以下词汇，绝不直接提示：\n'+wb
+      +'\n\n规则：全程英文；语气自然真实；每次1-3句；像真人聊天。';
+    conv = {
+      setup: setup,
+      msgs: [{role:'system',content:sys},{role:'assistant',content:setup.firstMessage}],
+      state: 'chatting'
+    };
+    document.getElementById('cv-load').style.display = 'none';
+    var m = document.getElementById('cv-main');
+    m.style.display = 'flex'; m.style.flexDirection = 'column';
+    document.getElementById('cv-id').innerHTML =
+      '<div class="id-row"><div class="id-av">'+setup.name.charAt(0)+'</div>'
+      +'<div><div class="id-name">'+setup.name+'</div><div class="id-sub">'+setup.nationality+' · '+setup.job+'</div></div></div>'
+      +'<div class="id-scene">'+setup.relationship+'。'+setup.scene+'</div>';
+    document.getElementById('chat').innerHTML = '';
+    addBbl('ai', setup.firstMessage);
+  }).catch(function(e) { toast('生成场景失败：'+e.message); goTo('home'); });
 }
-function addBubble(type, text) {
-  var ca = document.getElementById("chat"); if (!ca) return;
-  var d = document.createElement("div");
-  d.className = "bbl "+(type==="ai"?"bai":type==="user"?"bme":"bsys");
-  d.textContent = text; ca.appendChild(d); ca.scrollTop = ca.scrollHeight;
+
+function addBbl(type, txt) {
+  var ca = document.getElementById('chat'); if (!ca) return;
+  var d = document.createElement('div');
+  d.className = 'bbl '+(type==='ai'?'bbl-ai':type==='me'?'bbl-me':'bbl-sys');
+  d.textContent = txt; ca.appendChild(d); ca.scrollTop = ca.scrollHeight;
 }
-function addLoadBubble() {
-  var ca = document.getElementById("chat"); if (!ca) return;
-  var d = document.createElement("div"); d.className="bload"; d.id="bload";
-  d.innerHTML = "<div class='bld'></div><div class='bld'></div><div class='bld'></div>";
+function addLoading() {
+  var ca = document.getElementById('chat'); if (!ca) return;
+  var d = document.createElement('div'); d.className='bbl-load'; d.id='bload';
+  d.innerHTML='<div class="bld"></div><div class="bld"></div><div class="bld"></div>';
   ca.appendChild(d); ca.scrollTop = ca.scrollHeight;
 }
-function removeLoadBubble(){ var el=document.getElementById("bload"); if(el) el.remove(); }
+function removeLoading() { var el=document.getElementById('bload'); if(el) el.remove(); }
+
 function sendMsg() {
-  var ta = document.getElementById("cv-ta");
-  var txt = ta ? ta.value.trim() : "";
-  if (!txt||!convSess||convSess.state!=="chatting") return;
-  ta.value=""; ta.style.height="auto";
-  addBubble("user", txt);
-  convSess.messages.push({role:"user",content:txt});
-  addLoadBubble();
-  callDS(convSess.messages, 250)
-  .then(function(reply){
-    removeLoadBubble();
-    convSess.messages.push({role:"assistant",content:reply});
-    addBubble("ai", reply);
-  }).catch(function(){ removeLoadBubble(); toast("网络错误，请重试"); });
+  var ta  = document.getElementById('cv-ta');
+  var txt = ta ? ta.value.trim() : '';
+  if (!txt || !conv || conv.state!=='chatting') return;
+  ta.value = ''; ta.style.height = 'auto';
+  addBbl('me', txt);
+  conv.msgs.push({role:'user', content:txt});
+  addLoading();
+  callDS(conv.msgs, 250)
+  .then(function(reply) {
+    removeLoading();
+    conv.msgs.push({role:'assistant',content:reply});
+    addBbl('ai', reply);
+  }).catch(function() { removeLoading(); toast('网络错误，请重试'); });
 }
-function endConversation() {
-  if (!convSess) return;
-  convSess.state = "ending";
-  addBubble("sys", "对话结束，正在生成反馈…");
-  var history = convSess.messages.filter(function(m){ return m.role!=="system"; })
-    .map(function(m){ return (m.role==="user"?"学习者":convSess.setup.name)+": "+m.content; }).join("
-");
-  var words = convSess.setup.targetWords.map(function(w){ return w.word; }).join("、");
-  callDS([{role:"user",content:"分析这段英语对话练习，用中文反馈：
 
-"+history+"
+document.getElementById('cv-ta').addEventListener('keydown', function(e) {
+  if (e.key==='Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); }
+});
+document.getElementById('cv-ta').addEventListener('input', function(){ autoR(this); });
 
-本次目标词汇："+words+"
-
-简洁反馈（说人话）：
-语感：哪些自然地道，哪里不像母语者
-词汇：用到了哪些目标词，用得准吗
-建议：一个最值得改进的具体点
-弱点记录：一句话，将存入档案"}], 600)
-  .then(function(fb){
+function endConv() {
+  if (!conv) return;
+  conv.state = 'ending';
+  addBbl('sys', '对话结束，正在生成反馈…');
+  var history = conv.msgs.filter(function(m){ return m.role!=='system'; })
+    .map(function(m){ return (m.role==='user'?'学习者':conv.setup.name)+': '+m.content; }).join('\n');
+  var words = conv.setup.words.map(function(w){ return w.word; }).join('、');
+  callDS([{role:'user', content:'分析这段英语对话练习，用中文反馈：\n\n'+history+'\n\n本次目标词汇：'+words+'\n\n简洁反馈（说人话）：\n语感：哪些自然地道，哪里不像母语者\n词汇：用到了哪些目标词，用得准吗\n建议：一个最值得改进的具体点\n弱点记录：一句话，将存入档案'}], 600)
+  .then(function(fb) {
     var m = fb.match(/弱点记录[：:]\s*(.+)/);
-    pendingWeak = m ? m[1].trim() : "";
-    var disp = fb.replace(/弱点记录[：:].*$/,"").trim();
-    document.getElementById("fb-body").textContent = disp;
-    document.getElementById("wk-box").innerHTML = pendingWeak ?
-      "<div class='wkbox'><strong style='display:block;margin-bottom:3px'>📌 本次弱点记录</strong>"+pendingWeak+"</div>" : "";
-    document.getElementById("fb-sheet").classList.add("show");
-  }).catch(function(){ toast("获取反馈失败"); });
+    pendingWeak = m ? m[1].trim() : '';
+    var disp = fb.replace(/弱点记录[：:].*$/,'').trim();
+    document.getElementById('fb-body').textContent = disp;
+    document.getElementById('wk-box').innerHTML = pendingWeak
+      ? '<div class="wk-box"><strong style="display:block;margin-bottom:3px">📌 本次弱点记录</strong>'+pendingWeak+'</div>' : '';
+    document.getElementById('fb-sheet').classList.add('show');
+  }).catch(function(){ toast('获取反馈失败'); });
 }
-function saveWeakClose() {
+
+function saveWeak() {
   if (pendingWeak) {
-    var lines = (DB.weakness||"").split("
-").filter(Boolean);
-    lines.push(new Date().toLocaleDateString("zh-CN")+": "+pendingWeak);
-    DB.weakness = lines.slice(-5).join("
-");
+    var lines = (DB.weakness||'').split('\n').filter(Boolean);
+    lines.push(new Date().toLocaleDateString('zh-CN')+': '+pendingWeak);
+    DB.weakness = lines.slice(-5).join('\n');
     saveDB();
   }
-  pendingWeak = "";
-  document.getElementById("fb-sheet").classList.remove("show");
-  goTo("home");
+  pendingWeak = '';
+  document.getElementById('fb-sheet').classList.remove('show');
+  goTo('home');
 }
 
 // ── Text List ─────────────────────────────────────────────────────
-async function renderList() {
-  var el = document.getElementById("entries");
-  var ids = DB.days[todayKey]||[];
-  var today = ids.map(function(id){ return (DB.entries||[]).find(function(e){ return e.id===id; }); }).filter(Boolean);
-  if (!today.length){ el.innerHTML="<div style='padding:40px 0;text-align:center;color:var(--t3);font-size:14px'>今日暂无记录</div>"; return; }
-  el.innerHTML = today.map(function(e,i){
-    return "<div class='erow'><img class='ethumb' id='et-"+e.id+"' src='' alt=''>"
-      +"<div class='ebody'><div class='enum'>"+("0"+(i+1)).slice(-2)+" <span class='lb "+(e.lang==="ko"?"lb-k":"lb-e")+"'>"+(e.lang==="ko"?"韩":"英")+"</span></div>"
-      +"<div class='een'>"+e.text+"</div>"
-      +"<div class='ezh'>"+(e.zh||"")+"</div>"
-      +(e.notes?"<div class='enote'>"+e.notes+"</div>":"")
-      +"</div></div>";
-  }).join("");
-  // load images async
-  today.forEach(async function(e){
-    var b = await loadImg(e.id);
-    if (b){ var el2=document.getElementById("et-"+e.id); if(el2) el2.src="data:image/jpeg;base64,"+b; }
+function renderList() {
+  var el   = document.getElementById('entries');
+  var ids  = DB.days[TODAY]||[];
+  var list = ids.map(function(id){ return DB.entries.find(function(e){ return e.id===id; }); }).filter(Boolean);
+  if (!list.length) {
+    el.innerHTML = '<div style="padding:40px 0;text-align:center;color:var(--t3);font-size:14px">今日暂无记录</div>';
+    return;
+  }
+  el.innerHTML = list.map(function(e, i) {
+    var ko = e.lang==='ko';
+    return '<div class="e-row">'
+      +'<img class="e-thumb" id="et-'+e.id+'" src="" alt="">'
+      +'<div class="e-body">'
+      +'<div class="e-num">'+('0'+(i+1)).slice(-2)+' <span class="tag '+(ko?'tag-ko':'tag-en')+'">'+(ko?'韩':'英')+'</span></div>'
+      +'<div class="e-en">'+e.text+'</div>'
+      +'<div class="e-zh">'+(e.zh||'')+'</div>'
+      +(e.notes?'<div class="e-note">'+e.notes+'</div>':'')
+      +'</div></div>';
+  }).join('');
+  list.forEach(function(e) {
+    var b = getImg(e.id);
+    if (b) { var el2=document.getElementById('et-'+e.id); if(el2) el2.src='data:image/jpeg;base64,'+b; }
   });
 }
 
 // ── Story ─────────────────────────────────────────────────────────
 function resetStory() {
-  document.getElementById("st-cfg").style.display = "block";
-  document.getElementById("st-shim").style.display = "none";
-  document.getElementById("st-txt").textContent = "";
+  document.getElementById('st-cfg').style.display = 'block';
+  document.getElementById('st-shim').style.display = 'none';
+  document.getElementById('st-txt').textContent = '';
 }
 function genStory() {
-  var ids = DB.days[todayKey]||[];
-  var today = ids.map(function(id){ return (DB.entries||[]).find(function(e){ return e.id===id; }); }).filter(Boolean);
-  if (!today.length){ toast("今日没有字幕记录"); return; }
-  var scene = document.querySelector(".chip.on[data-g='scene']").textContent;
-  var style = document.querySelector(".chip.on[data-g='style']").textContent;
-  var lang = document.querySelector(".chip.on[data-g='lang']").textContent;
-  var lines = today.map(function(e,i){ return (i+1)+". "+e.text+(e.zh?"（"+e.zh+"）":""); }).join("
-");
-  document.getElementById("st-cfg").style.display = "none";
-  document.getElementById("st-shim").style.display = "flex";
-  callDS([{role:"user",content:"今天从影视剧截图里手动输入的字幕：
-"+lines+"
-
-用这些句子编一个短故事。场景："+scene+"，风格："+style+"，语言："+
-    (lang==="中英双语"?"中英双语，每段先英文后中文":lang==="纯英文"?"全程英文":"全程中文")+
-    "。自然融入原句，200-350字，直接开始写，不要标题前言。"}], 1200)
-  .then(function(txt){
-    document.getElementById("st-shim").style.display = "none";
-    document.getElementById("st-txt").textContent = txt;
-  }).catch(function(){
-    document.getElementById("st-shim").style.display = "none";
-    document.getElementById("st-cfg").style.display = "block";
-    toast("网络错误，请重试");
+  var ids  = DB.days[TODAY]||[];
+  var list = ids.map(function(id){ return DB.entries.find(function(e){ return e.id===id; }); }).filter(Boolean);
+  if (!list.length) { toast('今日没有字幕记录'); return; }
+  var scene = document.querySelector('.chip.on[data-g="scene"]').textContent;
+  var style = document.querySelector('.chip.on[data-g="style"]').textContent;
+  var lang  = document.querySelector('.chip.on[data-g="lang"]').textContent;
+  var lines = list.map(function(e,i){ return (i+1)+'. '+e.text+(e.zh?'（'+e.zh+'）':''); }).join('\n');
+  document.getElementById('st-cfg').style.display = 'none';
+  document.getElementById('st-shim').style.display = 'flex';
+  callDS([{role:'user', content:'今天从影视剧截图里手动输入的字幕：\n'+lines+'\n\n用这些句子编一个短故事。场景：'+scene+'，风格：'+style+'，语言：'
+    +(lang==='中英双语'?'中英双语，每段先英文后中文':lang==='纯英文'?'全程英文':'全程中文')
+    +'。自然融入原句，200-350字，直接开始写，不要标题前言。'}], 1200)
+  .then(function(txt) {
+    document.getElementById('st-shim').style.display = 'none';
+    document.getElementById('st-txt').textContent = txt;
+  }).catch(function() {
+    document.getElementById('st-shim').style.display = 'none';
+    document.getElementById('st-cfg').style.display = 'block';
+    toast('网络错误，请重试');
   });
 }
 
-// ── DeepSeek via Worker ───────────────────────────────────────────
+// ── API ───────────────────────────────────────────────────────────
 function callDS(msgs, max) {
   return fetch(WORKER, {
-    method: "POST",
-    headers: {"Content-Type":"application/json","Authorization":"Bearer "+DS_KEY},
-    body: JSON.stringify({model:"deepseek-chat",max_tokens:max||600,messages:msgs})
-  }).then(function(r){ return r.json(); })
-  .then(function(d){ return (d.choices&&d.choices[0]&&d.choices[0].message&&d.choices[0].message.content)||""; });
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer '+DS_KEY
+    },
+    body: JSON.stringify({model:'deepseek-chat', max_tokens:max||600, messages:msgs})
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(d) {
+    if (d.error) throw new Error(d.error.message||JSON.stringify(d.error));
+    return (d.choices&&d.choices[0]&&d.choices[0].message&&d.choices[0].message.content)||'';
+  });
 }
-// ── Direct file input binding (iOS safe) ─────────────────────────
-(function() {
-  var inp = document.getElementById("fp");
-  if (inp) {
-    inp.addEventListener("change", function() {
-      if (this.files && this.files.length > 0) {
-        startSession(this.files);
-        this.value = "";
-      }
-    });
-  }
-  // Also bind upload button directly
-  var btn = document.querySelector("label[for=fp]");
-  if (!btn) {
-    // fallback: if label not found, find the div inside label
-    var uploadDiv = document.getElementById("btn-upload");
-    if (uploadDiv) {
-      uploadDiv.onclick = function(){ document.getElementById("fp").click(); };
-    }
-  }
-})();
 </script>
 </body>
 </html>
