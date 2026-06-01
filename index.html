@@ -503,19 +503,25 @@ function getAllKws() {
 
 // ── Study ─────────────────────────────────────────────────────────
 function startSession(files) {
-  files = Array.from(files);
-  if (!files.length){ toast("没有选到图片"); return; }
-  shuffle(files);
-  var fresh = files.filter(function(f){ return (DB.fps||[]).indexOf(fp(f))===-1; });
-  if (!fresh.length){ toast("这批图片都处理过了，请选新的截图"); return; }
-  var dupes = files.length - fresh.length;
-  if (dupes>0) toast("已过滤"+dupes+"张重复");
-  studySess = {
-    imgs: fresh.slice(0,25).map(function(f){ return {file:f,fp:fp(f),src:URL.createObjectURL(f)}; }),
-    idx:0, state:"input", res:null, notes:""
-  };
-  goTo("study");
-  renderStudy();
+  try {
+    files = Array.from(files);
+    toast("选到 "+files.length+" 张图片，处理中…");
+    if (!files.length){ toast("没有选到图片"); return; }
+    shuffle(files);
+    var fresh = files.filter(function(f){ return (DB.fps||[]).indexOf(fp(f))===-1; });
+    if (!fresh.length){ toast("这批图片都处理过了，请选新的截图"); return; }
+    var dupes = files.length - fresh.length;
+    if (dupes>0) toast("已过滤"+dupes+"张重复");
+    studySess = {
+      imgs: fresh.slice(0,25).map(function(f){ return {file:f,fp:fp(f),src:URL.createObjectURL(f)}; }),
+      idx:0, state:"input", res:null, notes:""
+    };
+    goTo("study");
+    renderStudy();
+  } catch(e) {
+    toast("错误："+e.message);
+    console.error(e);
+  }
 }
 
 function renderStudy() {
