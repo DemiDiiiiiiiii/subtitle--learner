@@ -142,7 +142,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 .tab.on{color:var(--gold);border-bottom-color:var(--gold);font-weight:600}
 .entries{padding:0 22px}
 .erow{display:flex;gap:12px;padding:14px 0;border-bottom:1px solid var(--bdr);align-items:flex-start}
-.ethumb{width:50px;height:38px;border-radius:8px;object-fit:cover;flex-shrink:0;background:var(--bdr)}
+.ethumb{width:50px;height:38px;border-radius:8px;object-fit:cover;flex-shrink:0;background:var(--bdr);cursor:zoom-in}
 .ebody{flex:1;overflow:hidden;min-width:0}
 .enum{font-size:10px;color:var(--t3);letter-spacing:2px;margin-bottom:3px}
 .een{font-size:14px;line-height:1.5;margin-bottom:2px}
@@ -191,9 +191,35 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 #toast{position:fixed;bottom:36px;left:50%;transform:translateX(-50%) translateY(8px);background:rgba(28,25,23,.92);color:#f8f5f1;font-size:13px;padding:10px 20px;border-radius:30px;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;white-space:nowrap;z-index:999}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .safe{padding-bottom:max(24px,env(safe-area-inset-bottom))}
+
+/* LIGHTBOX */
+#lightbox{position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:300;display:none;align-items:center;justify-content:center}
+#lightbox.show{display:flex}
+#lb-img{max-width:100%;max-height:90vh;object-fit:contain;touch-action:pinch-zoom;user-select:none}
+.lb-x{position:absolute;top:max(14px,env(safe-area-inset-top));right:14px;width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.15);border:none;color:#fff;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.lb-hint{position:absolute;bottom:max(20px,env(safe-area-inset-bottom));font-size:12px;color:rgba(255,255,255,.35);pointer-events:none}
+/* VOICE */
+.mic-btn{width:40px;height:40px;border-radius:50%;border:1.5px solid var(--bdr);background:var(--card);font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s}
+.mic-btn.rec{background:rgba(220,38,38,.1);border-color:rgba(220,38,38,.5);animation:rp 1s ease-in-out infinite}
+@keyframes rp{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+.ai-bbl-wrap{align-self:flex-start;display:flex;flex-direction:column;gap:3px;max-width:84%}
+.spk-btn{background:none;border:none;font-size:12px;cursor:pointer;padding:1px 4px;opacity:.45;transition:opacity .15s;align-self:flex-start;line-height:1}
+.spk-btn:active{opacity:1}
+/* CONVERSATION SCROLL FIX */
+#conversation{overflow:hidden!important}
+/* FEEDBACK NOTES */
+.fb-notes{width:100%;background:var(--bg);border:1px solid var(--bdr);border-radius:var(--rs);padding:12px 14px;font-family:inherit;font-size:14px;resize:none;min-height:80px;outline:none;line-height:1.6;color:var(--text);margin-top:4px}
+.fb-notes::placeholder{color:var(--t3)}
+.wk-row{display:flex;align-items:flex-start;gap:10px;background:var(--rlt);border-radius:var(--rs);padding:12px 14px;margin-top:12px;cursor:pointer}
+.wk-row input[type=checkbox]{width:16px;height:16px;flex-shrink:0;margin-top:2px;cursor:pointer}
 </style>
 </head>
 <body>
+<div id="lightbox" onclick="if(event.target===this)closeLightbox()">
+  <button class="lb-x" onclick="closeLightbox()">✕</button>
+  <img id="lb-img" src="" alt="">
+  <div class="lb-hint">双指缩放 · 点外部关闭</div>
+</div>
 <div id="toast"></div>
 <div id="modal">
   <div class="modal-sheet">
@@ -289,26 +315,46 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
   </div>
   <div id="cv-main" style="display:none;flex-direction:column;flex:1">
     <div class="cvtop">
-      <button class="cvback" onclick="leaveConv()">←</button>
+      <button class="cvback" onclick="showConvExit()">←</button>
       <div style="font-size:15px;font-weight:600">对话练习</div>
-      <button class="cvend" onclick="endConv()">结束对话</button>
+      <div style="width:32px"></div>
     </div>
     <div class="cvid" id="cv-id"></div>
     <div class="chat" id="chat"></div>
     <div class="cvwrap">
-      <textarea class="cvta" id="cv-ta" placeholder="用英文回复…" rows="1"></textarea>
+      <button class="mic-btn" id="mic-btn" onclick="toggleMic()" title="语音输入">🎤</button>
+      <textarea class="cvta" id="cv-ta" placeholder="用英文回复，或点 🎤 说话…" rows="1"></textarea>
       <button class="cvsend" onclick="sendMsg()">↑</button>
+    </div>
+  </div>
+  <div class="fbs" id="exit-sheet">
+    <div class="fbh"></div>
+    <div style="font-size:16px;font-weight:600;text-align:center;margin-bottom:6px">结束本次对话？</div>
+    <div style="font-size:13px;color:var(--t3);text-align:center;margin-bottom:20px" id="exit-ct"></div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <button class="btn btn-gold" onclick="hideExitSheet();endConv()">获取对话反馈</button>
+      <button class="btn btn-ghost" onclick="hideExitSheet();closeConv(false)">直接离开，不需要反馈</button>
+      <button class="btn btn-white" onclick="hideExitSheet()">继续对话</button>
     </div>
   </div>
   <div class="fbs" id="fb-sheet">
     <div class="fbh"></div>
     <div style="font-size:16px;font-weight:600;margin-bottom:14px">本次对话反馈</div>
     <div class="fbody" id="fb-body"></div>
-    <div id="wk-box"></div>
-    <div style="margin-top:20px;display:flex;flex-direction:column;gap:10px">
-      <button class="btn btn-gold" onclick="closeConv(true)">保存反馈，回主页</button>
-      <button class="btn btn-ghost" onclick="closeConv(false)">不保存，直接离开</button>
+    <div id="wk-save-row" style="display:none">
+      <label class="wk-row">
+        <input type="checkbox" id="wk-cb">
+        <span style="font-size:13px;color:#991b1b;line-height:1.6" id="wk-label">加入弱点档案</span>
+      </label>
+    </div>
+    <div style="margin-top:16px">
+      <div style="font-size:11px;color:var(--t3);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px">个人笔记</div>
+      <textarea class="fb-notes" id="conv-notes" placeholder="记下今天学到的表达、想再用的词、或者任何感想…"></textarea>
+    </div>
+    <div style="margin-top:16px;display:flex;flex-direction:column;gap:10px">
+      <button class="btn btn-gold" onclick="saveConvFeedback()">保存笔记，回主页</button>
       <button class="btn btn-white" onclick="document.getElementById('fb-sheet').classList.remove('show');startConv()">再来一轮</button>
+      <button class="btn btn-ghost" onclick="closeConv(false)">直接离开</button>
     </div>
   </div>
 </div>
@@ -567,7 +613,7 @@ function renderStudy(){
       +'<button class="btn btn-gold" style="flex:2" onclick="saveNext()">'+nxt+'</button>'
       +'</div>';
   }
-  el.innerHTML='<div class="sim"><img src="'+img.src+'" alt="">'
+  el.innerHTML='<div class="sim"><img src="'+img.src+'" alt="" class="sim-img" style="cursor:zoom-in">'
     +'<div class="sov"></div>'
     +'<div class="stb">'
     +'<button class="sx" id="s-exit-btn">✕</button>'
@@ -686,7 +732,8 @@ function startConv(){
     var setup;try{setup=JSON.parse(raw.replace(/```json|```/g,'').trim());}catch(e){toast('生成场景失败，请重试');goTo('home');return;}
     setup.words=picked;
     var sys='你扮演'+setup.name+'，'+setup.nationality+'人，'+setup.job+'。'+setup.relationship+'。场景：'+setup.scene
-      +'\n\n【秘密目标】自然引入以下词汇，绝不直接提示：\n'+wb+'\n\n规则：全程英文；语气自然真实；每次1-3句；像真人聊天。';
+      +'\n\n规则：全程英文；像真人说话，不要每次都用相同句式；回复长度随对话内容而定，短问短答，有话才说长；'
+      +'对话自然流动是第一位的，如果以下词汇有自然出现的机会就用，没有机会别硬塞：\n'+wb;
     conv={setup:setup,msgs:[{role:'system',content:sys},{role:'assistant',content:setup.firstMessage}],state:'chatting'};
     document.getElementById('cv-load').style.display='none';
     var m=document.getElementById('cv-main');m.style.display='flex';m.style.flexDirection='column';
@@ -696,20 +743,46 @@ function startConv(){
     document.getElementById('chat').innerHTML='';addBbl('ai',setup.firstMessage);
   }).catch(function(e){toast('生成场景失败：'+e.message);goTo('home');});
 }
-function addBbl(type,txt){var ca=document.getElementById('chat');if(!ca)return;var d=document.createElement('div');d.className='bbl '+(type==='ai'?'bai':type==='me'?'bme':'bsys');d.textContent=txt;ca.appendChild(d);ca.scrollTop=ca.scrollHeight;}
+function addBbl(type,txt){
+  var ca=document.getElementById('chat');if(!ca)return;
+  if(type==='ai'){
+    var wrap=document.createElement('div');wrap.className='ai-bbl-wrap';
+    var bbl=document.createElement('div');bbl.className='bbl bai';bbl.textContent=txt;
+    var spk=document.createElement('button');spk.className='spk-btn';spk.textContent='🔊';
+    spk.onclick=(function(t){return function(){speakText(t);};})(txt);
+    wrap.appendChild(bbl);wrap.appendChild(spk);
+    ca.appendChild(wrap);
+  } else {
+    var d=document.createElement('div');
+    d.className='bbl '+(type==='me'?'bme':'bsys');
+    d.textContent=txt;ca.appendChild(d);
+  }
+  ca.scrollTop=ca.scrollHeight;
+}
 function addLoad(){var ca=document.getElementById('chat');if(!ca)return;var d=document.createElement('div');d.className='bload';d.id='bload';d.innerHTML='<div class="bld"></div><div class="bld"></div><div class="bld"></div>';ca.appendChild(d);ca.scrollTop=ca.scrollHeight;}
 function rmLoad(){var el=document.getElementById('bload');if(el)el.remove();}
 function sendMsg(){var ta=document.getElementById('cv-ta'),txt=ta?ta.value.trim():'';if(!txt||!conv||conv.state!=='chatting')return;ta.value='';ta.style.height='auto';addBbl('me',txt);conv.msgs.push({role:'user',content:txt});addLoad();callDS(conv.msgs,250).then(function(r){rmLoad();conv.msgs.push({role:'assistant',content:r});addBbl('ai',r);}).catch(function(){rmLoad();toast('网络错误，请重试');});}
-function leaveConv(){if(!conv||conv.msgs.length<=2){goTo('home');return;}confirmAct('退出对话？','当前对话进度将丢失','退出',function(){goTo('home');});}
+// leaveConv replaced by showConvExit
 function endConv(){
   if(!conv)return;conv.state='ending';addBbl('sys','对话结束，正在生成反馈…');
-  var history=conv.msgs.filter(function(m){return m.role!=='system';}).map(function(m){return(m.role==='user'?'学习者':conv.setup.name)+': '+m.content;}).join('\n');
+  var history=conv.msgs.filter(function(m){return m.role!=='system';}).map(function(m){return(m.role==='user'?'你':conv.setup.name)+': '+m.content;}).join('\n');
   var words=conv.setup.words.map(function(w){return w.word;}).join('、');
-  callDS([{role:'user',content:'分析这段英语对话，用中文反馈：\n\n'+history+'\n\n目标词汇：'+words+'\n\n反馈（说人话）：\n语感：哪些自然地道，哪里不像母语者\n词汇：用到了哪些目标词，用得准吗\n建议：一个最值得改进的点\n弱点记录：一句话存入档案'}],600)
+  // clear notes field
+  var notesEl=document.getElementById('conv-notes');if(notesEl)notesEl.value='';
+  callDS([{role:'user',content:'请用中文分析这段英语对话练习，分以下几部分：\n\n'+history+'\n\n本次目标词汇：'+words+'\n\n---\n【你的表达】你哪些地方说得自然地道，哪里不太像母语者，给出更好的说法\n【词汇使用】你用到了哪些目标词，用得准不准，有没有更地道的搭配\n【今日亮点】从'+conv.setup.name+'说的话里挑2-3个值得你借鉴的地道表达或短语，解释含义和典型使用场景\n【一句建议】最值得你改进的一个方向\n【弱点记录】一句话（用于可选择性存入档案）'}],900)
   .then(function(fb){
     var m=fb.match(/弱点记录[：:]\s*(.+)/);pendingWeak=m?m[1].trim():'';
     document.getElementById('fb-body').textContent=fb.replace(/弱点记录[：:].*$/,'').trim();
-    document.getElementById('wk-box').innerHTML=pendingWeak?'<div class="wkbox"><strong style="display:block;margin-bottom:3px">📌 本次弱点记录</strong>'+pendingWeak+'</div>':'';
+    var wkRow=document.getElementById('wk-save-row');
+    var wkLbl=document.getElementById('wk-label');
+    var wkCb=document.getElementById('wk-cb');
+    if(pendingWeak&&wkRow&&wkLbl){
+      wkLbl.textContent='加入弱点档案：'+pendingWeak;
+      if(wkCb)wkCb.checked=false;
+      wkRow.style.display='block';
+    } else if(wkRow){
+      wkRow.style.display='none';
+    }
     document.getElementById('fb-sheet').classList.add('show');
   }).catch(function(){toast('获取反馈失败');});
 }
@@ -829,6 +902,106 @@ function callDS(msgs,max){
   .then(function(r){return r.json();})
   .then(function(d){if(d.error)throw new Error(d.error.message||JSON.stringify(d.error));return(d.choices&&d.choices[0]&&d.choices[0].message&&d.choices[0].message.content)||'';});
 }
+
+// ── Lightbox ──────────────────────────────────────────────────────
+var lbScale=1, lbLastDist=0;
+function openImg(src){
+  if(!src||src.endsWith('index.html')||src.length<5)return;
+  var img=document.getElementById('lb-img');
+  img.src=src; img.style.transform='scale(1)'; lbScale=1;
+  document.getElementById('lightbox').classList.add('show');
+}
+function closeLightbox(){ document.getElementById('lightbox').classList.remove('show'); }
+function resetZoom(){ lbScale=1; document.getElementById('lb-img').style.transform='scale(1)'; }
+(function(){
+  var img=document.getElementById('lb-img');
+  img.addEventListener('touchstart',function(e){
+    if(e.touches.length===2){lbLastDist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);}
+  },{passive:true});
+  img.addEventListener('touchmove',function(e){
+    if(e.touches.length===2){
+      e.preventDefault();
+      var d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+      lbScale=Math.min(Math.max(lbScale*(d/lbLastDist),.5),5);
+      img.style.transform='scale('+lbScale+')';
+      lbLastDist=d;
+    }
+  },{passive:false});
+  img.addEventListener('dblclick',function(){resetZoom();});
+})();
+
+// Click any thumbnail to zoom
+document.addEventListener('click',function(ev){
+  var t=ev.target;
+  if(t.tagName==='IMG'&&(t.classList.contains('ethumb')||t.classList.contains('sim-img'))){
+    openImg(t.src); return;
+  }
+});
+
+// ── Voice Input ────────────────────────────────────────────────────
+var recog=null, isRec=false;
+function toggleMic(){
+  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){toast('此浏览器不支持语音输入，请用 Safari');return;}
+  if(isRec){recog.stop();return;}
+  if(!recog){
+    recog=new SR();
+    recog.lang='en-US';recog.continuous=false;recog.interimResults=true;
+    recog.onstart=function(){isRec=true;var b=document.getElementById('mic-btn');if(b){b.textContent='🔴';b.classList.add('rec');}};
+    recog.onresult=function(e){
+      var t='';for(var i=e.resultIndex;i<e.results.length;i++)t+=e.results[i][0].transcript;
+      var ta=document.getElementById('cv-ta');if(ta){ta.value=t;autoR(ta);}
+    };
+    recog.onend=function(){isRec=false;var b=document.getElementById('mic-btn');if(b){b.textContent='🎤';b.classList.remove('rec');}};
+    recog.onerror=function(){isRec=false;var b=document.getElementById('mic-btn');if(b){b.textContent='🎤';b.classList.remove('rec');}toast('请检查麦克风权限');};
+  }
+  var ta=document.getElementById('cv-ta');if(ta)ta.value='';
+  recog.start();
+}
+
+// ── TTS ────────────────────────────────────────────────────────────
+function speakText(txt){
+  if(!window.speechSynthesis){toast('此浏览器不支持语音播放');return;}
+  window.speechSynthesis.cancel();
+  var u=new SpeechSynthesisUtterance(txt);
+  u.lang='en-US';u.rate=0.88;
+  // try to pick a native voice
+  var voices=window.speechSynthesis.getVoices();
+  var v=voices.find(function(v){return v.lang==='en-US'&&v.localService;});
+  if(v)u.voice=v;
+  window.speechSynthesis.speak(u);
+}
+
+// ── Conversation exit flow ─────────────────────────────────────────
+function showConvExit(){
+  if(!conv||conv.msgs.length<=2){closeConv(false);return;}
+  var rounds=conv.msgs.filter(function(m){return m.role==='user';}).length;
+  var ct=document.getElementById('exit-ct');
+  if(ct)ct.textContent='已进行了 '+rounds+' 轮对话';
+  document.getElementById('exit-sheet').classList.add('show');
+}
+function hideExitSheet(){document.getElementById('exit-sheet').classList.remove('show');}
+
+// ── Save conv feedback ─────────────────────────────────────────────
+function saveConvFeedback(){
+  var notes=(document.getElementById('conv-notes').value||'').trim();
+  var saveWk=document.getElementById('wk-cb')&&document.getElementById('wk-cb').checked;
+  if(saveWk&&pendingWeak){
+    var lines=(DB.weakness||'').split('\n').filter(Boolean);
+    lines.push(new Date().toLocaleDateString('zh-CN')+': '+pendingWeak);
+    DB.weakness=lines.slice(-5).join('\n');
+  }
+  // save notes to today's conv record if anything written
+  if(notes){
+    if(!DB.convNotes)DB.convNotes=[];
+    DB.convNotes.push({date:TODAY,ts:Date.now(),notes:notes});
+  }
+  saveDB();
+  pendingWeak='';
+  document.getElementById('fb-sheet').classList.remove('show');
+  goTo('home');
+}
+
 </script>
 </body>
 </html>
