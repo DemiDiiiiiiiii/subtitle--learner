@@ -172,7 +172,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:"Noto S
   </div>
   <div class="slbl">今日学习</div>
   <label for="fp"><div class="btn btn-a" style="margin-bottom:22px;text-align:center;cursor:pointer">📸 &nbsp;上传截图，开始输入</div></label>
-  <input type="file" id="fp" accept="image/*" multiple style="display:none" onchange="startSession(this.files);this.value='';">
+  <input type="file" id="fp" accept="image/*" multiple style="opacity:0;position:fixed;top:-200px;width:1px;height:1px">
   <div class="slbl">复习</div>
   <div class="rev-grid">
     <button class="rb" id="btn-card">
@@ -865,6 +865,27 @@ function callDS(msgs, max) {
   }).then(function(r){ return r.json(); })
   .then(function(d){ return (d.choices&&d.choices[0]&&d.choices[0].message&&d.choices[0].message.content)||""; });
 }
+// ── Direct file input binding (iOS safe) ─────────────────────────
+(function() {
+  var inp = document.getElementById("fp");
+  if (inp) {
+    inp.addEventListener("change", function() {
+      if (this.files && this.files.length > 0) {
+        startSession(this.files);
+        this.value = "";
+      }
+    });
+  }
+  // Also bind upload button directly
+  var btn = document.querySelector("label[for=fp]");
+  if (!btn) {
+    // fallback: if label not found, find the div inside label
+    var uploadDiv = document.getElementById("btn-upload");
+    if (uploadDiv) {
+      uploadDiv.onclick = function(){ document.getElementById("fp").click(); };
+    }
+  }
+})();
 </script>
 </body>
 </html>
