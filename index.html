@@ -308,9 +308,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
       </div>
     </div>
     <div class="slbl">Today</div>
-    <label for="fp" style="display:block;margin-bottom:22px">
-      <div class="btn btn-gold">Upload Screenshots</div>
-    </label>
+    <div class="btn btn-gold" style="margin-bottom:22px" onclick="document.getElementById('fp').click()">Upload Screenshots</div>
     <div class="slbl">Practice</div>
     <div class="rev-grid">
       <button class="rev-card" onclick="startCardReview()">
@@ -419,9 +417,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
   <div class="nav" style="flex-shrink:0">
     <div class="back" onclick="goTo('home')">←</div>
     <span class="nav-t">Records</span>
-    <label for="fp" style="margin-left:auto">
-      <div class="btn btn-ghost" style="padding:8px 14px;width:auto;font-size:12px;border-radius:20px">Upload</div>
-    </label>
+    <div class="btn btn-ghost" style="padding:8px 14px;width:auto;font-size:12px;border-radius:20px;cursor:pointer" onclick="document.getElementById('fp').click()">Upload</div>
   </div>
   <div class="tabs" style="flex-shrink:0">
     <div class="tab on" id="tab-today" onclick="listTab('today')">Today</div>
@@ -547,7 +543,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
   </div>
 </div>
 
-<input type="file" id="fp" accept="image/*" multiple style="position:fixed;top:-200px;left:-200px;width:1px;height:1px;opacity:0">
+<input type="file" id="fp" accept="image/*" multiple style="position:absolute;width:0;height:0;opacity:0;overflow:hidden">
 
 <script>// ── Global error handler ──────────────────────────────────────────
 window.onerror = function(msg, src, line, col, err) {
@@ -608,10 +604,20 @@ kvGet('db').then(function(v){
     }
   }catch(e){}
 });
-document.getElementById('fp').addEventListener('change',function(){
-  if(this.files&&this.files.length>0)startStudy(this.files);
-  this.value='';
-});
+// File input - iOS Safari needs both change + input events
+(function(){
+  var fp = document.getElementById('fp');
+  if(!fp) return;
+  function handleFiles(){
+    var files = fp.files;
+    if(files && files.length > 0){
+      startStudy(files);
+      setTimeout(function(){ try{ fp.value=''; }catch(e){} }, 100);
+    }
+  }
+  fp.addEventListener('change', handleFiles);
+  fp.addEventListener('input',  handleFiles);
+})();
 document.addEventListener('click',function(e){
   var c=e.target.closest('.chip');if(!c||!c.dataset.g)return;
   var g=c.dataset.g;
