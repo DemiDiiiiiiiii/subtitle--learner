@@ -128,8 +128,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 .cvta::placeholder{color:var(--t3)}
 .cvsend{width:40px;height:40px;border-radius:50%;border:none;flex-shrink:0;background:var(--ink);color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .cvload{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:40px}
-#conversation{overflow:hidden!important;position:relative!important}
-#cv-main{box-sizing:border-box}
+#conversation{overflow:hidden!important}
 .fbs{position:absolute;bottom:0;left:0;right:0;background:var(--card);border-radius:22px 22px 0 0;box-shadow:0 -4px 32px rgba(0,0,0,.12);transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);z-index:10;max-height:90vh;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:20px 22px max(36px,env(safe-area-inset-bottom))}
 .fbs.show{transform:translateY(0)}
 .fbh{width:36px;height:4px;border-radius:2px;background:var(--bdr);margin:0 auto 18px}
@@ -236,6 +235,13 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 .ws-ta{flex:1;background:var(--bg);border:1px solid var(--bdr);border-radius:18px;padding:10px 16px;font-size:14px;font-family:inherit;resize:none;min-height:40px;max-height:90px;outline:none;line-height:1.5}
 .ws-send{width:36px;height:36px;border-radius:50%;border:none;background:var(--ink);color:#fff;font-size:14px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center}
 .ws-close-btn{background:none;border:none;color:var(--t3);font-size:20px;cursor:pointer;padding:2px 6px;margin-left:auto}
+
+/* CONVERSATION SCROLL FIX */
+#cv-main{display:flex;flex-direction:column;overflow:hidden}
+#cv-main .cvtop{flex-shrink:0}
+#cv-main .cvid{flex-shrink:0}
+#cv-main .cvwrap{flex-shrink:0}
+#cv-main .chat{flex:1;min-height:0;overflow-y:scroll;-webkit-overflow-scrolling:touch}
 </style>
 </head>
 <body>
@@ -333,11 +339,11 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 
 <!-- CONVERSATION -->
 <div class="screen" id="conversation" style="position:relative;overflow:hidden">
-  <div class="cvload" id="cv-load" style="position:absolute;inset:0;z-index:1">
+  <div class="cvload" id="cv-load">
     <div class="spin"><div class="sp"></div><div class="sp"></div><div class="sp"></div></div>
     <div style="font-size:14px;color:var(--t2)">AI 正在准备角色和场景…</div>
   </div>
-  <div id="cv-main" style="display:none;position:absolute;top:0;left:0;right:0;bottom:0;flex-direction:column;overflow:hidden">
+  <div id="cv-main" style="display:none;flex-direction:column;flex:1;overflow:hidden">
     <div class="cvtop">
       <button class="cvback" onclick="showConvExit()">←</button>
       <div style="font-size:15px;font-weight:600">对话练习</div>
@@ -883,7 +889,7 @@ function startConv(){
       +'对话自然流动是第一位的，如果以下词汇有自然出现的机会就用，没有机会别硬塞：\n'+wb;
     conv={setup:setup,msgs:[{role:'system',content:sys},{role:'assistant',content:setup.firstMessage}],state:'chatting'};
     document.getElementById('cv-load').style.display='none';
-    var m=document.getElementById('cv-main');m.style.display='flex';m.style.flexDirection='column';m.style.position='absolute';m.style.top='0';m.style.left='0';m.style.right='0';m.style.bottom='0';m.style.overflow='hidden';
+    var m=document.getElementById('cv-main');m.style.display='flex';m.style.flexDirection='column';m.style.flex='1';m.style.overflow='hidden';m.style.minHeight='0';
     document.getElementById('cv-id').innerHTML='<div class="idrow"><div class="idav">'+setup.name.charAt(0)+'</div>'
       +'<div><div class="idname">'+setup.name+'</div><div class="idsub">'+setup.nationality+' · '+setup.job+'</div></div></div>'
       +'<div class="idscene">'+setup.relationship+'。'+setup.scene+'</div>';
