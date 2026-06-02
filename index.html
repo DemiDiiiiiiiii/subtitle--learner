@@ -568,7 +568,7 @@ function kvGet(k){var c=new AbortController();setTimeout(function(){c.abort();},
 
 // ── DB ────────────────────────────────────────────────────────────
 var DB={entries:[],fps:[],days:{},weakness:''};
-var TODAY=new Date().toLocaleDateString('zh-CN');
+var TODAY=(function(){try{return new Date().toLocaleDateString('zh-CN');}catch(e){var d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();}})();
 try{var _s=localStorage.getItem(DB_KEY);if(_s)DB=JSON.parse(_s);}catch(e){}
 if(!DB.entries)DB.entries=[];if(!DB.fps)DB.fps=[];if(!DB.days)DB.days={};if(!DB.weakness)DB.weakness='';
 if(!DB.days[TODAY])DB.days[TODAY]=[];
@@ -592,7 +592,17 @@ var sess=null,conv=null,crList=[],crIdx=0,crFlip=false,pendingWeak='';
 var listTabCurrent='today',expandedDates={};
 
 // ── Boot ──────────────────────────────────────────────────────────
+// Boot indicator - will disappear when app loads
+(function(){
+  var bi=document.createElement('div');
+  bi.id='boot-indicator';
+  bi.style.cssText='position:fixed;bottom:8px;right:8px;font-size:11px;color:#999;z-index:998';
+  bi.textContent='loading…';
+  document.body.appendChild(bi);
+})();
 refreshHome();
+document.getElementById('boot-indicator').textContent='ready';
+setTimeout(function(){var bi=document.getElementById('boot-indicator');if(bi)bi.remove();},2000);
 kvGet('db').then(function(v){
   if(!v)return;
   try{
@@ -604,10 +614,19 @@ kvGet('db').then(function(v){
     }
   }catch(e){}
 });
-document.getElementById('fp').addEventListener('change',function(){
-  if(this.files&&this.files.length>0)startStudy(this.files);
-  this.value='';
-});
+var fpEl=document.getElementById('fp');
+if(fpEl){
+  fpEl.addEventListener('change',function(){
+    if(this.files&&this.files.length>0)startStudy(this.files);
+    this.value='';
+  });
+  // iOS backup: also listen on input event
+  fpEl.addEventListener('input',function(){
+    if(this.files&&this.files.length>0)startStudy(this.files);
+  });
+} else {
+  document.getElementById('boot-indicator').textContent='ERROR: fp missing';
+}
 document.addEventListener('click',function(e){
   var c=e.target.closest('.chip');if(!c||!c.dataset.g)return;
   var g=c.dataset.g;
