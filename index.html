@@ -31,11 +31,11 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 /* HOME */
 .home-wrap{padding:max(52px,env(safe-area-inset-top)) 22px 0}
 .home-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px}
-.hero h1{font-size:28px;font-weight:300;letter-spacing:2px;line-height:1.3}
+.hero h1{font-size:26px;font-weight:300;letter-spacing:1px;line-height:1.3}
 .hero p{font-size:13px;color:var(--t3);margin-top:4px}
 .gear{width:36px;height:36px;border-radius:50%;background:var(--card);border:1px solid var(--bdr);box-shadow:var(--sh);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:17px;flex-shrink:0}
 .stats{display:flex;gap:10px;margin-bottom:22px}
-.stat{flex:1;background:var(--card);border-radius:var(--r);padding:14px 8px;text-align:center;box-shadow:var(--sh);border:1px solid var(--bdr);cursor:pointer;transition:transform .15s}
+.stat{flex:1;background:var(--card);border-radius:var(--r);padding:16px 8px;text-align:center;box-shadow:0 1px 8px rgba(0,0,0,.05);border:1px solid var(--bdr);cursor:pointer;transition:transform .15s}
 .stat:active{transform:scale(.96)}
 .stat-n{font-size:26px;font-weight:600;color:var(--gold);line-height:1}
 .stat-l{font-size:11px;color:var(--t3);margin-top:3px}
@@ -43,16 +43,16 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 .rev-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
 .rev-card{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);padding:18px 14px;text-align:left;cursor:pointer;box-shadow:var(--sh);transition:transform .15s;font-family:inherit;width:100%}
 .rev-card:active{transform:scale(.97)}
-.rev-icon{font-size:24px;margin-bottom:8px}
+.rev-icon{width:32px;height:32px;margin-bottom:10px;color:var(--t2)}
 .rev-name{font-size:14px;font-weight:600;margin-bottom:3px}
-.rev-meta{font-size:11px;color:var(--t3)}
+.rev-meta{font-size:11px;color:var(--t3);margin-top:2px}
 .rev-tag{display:inline-block;font-size:10px;padding:2px 7px;border-radius:8px;margin-top:6px}
 .rt-g{background:var(--glt);color:var(--gold)}.rt-b{background:var(--blt);color:var(--blue)}
 /* PREVIEW */
 #preview{background:var(--bg)}
 .img-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:0 22px;flex:1;overflow-y:auto}
-.img-cell{position:relative;padding-bottom:75%;border-radius:10px;overflow:hidden;background:var(--bdr)}
-.img-cell img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.img-cell{position:relative;border-radius:10px;overflow:hidden;background:var(--bdr);aspect-ratio:4/3}
+.img-cell img{width:100%;height:100%;object-fit:cover;display:block}
 .img-x{position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;background:rgba(220,38,38,.85);color:#fff;border:none;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;line-height:1}
 /* STUDY */
 #study{background:#000}
@@ -117,7 +117,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 .idname{font-size:14px;font-weight:600}
 .idsub{font-size:11px;color:var(--t2);margin-top:1px}
 .idscene{font-size:12px;color:var(--t2);background:rgba(255,255,255,.7);border-radius:10px;padding:8px 12px;line-height:1.7}
-.chat{flex:1;overflow-y:auto;padding:14px 16px 8px;display:flex;flex-direction:column;gap:10px;-webkit-overflow-scrolling:touch}
+.chat{flex:1;overflow-y:auto;min-height:0;padding:14px 16px 8px;display:flex;flex-direction:column;gap:10px;-webkit-overflow-scrolling:touch}
 .bbl{max-width:82%;line-height:1.6;font-size:15px}
 .bai{align-self:flex-start;background:var(--card);border-radius:4px 18px 18px 18px;padding:12px 16px;box-shadow:0 1px 6px rgba(0,0,0,.08)}
 .bme{align-self:flex-end;background:var(--gold);color:#fff;border-radius:18px 4px 18px 18px;padding:12px 16px}
@@ -130,7 +130,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 .cvta::placeholder{color:var(--t3)}
 .cvsend{width:44px;height:44px;border-radius:50%;border:none;flex-shrink:0;background:var(--blue);color:#fff;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .cvload{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:40px}
-.fbs{position:absolute;bottom:0;left:0;right:0;background:var(--card);border-radius:22px 22px 0 0;padding:24px 22px max(36px,env(safe-area-inset-bottom));box-shadow:0 -4px 32px rgba(0,0,0,.12);transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);z-index:10;max-height:80vh;overflow-y:auto}
+.fbs{position:absolute;bottom:0;left:0;right:0;background:var(--card);border-radius:22px 22px 0 0;box-shadow:0 -4px 32px rgba(0,0,0,.12);transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);z-index:10;max-height:90vh;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:20px 22px max(36px,env(safe-area-inset-bottom))}
 .fbs.show{transform:translateY(0)}
 .fbh{width:36px;height:4px;border-radius:2px;background:var(--bdr);margin:0 auto 18px}
 .fbody{font-size:14px;color:var(--t2);line-height:2;white-space:pre-wrap}
@@ -239,7 +239,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
   <div class="home-wrap">
     <div class="home-top">
       <div class="hero"><h1>剧词</h1><p>追剧积词，每天进一点</p></div>
-      <div class="gear" onclick="goTo('settings')">⚙️</div>
+      <div class="gear" onclick="goTo('settings')">···</div>
     </div>
     <div class="stats">
       <div class="stat" onclick="goTo('library')">
@@ -254,24 +254,24 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
     </div>
     <div class="slbl">今日学习</div>
     <label for="fp" style="display:block;margin-bottom:22px">
-      <div class="btn btn-gold">📸 &nbsp;上传截图，开始输入</div>
+      <div class="btn btn-gold">上传截图，开始输入</div>
     </label>
     <div class="slbl">复习</div>
     <div class="rev-grid">
       <button class="rev-card" onclick="startCardReview()">
-        <div class="rev-icon">🗂</div><div class="rev-name">卡片复习</div>
+        <div class="rev-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/></svg></div><div class="rev-name">卡片复习</div>
         <div class="rev-meta" id="card-meta">0个词汇</div>
-        <span class="rev-tag rt-g">英语 + 韩语</span>
+        
       </button>
       <button class="rev-card" onclick="startConv()">
-        <div class="rev-icon">💬</div><div class="rev-name">对话练习</div>
+        <div class="rev-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><div class="rev-name">对话练习</div>
         <div class="rev-meta" id="conv-meta">随机词汇</div>
-        <span class="rev-tag rt-b">仅英语</span>
+        
       </button>
     </div>
     <div style="display:flex;flex-direction:column;gap:10px">
       <button class="btn btn-white" id="btn-list" style="display:none" onclick="goTo('list');listTab('today')">查看今日字幕列表</button>
-      <button class="btn btn-ghost" onclick="goTo('story');resetStory()">✦ 生成故事</button>
+      <button class="btn btn-ghost" onclick="goTo('story');resetStory()">生成故事</button>
     </div>
   </div>
   <div class="safe"></div>
@@ -285,8 +285,8 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
     <span style="margin-left:auto;font-size:13px;color:var(--t3)" id="prev-ct"></span>
   </div>
   <div style="padding:0 22px 10px;font-size:13px;color:var(--t2);flex-shrink:0">点 × 移除不想学的，然后开始</div>
-  <div class="img-grid" id="img-grid"></div>
-  <div style="padding:16px 22px max(24px,env(safe-area-inset-bottom));flex-shrink:0">
+  <div class="img-grid" id="img-grid" style="flex:1;overflow-y:auto;align-content:start"></div>
+  <div style="padding:16px 22px max(24px,env(safe-area-inset-bottom));flex-shrink:0;background:var(--bg);border-top:1px solid var(--bdr)">
     <button class="btn btn-gold" onclick="beginStudy()">开始输入</button>
   </div>
 </div>
@@ -313,7 +313,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
     <div class="spin"><div class="sp"></div><div class="sp"></div><div class="sp"></div></div>
     <div style="font-size:14px;color:var(--t2)">AI 正在准备角色和场景…</div>
   </div>
-  <div id="cv-main" style="display:none;flex-direction:column;flex:1">
+  <div id="cv-main" style="display:none;flex-direction:column;flex:1;min-height:0;overflow:hidden">
     <div class="cvtop">
       <button class="cvback" onclick="showConvExit()">←</button>
       <div style="font-size:15px;font-weight:600">对话练习</div>
@@ -365,16 +365,17 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
     <div class="back" onclick="goTo('home')">←</div>
     <span class="nav-t">学习记录</span>
     <label for="fp" style="margin-left:auto">
-      <div class="btn btn-ghost" style="padding:8px 14px;width:auto;font-size:12px;border-radius:20px">+ 上传</div>
+      <div class="btn btn-ghost" style="padding:8px 14px;width:auto;font-size:12px;border-radius:20px">上传</div>
     </label>
   </div>
   <div class="tabs" style="flex-shrink:0">
     <div class="tab on" id="tab-today" onclick="listTab('today')">今日</div>
     <div class="tab" id="tab-hist" onclick="listTab('history')">历史</div>
+    <div class="tab" id="tab-notes" onclick="listTab('notes')">对话笔记</div>
   </div>
   <div id="list-body" style="flex:1;overflow-y:auto"></div>
   <div style="padding:14px 22px max(20px,env(safe-area-inset-bottom));flex-shrink:0;border-top:1px solid var(--bdr)">
-    <button class="btn btn-gold" onclick="goTo('story');resetStory()">✦ 今日字幕生成故事</button>
+    <button class="btn btn-gold" onclick="goTo('story');resetStory()">生成故事</button>
   </div>
 </div>
 
@@ -544,7 +545,12 @@ function toast(msg,dur){var el=document.getElementById('toast');el.textContent=m
 function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
 function fpOf(f){return f.name+'|'+f.size+'|'+f.lastModified;}
 function autoR(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,100)+'px';}
-function getAllKw(){var kws=[];DB.entries.forEach(function(e){(e.keywords||[]).forEach(function(k){kws.push({word:k.word,zh:k.zh,note:k.note||'',lang:e.lang,ctx:e.text});});if((!e.keywords||!e.keywords.length)&&e.text)kws.push({word:e.text,zh:e.zh||'',note:'',lang:e.lang,ctx:e.text});});return kws;}
+function getAllKw(){
+  // Return full entry sentences as cards - not extracted keywords
+  return DB.entries.map(function(e){
+    return {word:e.text,zh:e.zh||'',note:(e.keywords||[]).map(function(k){return k.word+': '+k.zh;}).join(' · '),lang:e.lang,ctx:e.notes||''};
+  });
+}
 function confirmAct(msg,sub,okTxt,cb){document.getElementById('modal-msg').textContent=msg;document.getElementById('modal-sub').textContent=sub||'';var ok=document.getElementById('modal-ok');ok.textContent=okTxt||'确认删除';ok.onclick=function(){closeModal();cb();};document.getElementById('modal').classList.add('show');}
 function closeModal(){document.getElementById('modal').classList.remove('show');}
 
@@ -613,7 +619,7 @@ function renderStudy(){
       +'<button class="btn btn-gold" style="flex:2" onclick="saveNext()">'+nxt+'</button>'
       +'</div>';
   }
-  el.innerHTML='<div class="sim"><img src="'+img.src+'" alt="" class="sim-img" style="cursor:zoom-in">'
+  el.innerHTML='<div class="sim"><img src="'+img.src+'" alt="" class="sim-img" data-full-src="'+img.src+'" style="cursor:zoom-in">'
     +'<div class="sov"></div>'
     +'<div class="stb">'
     +'<button class="sx" id="s-exit-btn">✕</button>'
@@ -671,7 +677,7 @@ function renderDone(el){
     +'<div style="font-size:14px;color:var(--t2);line-height:1.8">今天输入了 '+cnt+' 条字幕</div>'
     +'<div style="width:100%;display:flex;flex-direction:column;gap:10px;margin-top:8px">'
     +'<button class="btn btn-gold" id="done-list-btn">查看今日字幕列表</button>'
-    +'<button class="btn btn-white" id="done-story-btn">✦ 生成小故事</button>'
+    +'<button class="btn btn-white" id="done-story-btn">生成小故事</button>'
     +'<button class="btn btn-ghost" id="done-home-btn">回主页</button>'
     +'</div></div>';
   var dlb=document.getElementById('done-list-btn');if(dlb)dlb.onclick=function(){goTo('list');listTab('today');};
@@ -701,7 +707,7 @@ function renderCR(){
   document.getElementById('cr-ct').textContent=(crIdx+1)+' / '+crList.length;
   var c=crList[crIdx];var ko=c.lang==='ko';
   el.innerHTML='<div style="padding:0 22px;flex:1;display:flex;flex-direction:column;justify-content:center;gap:20px">'
-    +'<div class="flip-wrap" id="fw" onclick="crFlip=!crFlip;renderCR()">'
+    +'<div class="flip-wrap" id="fw">'
     +'<div class="flip-inner'+(crFlip?' flipped':'')+'">'
     +'<div class="flip-face"><span class="tag '+(ko?'tag-k':'tag-e')+'" style="margin-bottom:14px;margin-left:0">'+(ko?'🇰🇷 韩语':'🇺🇸 英语')+'</span>'
     +'<div class="fw">'+c.word+'</div><div class="fh">点击查看释义</div></div>'
@@ -709,11 +715,32 @@ function renderCR(){
     +(c.note?'<div class="fn">'+c.note+'</div>':'')
     +(c.ctx&&c.ctx!==c.word?'<div class="fctx">出自："'+c.ctx+'"</div>':'')
     +'</div></div></div>'
-    +(crFlip?'<div class="rrow">'
-      +'<button class="rbtn rno" onclick="event.stopPropagation();crList.push(crList[crIdx]);crIdx++;crFlip=false;renderCR()">没记住 🔁</button>'
-      +'<button class="rbtn ryes" onclick="event.stopPropagation();crIdx++;crFlip=false;renderCR()">记住了 ✓</button>'
-      +'</div>':'<div style="height:54px"></div>')
+    +(crFlip?'<div class="rrow"><button class="rbtn rno" id="cr-no">没记住</button><button class="rbtn ryes" id="cr-yes">记住了</button></div>':'<div style="font-size:12px;color:var(--t3);text-align:center;padding-top:16px">← 左滑没记住 &nbsp;·&nbsp; 右滑记住了 →</div>')
     +'</div>';
+  // Bind click + swipe
+  var fw=document.getElementById('fw');
+  if(!fw)return;
+  fw.onclick=function(e){crFlip=!crFlip;renderCR();};
+  if(crFlip){
+    var cno=document.getElementById('cr-no');
+    var cyes=document.getElementById('cr-yes');
+    if(cno)cno.onclick=function(e){e.stopPropagation();crList.push(crList[crIdx]);crIdx++;crFlip=false;renderCR();};
+    if(cyes)cyes.onclick=function(e){e.stopPropagation();crIdx++;crFlip=false;renderCR();};
+  }
+  // Swipe left = 没记住, right = 记住了
+  var swTx=null,swTy=null;
+  fw.addEventListener('touchstart',function(e){swTx=e.touches[0].clientX;swTy=e.touches[0].clientY;},{passive:true});
+  fw.addEventListener('touchend',function(e){
+    if(swTx===null)return;
+    var dx=e.changedTouches[0].clientX-swTx;
+    var dy=e.changedTouches[0].clientY-swTy;
+    swTx=null;swTy=null;
+    if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>50){
+      if(dx>0){crIdx++;crFlip=false;renderCR();}
+      else{crList.push(crList[crIdx]);crIdx++;crFlip=false;renderCR();}
+    }
+  },{passive:true});
+  // Remove onclick from fw HTML to avoid double-fire (use JS binding only)
 }
 
 // ── Conversation ──────────────────────────────────────────────────
@@ -736,7 +763,7 @@ function startConv(){
       +'对话自然流动是第一位的，如果以下词汇有自然出现的机会就用，没有机会别硬塞：\n'+wb;
     conv={setup:setup,msgs:[{role:'system',content:sys},{role:'assistant',content:setup.firstMessage}],state:'chatting'};
     document.getElementById('cv-load').style.display='none';
-    var m=document.getElementById('cv-main');m.style.display='flex';m.style.flexDirection='column';
+    var m=document.getElementById('cv-main');m.style.display='flex';m.style.flexDirection='column';m.style.flex='1';m.style.minHeight='0';m.style.overflow='hidden';
     document.getElementById('cv-id').innerHTML='<div class="idrow"><div class="idav">'+setup.name.charAt(0)+'</div>'
       +'<div><div class="idname">'+setup.name+'</div><div class="idsub">'+setup.nationality+' · '+setup.job+'</div></div></div>'
       +'<div class="idscene">'+setup.relationship+'。'+setup.scene+'</div>';
@@ -796,13 +823,27 @@ function listTab(tab){
   listTabCurrent=tab;
   document.getElementById('tab-today').classList.toggle('on',tab==='today');
   document.getElementById('tab-hist').classList.toggle('on',tab==='history');
-  if(tab==='today')renderToday();else renderHistory();
+  var tn=document.getElementById('tab-notes');if(tn)tn.classList.toggle('on',tab==='notes');
+  if(tab==='today')renderToday();
+  else if(tab==='history')renderHistory();
+  else renderConvNotes();
+}
+function renderConvNotes(){
+  var el=document.getElementById('list-body');
+  var notes=DB.convNotes||[];
+  if(!notes.length){el.innerHTML='<div style="padding:40px 0;text-align:center;color:var(--t3);font-size:14px">还没有对话笔记<br>对话结束后可以写笔记保存在这里</div>';return;}
+  el.innerHTML=notes.slice().reverse().map(function(n,i){
+    return '<div style="padding:16px 22px;border-bottom:1px solid var(--bdr)">'
+      +'<div style="font-size:11px;color:var(--t3);margin-bottom:6px">'+n.date+'</div>'
+      +'<div style="font-size:14px;line-height:1.7;white-space:pre-wrap">'+n.notes+'</div>'
+      +'</div>';
+  }).join('');
 }
 function eRowHTML(e,i,showDate){
   var ko=e.lang==='ko';
   var kws=e.keywords&&e.keywords.length?'<div class="ekws">'+e.keywords.map(function(k){return '<span class="ekwtag">'+k.word+(k.zh?' '+k.zh:'')+'</span>';}).join('')+'</div>':'';
   return '<div class="erow" id="er-'+e.id+'">'
-    +'<img class="ethumb" id="et-'+e.id+'" src="" alt="">'
+    +'<img class="ethumb" id="et-'+e.id+'" src="" alt="" data-entry-id="'+e.id+'" style="cursor:zoom-in">'
     +'<div class="ebody">'
     +'<div class="enum">'+(showDate?e.date+' ':('0'+(i+1)).slice(-2)+' ')+'<span class="tag '+(ko?'tag-k':'tag-e')+'">'+(ko?'韩':'英')+'</span></div>'
     +'<div class="een">'+e.text+'</div>'
@@ -813,7 +854,7 @@ function eRowHTML(e,i,showDate){
     +'<button class="edel" data-del-id="'+e.id+'">×</button>'
     +'</div>';
 }
-function loadRowImgs(list){list.forEach(function(e){loadImgAsync(e.id,function(b){var el2=document.getElementById('et-'+e.id);if(el2)el2.src='data:image/jpeg;base64,'+b;});});}
+function loadRowImgs(list){list.forEach(function(e){loadImgAsync(e.id,function(b){var el2=document.getElementById('et-'+e.id);if(el2){el2.src='data:image/jpeg;base64,'+b;el2.setAttribute('data-full-src','data:image/jpeg;base64,'+b);}});});}
 function renderToday(){
   var el=document.getElementById('list-body');
   var ids=DB.days[TODAY]||[];var list=ids.map(function(id){return DB.entries.find(function(e){return e.id===id;});}).filter(Boolean);
@@ -934,7 +975,8 @@ function resetZoom(){ lbScale=1; document.getElementById('lb-img').style.transfo
 document.addEventListener('click',function(ev){
   var t=ev.target;
   if(t.tagName==='IMG'&&(t.classList.contains('ethumb')||t.classList.contains('sim-img'))){
-    openImg(t.src); return;
+    var src=t.getAttribute('data-full-src')||t.src;
+    openImg(src); return;
   }
 });
 
