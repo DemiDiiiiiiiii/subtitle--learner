@@ -28,11 +28,11 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 .btn-red{background:var(--red);color:#fff;font-weight:500}
 .nav{padding:max(52px,env(safe-area-inset-top)) 22px 14px;display:flex;align-items:center;gap:14px;flex-shrink:0}
 .back{width:32px;height:32px;border-radius:50%;background:var(--ilt);border:none;color:var(--t2);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.nav-t{font-size:17px}
+.nav-t{font-size:15px;font-weight:500}
 /* HOME */
 .home-wrap{padding:max(52px,env(safe-area-inset-top)) 22px 0}
 .home-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px}
-.hero h1{font-size:22px;font-weight:300;letter-spacing:.3px;line-height:1.3;color:var(--ink)}
+.hero h1{font-size:24px;font-weight:300;letter-spacing:.5px;line-height:1.3;color:var(--text)}
 .hero p{font-size:12px;color:var(--t3);margin-top:4px;letter-spacing:.02em}
 .gear{width:32px;height:32px;border-radius:50%;background:var(--ilt);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;flex-shrink:0;color:var(--t2)}
 .stats{display:flex;gap:0;margin-bottom:22px;border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden}
@@ -97,7 +97,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 .flip-wrap{perspective:1000px;width:100%;cursor:pointer}
 .flip-inner{position:relative;width:100%;padding-bottom:58%;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.4,0,.2,1)}
 .flip-inner.flipped{transform:rotateY(180deg)}
-.flip-face{position:absolute;inset:0;backface-visibility:hidden;background:var(--card);border-radius:var(--r);box-shadow:var(--sh);border:1px solid var(--bdr);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px}
+.flip-face{position:absolute;inset:0;backface-visibility:hidden;background:var(--card);border-radius:var(--r);border:1px solid var(--bdr);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px}
 .flip-back{transform:rotateY(180deg);align-items:flex-start;justify-content:flex-start;overflow:hidden}
 .fw{font-size:24px;font-weight:600;text-align:center;line-height:1.4;margin-bottom:8px}
 .fh{font-size:12px;color:var(--t3)}
@@ -109,7 +109,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 .rbtn:active{opacity:.7}
 .rno{background:transparent;color:var(--t3);border:1px solid var(--bdr)}.ryes{background:var(--ink);color:#fff;font-weight:400}
 /* CONVERSATION */
-#conversation{background:#f6f5f2;overflow:hidden!important}
+#conversation{background:#f5f5f4;overflow:hidden!important}
 .cvtop{padding:max(52px,env(safe-area-inset-top)) 20px 12px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
 .cvback{background:none;border:none;color:var(--t2);font-size:18px;cursor:pointer;padding:4px;width:32px;text-align:left}
 .cvend{background:none;border:1px solid var(--bdr);color:var(--t2);border-radius:20px;padding:6px 14px;font-size:12px;font-family:inherit;cursor:pointer}
@@ -308,7 +308,9 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
       </div>
     </div>
     <div class="slbl">Today</div>
-    <div class="btn btn-gold" style="margin-bottom:22px" onclick="document.getElementById('fp').click()">Upload Screenshots</div>
+    <label for="fp" style="display:block;margin-bottom:22px">
+      <div class="btn btn-gold">Upload Screenshots</div>
+    </label>
     <div class="slbl">Practice</div>
     <div class="rev-grid">
       <button class="rev-card" onclick="startCardReview()">
@@ -417,7 +419,9 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
   <div class="nav" style="flex-shrink:0">
     <div class="back" onclick="goTo('home')">←</div>
     <span class="nav-t">Records</span>
-    <div class="btn btn-ghost" style="padding:8px 14px;width:auto;font-size:12px;border-radius:20px;cursor:pointer;margin-left:auto" onclick="document.getElementById('fp').click()">Upload</div>
+    <label for="fp" style="margin-left:auto">
+      <div class="btn btn-ghost" style="padding:8px 14px;width:auto;font-size:12px;border-radius:20px">Upload</div>
+    </label>
   </div>
   <div class="tabs" style="flex-shrink:0">
     <div class="tab on" id="tab-today" onclick="listTab('today')">Today</div>
@@ -543,7 +547,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
   </div>
 </div>
 
-<input type="file" id="fp" accept="image/*" multiple style="position:absolute;width:1px;height:1px;overflow:hidden;opacity:0;top:0;left:0">
+<input type="file" id="fp" accept="image/*" multiple style="position:fixed;top:-200px;left:-200px;width:1px;height:1px;opacity:0">
 
 <script>// ── Global error handler ──────────────────────────────────────────
 window.onerror = function(msg, src, line, col, err) {
@@ -568,7 +572,7 @@ function kvGet(k){var c=new AbortController();setTimeout(function(){c.abort();},
 
 // ── DB ────────────────────────────────────────────────────────────
 var DB={entries:[],fps:[],days:{},weakness:''};
-var TODAY=(function(){try{return new Date().toLocaleDateString('zh-CN');}catch(e){var d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();}})();
+var TODAY=new Date().toLocaleDateString('zh-CN');
 try{var _s=localStorage.getItem(DB_KEY);if(_s)DB=JSON.parse(_s);}catch(e){}
 if(!DB.entries)DB.entries=[];if(!DB.fps)DB.fps=[];if(!DB.days)DB.days={};if(!DB.weakness)DB.weakness='';
 if(!DB.days[TODAY])DB.days[TODAY]=[];
@@ -592,17 +596,7 @@ var sess=null,conv=null,crList=[],crIdx=0,crFlip=false,pendingWeak='';
 var listTabCurrent='today',expandedDates={};
 
 // ── Boot ──────────────────────────────────────────────────────────
-// Boot indicator - will disappear when app loads
-(function(){
-  var bi=document.createElement('div');
-  bi.id='boot-indicator';
-  bi.style.cssText='position:fixed;bottom:8px;right:8px;font-size:11px;color:#999;z-index:998';
-  bi.textContent='loading…';
-  document.body.appendChild(bi);
-})();
 refreshHome();
-document.getElementById('boot-indicator').textContent='ready';
-setTimeout(function(){var bi=document.getElementById('boot-indicator');if(bi)bi.remove();},2000);
 kvGet('db').then(function(v){
   if(!v)return;
   try{
@@ -614,19 +608,10 @@ kvGet('db').then(function(v){
     }
   }catch(e){}
 });
-var fpEl=document.getElementById('fp');
-if(fpEl){
-  fpEl.addEventListener('change',function(){
-    if(this.files&&this.files.length>0)startStudy(this.files);
-    this.value='';
-  });
-  // iOS backup: also listen on input event
-  fpEl.addEventListener('input',function(){
-    if(this.files&&this.files.length>0)startStudy(this.files);
-  });
-} else {
-  document.getElementById('boot-indicator').textContent='ERROR: fp missing';
-}
+document.getElementById('fp').addEventListener('change',function(){
+  if(this.files&&this.files.length>0)startStudy(this.files);
+  this.value='';
+});
 document.addEventListener('click',function(e){
   var c=e.target.closest('.chip');if(!c||!c.dataset.g)return;
   var g=c.dataset.g;
