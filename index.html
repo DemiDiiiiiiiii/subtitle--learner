@@ -128,7 +128,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 .cvta::placeholder{color:var(--t3)}
 .cvsend{width:40px;height:40px;border-radius:50%;border:none;flex-shrink:0;background:var(--ink);color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .cvload{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:40px}
-#conversation{overflow:hidden!important}
 .fbs{position:absolute;bottom:0;left:0;right:0;background:var(--card);border-radius:22px 22px 0 0;box-shadow:0 -4px 32px rgba(0,0,0,.12);transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);z-index:10;max-height:90vh;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:20px 22px max(36px,env(safe-area-inset-bottom))}
 .fbs.show{transform:translateY(0)}
 .fbh{width:36px;height:4px;border-radius:2px;background:var(--bdr);margin:0 auto 18px}
@@ -237,19 +236,33 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 .ws-close-btn{background:none;border:none;color:var(--t3);font-size:20px;cursor:pointer;padding:2px 6px;margin-left:auto}
 
 
-/* CONVERSATION - absolute layout so iOS knows exact height */
-#conversation{overflow:hidden!important}
-#cv-main{box-sizing:border-box}
-#cv-main .cvtop{flex-shrink:0}
-#cv-main .cvid{flex-shrink:0}
+/* ── Conversation scroll (iOS-safe) ── */
+#conversation.screen{overflow:hidden!important}
+#cv-main{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  min-height:0;
+}
+#cv-main .cvtop,
+#cv-main .cvid,
 #cv-main .cvwrap{flex-shrink:0}
 #cv-main .chat{
   flex:1;
   min-height:0;
   overflow-y:scroll;
   -webkit-overflow-scrolling:touch;
-  overscroll-behavior:contain;
 }
+
+.st-notes-wrap{margin-top:24px;padding-top:20px;border-top:1px solid var(--bdr)}
+.st-notes-lbl{font-size:10px;color:var(--t3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px;font-weight:500}
+.st-notes-ta{width:100%;background:var(--bg);border:1px solid var(--bdr);border-radius:var(--rs);padding:13px 16px;font-family:inherit;font-size:14px;resize:none;min-height:90px;outline:none;line-height:1.7;color:var(--text)}
+.st-notes-ta:focus{border-color:var(--ink)}
+.st-notes-ta::placeholder{color:var(--t3)}
+.st-save-btn{margin-top:10px;width:100%;padding:12px;border:none;border-radius:var(--rs);background:var(--ink);color:#fff;font-family:inherit;font-size:14px;cursor:pointer;opacity:.85}
+.st-save-btn:active{opacity:1}
+.st-saved{font-size:12px;color:var(--t3);text-align:center;margin-top:8px;min-height:18px}
 </style>
 </head>
 <body>
@@ -265,7 +278,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
     <div class="modal-sub" id="modal-sub"></div>
     <div style="display:flex;flex-direction:column;gap:10px">
       <button class="btn btn-red" id="modal-ok">确认</button>
-      <button class="btn btn-ghost" onclick="closeModal()">取消</button>
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
     </div>
   </div>
 </div>
@@ -276,40 +289,40 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 <div class="screen on" id="home">
   <div class="home-wrap">
     <div class="home-top">
-      <div class="hero"><h1>剧词</h1><p>追剧积词，每天进一点</p></div>
+      <div class="hero"><h1>剧词</h1><p>Learn language through shows</p></div>
       <div class="gear" onclick="goTo('settings')">···</div>
     </div>
     <div class="stats">
       <div class="stat" onclick="goTo('library')">
-        <div class="stat-n" id="h-total">0</div><div class="stat-l">词库 →</div>
+        <div class="stat-n" id="h-total">0</div><div class="stat-l">Library →</div>
       </div>
       <div class="stat" onclick="goTo('list');listTab('today')">
-        <div class="stat-n" id="h-today">0</div><div class="stat-l">今日 →</div>
+        <div class="stat-n" id="h-today">0</div><div class="stat-l">Today →</div>
       </div>
       <div class="stat" onclick="goTo('list');listTab('history')">
-        <div class="stat-n" id="h-days">0</div><div class="stat-l">历史 →</div>
+        <div class="stat-n" id="h-days">0</div><div class="stat-l">History →</div>
       </div>
     </div>
-    <div class="slbl">今日学习</div>
+    <div class="slbl">Today</div>
     <label for="fp" style="display:block;margin-bottom:22px">
-      <div class="btn btn-gold">上传截图，开始输入</div>
+      <div class="btn btn-gold">Upload Screenshots</div>
     </label>
-    <div class="slbl">复习</div>
+    <div class="slbl">Practice</div>
     <div class="rev-grid">
       <button class="rev-card" onclick="startCardReview()">
-        <div class="rev-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/></svg></div><div class="rev-name">卡片复习</div>
-        <div class="rev-meta" id="card-meta">0个词汇</div>
+        <div class="rev-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/></svg></div><div class="rev-name">Review</div>
+        <div class="rev-meta" id="card-meta">0 cards</div>
         
       </button>
       <button class="rev-card" onclick="startConv()">
-        <div class="rev-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><div class="rev-name">对话练习</div>
-        <div class="rev-meta" id="conv-meta">随机词汇</div>
+        <div class="rev-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><div class="rev-name">Speak</div>
+        <div class="rev-meta" id="conv-meta">Random vocab</div>
         
       </button>
     </div>
     <div style="display:flex;flex-direction:column;gap:10px">
-      <button class="btn btn-white" id="btn-list" style="display:none" onclick="goTo('list');listTab('today')">查看今日字幕列表</button>
-      <button class="btn btn-ghost" onclick="goTo('story');resetStory()">生成故事</button>
+      <button class="btn btn-white" id="btn-list" style="display:none" onclick="goTo('list');listTab('today')">Today's字幕列表</button>
+      <button class="btn btn-ghost" onclick="goTo('story');resetStory()">Generate Story</button>
     </div>
   </div>
   <div class="safe"></div>
@@ -319,10 +332,10 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 <div class="screen" id="preview">
   <div class="nav">
     <div class="back" onclick="goTo('home')">←</div>
-    <span class="nav-t">确认截图</span>
+    <span class="nav-t">Confirm</span>
     <span style="margin-left:auto;font-size:13px;color:var(--t3)" id="prev-ct"></span>
   </div>
-  <div style="padding:0 22px 10px;font-size:13px;color:var(--t2);flex-shrink:0">点 × 移除不想学的，然后开始</div>
+  <div style="padding:0 22px 10px;font-size:13px;color:var(--t2);flex-shrink:0">Tap × to remove, then start</div>
   <div class="img-grid" id="img-grid" style="flex:1;overflow-y:auto;align-content:start"></div>
   <div style="padding:16px 22px max(24px,env(safe-area-inset-bottom));flex-shrink:0;background:var(--bg);border-top:1px solid var(--bdr)">
     <button class="btn btn-gold" onclick="beginStudy()">开始输入</button>
@@ -338,7 +351,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 <div class="screen" id="cardreview">
   <div class="nav">
     <div class="back" onclick="goTo('home')">←</div>
-    <span class="nav-t">卡片复习</span>
+    <span class="nav-t">Review</span>
     <span style="margin-left:auto;font-size:13px;color:var(--t3)" id="cr-ct"></span>
   </div>
   <div id="cr-body" style="flex:1;display:flex;flex-direction:column"></div>
@@ -349,35 +362,35 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 <div class="screen" id="conversation" style="position:relative;overflow:hidden">
   <div class="cvload" id="cv-load">
     <div class="spin"><div class="sp"></div><div class="sp"></div><div class="sp"></div></div>
-    <div style="font-size:14px;color:var(--t2)">AI 正在准备角色和场景…</div>
+    <div style="font-size:14px;color:var(--t2)">Setting up your conversation…</div>
   </div>
-  <div id="cv-main" style="display:none;position:absolute;inset:0;flex-direction:column;overflow:hidden">
+  <div id="cv-main" style="display:none">
     <div class="cvtop">
       <button class="cvback" onclick="showConvExit()">←</button>
-      <div style="font-size:15px;font-weight:600">对话练习</div>
+      <div style="font-size:15px;font-weight:600">Speak</div>
       <div style="width:32px"></div>
     </div>
     <div class="cvid" id="cv-id"></div>
     <div class="chat" id="chat"></div>
     <div class="cvwrap">
       <button class="mic-btn" id="mic-btn" onclick="toggleMic()" title="语音输入">🎤</button>
-      <textarea class="cvta" id="cv-ta" placeholder="用英文回复，或点 🎤 说话…" rows="1"></textarea>
+      <textarea class="cvta" id="cv-ta" placeholder="Reply in English, or tap 🎤…" rows="1"></textarea>
       <button class="cvsend" onclick="sendMsg()">↑</button>
     </div>
   </div>
   <div class="fbs" id="exit-sheet">
     <div class="fbh"></div>
-    <div style="font-size:16px;font-weight:600;text-align:center;margin-bottom:6px">结束本次对话？</div>
+    <div style="font-size:16px;font-weight:600;text-align:center;margin-bottom:6px">End this conversation?</div>
     <div style="font-size:13px;color:var(--t3);text-align:center;margin-bottom:20px" id="exit-ct"></div>
     <div style="display:flex;flex-direction:column;gap:10px">
-      <button class="btn btn-gold" onclick="hideExitSheet();endConv()">获取对话反馈</button>
-      <button class="btn btn-ghost" onclick="hideExitSheet();closeConv(false)">直接离开，不需要反馈</button>
-      <button class="btn btn-white" onclick="hideExitSheet()">继续对话</button>
+      <button class="btn btn-gold" onclick="hideExitSheet();endConv()">Get feedback</button>
+      <button class="btn btn-ghost" onclick="hideExitSheet();closeConv(false)">Leave without feedback</button>
+      <button class="btn btn-white" onclick="hideExitSheet()">Keep going</button>
     </div>
   </div>
   <div class="fbs" id="fb-sheet">
     <div class="fbh"></div>
-    <div style="font-size:16px;font-weight:600;margin-bottom:14px">本次对话反馈</div>
+    <div style="font-size:16px;font-weight:600;margin-bottom:14px">Conversation Feedback</div>
     <div class="fbody" id="fb-body"></div>
     <div id="wk-save-row" style="display:none">
       <label class="wk-row">
@@ -390,9 +403,9 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
       <textarea class="fb-notes" id="conv-notes" placeholder="记下今天学到的表达、想再用的词、或者任何感想…"></textarea>
     </div>
     <div style="margin-top:16px;display:flex;flex-direction:column;gap:10px">
-      <button class="btn btn-gold" onclick="saveConvFeedback()">保存笔记，回主页</button>
-      <button class="btn btn-white" onclick="document.getElementById('fb-sheet').classList.remove('show');startConv()">再来一轮</button>
-      <button class="btn btn-ghost" onclick="closeConv(false)">直接离开</button>
+      <button class="btn btn-gold" onclick="saveConvFeedback()">Save & go home</button>
+      <button class="btn btn-white" onclick="document.getElementById('fb-sheet').classList.remove('show');startConv()">Another round</button>
+      <button class="btn btn-ghost" onclick="closeConv(false)">Leave</button>
     </div>
   </div>
 </div>
@@ -401,19 +414,19 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 <div class="screen" id="list">
   <div class="nav" style="flex-shrink:0">
     <div class="back" onclick="goTo('home')">←</div>
-    <span class="nav-t">学习记录</span>
+    <span class="nav-t">Records</span>
     <label for="fp" style="margin-left:auto">
-      <div class="btn btn-ghost" style="padding:8px 14px;width:auto;font-size:12px;border-radius:20px">上传</div>
+      <div class="btn btn-ghost" style="padding:8px 14px;width:auto;font-size:12px;border-radius:20px">Upload</div>
     </label>
   </div>
   <div class="tabs" style="flex-shrink:0">
-    <div class="tab on" id="tab-today" onclick="listTab('today')">今日</div>
-    <div class="tab" id="tab-hist" onclick="listTab('history')">历史</div>
-    <div class="tab" id="tab-notes" onclick="listTab('notes')">对话笔记</div>
+    <div class="tab on" id="tab-today" onclick="listTab('today')">Today</div>
+    <div class="tab" id="tab-hist" onclick="listTab('history')">History</div>
+    <div class="tab" id="tab-notes" onclick="listTab('notes')">Notes</div>
   </div>
   <div id="list-body" style="flex:1;overflow-y:auto"></div>
   <div style="padding:14px 22px max(20px,env(safe-area-inset-bottom));flex-shrink:0;border-top:1px solid var(--bdr)">
-    <button class="btn btn-gold" onclick="goTo('story');resetStory()">生成故事</button>
+    <button class="btn btn-gold" onclick="goTo('story');resetStory()">Generate Story</button>
   </div>
 </div>
 
@@ -421,7 +434,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 <div class="screen" id="library">
   <div class="nav" style="flex-shrink:0">
     <div class="back" onclick="goTo('home')">←</div>
-    <span class="nav-t">全部词库</span>
+    <span class="nav-t">Library</span>
     <span style="margin-left:auto;font-size:13px;color:var(--t3)" id="lib-ct"></span>
   </div>
   <div class="search-box">
@@ -434,36 +447,42 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 <div class="screen" id="story">
   <div class="nav" style="flex-shrink:0">
     <div class="back" onclick="goTo('list')">←</div>
-    <span class="nav-t">生成小故事</span>
+    <span class="nav-t">Story</span>
   </div>
   <div style="padding:0 22px;flex:1;overflow-y:auto">
     <div id="st-cfg">
       <div class="clbl">场景</div>
       <div class="chips">
-        <div class="chip on" data-g="scene">日常对话</div>
-        <div class="chip" data-g="scene">职场</div>
-        <div class="chip" data-g="scene">悬疑</div>
-        <div class="chip" data-g="scene">浪漫</div>
+        <div class="chip on" data-g="scene">Daily life</div>
+        <div class="chip" data-g="scene">Work</div>
+        <div class="chip" data-g="scene">Mystery</div>
+        <div class="chip" data-g="scene">Romance</div>
       </div>
       <div class="clbl">风格</div>
       <div class="chips">
-        <div class="chip on" data-g="style">轻松幽默</div>
-        <div class="chip" data-g="style">文艺感</div>
-        <div class="chip" data-g="style">温情治愈</div>
+        <div class="chip on" data-g="style">Light & funny</div>
+        <div class="chip" data-g="style">Literary</div>
+        <div class="chip" data-g="style">Warm</div>
       </div>
       <div class="clbl">语言</div>
       <div class="chips">
-        <div class="chip on" data-g="lang">中英双语</div>
-        <div class="chip" data-g="lang">纯英文</div>
-        <div class="chip" data-g="lang">纯中文</div>
+        <div class="chip on" data-g="lang">Bilingual</div>
+        <div class="chip" data-g="lang">English only</div>
+        <div class="chip" data-g="lang">Chinese only</div>
       </div>
-      <button class="btn btn-gold" onclick="genStory()">生成故事</button>
+      <button class="btn btn-gold" onclick="genStory()">Generate Story</button>
     </div>
     <div id="st-shim" style="display:none;flex-direction:column;gap:10px;padding:8px 0">
       <div class="shim" style="width:88%"></div><div class="shim" style="width:72%"></div>
       <div class="shim" style="width:82%"></div>
     </div>
     <div class="stxt" id="st-txt"></div>
+    <div class="st-notes-wrap" id="st-notes-wrap" style="display:none">
+      <div class="st-notes-lbl">Windfalls — jot down anything worth keeping</div>
+      <textarea class="st-notes-ta" id="st-notes-ta" placeholder="Phrases, words, ideas from this story…"></textarea>
+      <button class="st-save-btn" onclick="saveStoryNote()">Save note</button>
+      <div class="st-saved" id="st-saved"></div>
+    </div>
   </div>
   <div class="safe" style="flex-shrink:0"></div>
 </div>
@@ -472,33 +491,33 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 <div class="screen" id="settings">
   <div class="nav">
     <div class="back" onclick="goTo('home')">←</div>
-    <span class="nav-t">设置</span>
+    <span class="nav-t">Settings</span>
   </div>
   <div class="stsec">
     <div class="strow">
       <div>
-        <div class="stlbl">📲 多设备同步码</div>
-        <div class="stsub">在其他设备输入此码同步数据</div>
+        <div class="stlbl">Sync Code</div>
+        <div class="stsub">Enter on another device to sync</div>
         <div class="syncode" id="syn-code">------</div>
       </div>
     </div>
     <div class="syninrow">
-      <input class="synin" id="syn-inp" placeholder="输入同步码换设备" maxlength="8">
+      <input class="synin" id="syn-inp" placeholder="Enter sync code" maxlength="8">
       <button class="btn btn-gold" style="width:auto;padding:10px 18px;font-size:14px" onclick="applySync()">应用</button>
     </div>
   </div>
   <div class="stsec">
     <div class="strow" style="cursor:pointer" onclick="confirmAct('清除今日记录？','将删除今天的所有字幕','清除',clearToday)">
-      <div><div class="stlbl" style="color:var(--red)">清除今日记录</div><div class="stsub" id="st-today-cnt"></div></div>
+      <div><div class="stlbl" style="color:var(--red)">Clear today</div><div class="stsub" id="st-today-cnt"></div></div>
       <span style="color:var(--t3)">›</span>
     </div>
     <div class="strow" style="cursor:pointer" onclick="confirmAct('清除全部数据？','所有字幕词汇将被永久删除','清除全部',clearAll)">
-      <div><div class="stlbl" style="color:var(--red)">清除全部数据</div><div class="stsub">不可撤销，谨慎操作</div></div>
+      <div><div class="stlbl" style="color:var(--red)">Clear all data</div><div class="stsub">Cannot be undone</div></div>
       <span style="color:var(--t3)">›</span>
     </div>
   </div>
   <div class="stsec">
-    <div class="strow"><div><div class="stlbl" id="st-stats"></div><div class="stsub">存储于本地及云端</div></div></div>
+    <div class="strow"><div><div class="stlbl" id="st-stats"></div><div class="stsub">Stored locally & in cloud</div></div></div>
   </div>
   <div class="safe"></div>
 </div>
@@ -573,7 +592,7 @@ kvGet('db').then(function(v){
     if(r&&r.entries&&r.entries.length>DB.entries.length){
       DB=r;if(!DB.days)DB.days={};if(!DB.days[TODAY])DB.days[TODAY]=[];
       try{localStorage.setItem(DB_KEY,JSON.stringify(DB));}catch(e){}
-      refreshHome();toast('云端数据已同步 ✓');
+      refreshHome();toast('Cloud sync complete ✓');
     }
   }catch(e){}
 });
@@ -608,7 +627,7 @@ document.addEventListener('click',function(ev){
           +'<div class="kw-w">'+k.word+'</div>'
           +'<div class="kw-z">'+k.zh+'</div>'
           +'<div class="kw-n">'+k.note+'</div>'
-          +'<div class="kw-actions"><button class="kw-action-btn" data-ask-kw="'+ki2+'">问问题</button></div>'
+          +'<div class="kw-actions"><button class="kw-action-btn" data-ask-kw="'+ki2+'">Ask AI</button></div>'
           +'</div>';
       }).join('');
       var kwEl=document.querySelector('.kwl');
@@ -666,8 +685,8 @@ function refreshHome(){
   document.getElementById('h-total').textContent=DB.entries.length;
   document.getElementById('h-today').textContent=todayE.length;
   document.getElementById('h-days').textContent=days;
-  document.getElementById('card-meta').textContent=allKw.length+'个词汇';
-  document.getElementById('conv-meta').textContent=enKw.length>0?'从'+enKw.length+'个词中选':'先积累英语词汇';
+  document.getElementById('card-meta').textContent=allKw.length+' cards';
+  document.getElementById('conv-meta').textContent=enKw.length>0?enKw.length+' cards':'Add more English first';
   var bl=document.getElementById('btn-list');
   bl.style.display=todayE.length>0?'block':'none';
   bl.textContent='查看今日 '+todayE.length+' 条字幕';
@@ -675,11 +694,11 @@ function refreshHome(){
 
 // ── Preview ───────────────────────────────────────────────────────
 function startStudy(files){
-  files=Array.from(files);if(!files.length){toast('没有选到图片');return;}
+  files=Array.from(files);if(!files.length){toast('No photos selected');return;}
   shuffle(files);
   var fresh=files.filter(function(f){return DB.fps.indexOf(fpOf(f))===-1;});
-  if(!fresh.length){toast('这批图片都处理过了，请选新的截图');return;}
-  var dupes=files.length-fresh.length;if(dupes>0)toast('已过滤 '+dupes+' 张重复');
+  if(!fresh.length){toast('All photos already processed');return;}
+  var dupes=files.length-fresh.length;if(dupes>0)toast('Skipped '+dupes+' duplicates');
   sess={imgs:fresh.slice(0,25).map(function(f){return{file:f,fp:fpOf(f),src:URL.createObjectURL(f)};}),idx:0,state:'input',res:null,notes:'',hist:[]};
   goTo('preview');renderPreview();
 }
@@ -702,9 +721,9 @@ function renderStudy(){
   var panel='';
   if(sess.state==='input'){
     panel='<p class="ihint">照着图片，输入字幕内容</p>'
-      +'<div class="irow"><textarea class="ita" id="s-ta" placeholder="输入这张截图里的字幕…" rows="2"></textarea>'
+      +'<div class="irow"><textarea class="ita" id="s-ta" placeholder="Type the subtitle…" rows="2"></textarea>'
       +'<button class="ibtn" onclick="submitS()">→</button></div>'
-      +'<div class="iskip" onclick="skipS()">跳过这张</div>';
+      +'<div class="iskip" onclick="skipS()">Skip</div>';
   }else if(sess.state==='analyzing'){
     panel='<div class="spin"><div class="sp"></div><div class="sp"></div><div class="sp"></div></div>'
       +'<p style="text-align:center;font-size:13px;color:var(--t2)">AI 分析中…</p>';
@@ -718,7 +737,7 @@ function renderStudy(){
         +'<div class="kw-z">'+k.zh+'</div>'
         +'<div class="kw-n">'+k.note+'</div>'
         +'<div class="kw-actions">'
-        +'<button class="kw-action-btn" data-ask-kw="'+ki+'">问问题</button>'
+        +'<button class="kw-action-btn" data-ask-kw="'+ki+'">Ask AI</button>'
         +'</div>'
         +'</div>';
     }).join('');
@@ -787,12 +806,12 @@ function renderDone(el){
   el.style.background='var(--bg)';
   el.innerHTML='<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 26px;gap:18px;text-align:center">'
     +'<div style="font-size:52px">🎉</div>'
-    +'<div style="font-size:22px;font-weight:300">今日完成！</div>'
+    +'<div style="font-size:22px;font-weight:300">Done for today!</div>'
     +'<div style="font-size:14px;color:var(--t2);line-height:1.8">今天输入了 '+cnt+' 条字幕</div>'
     +'<div style="width:100%;display:flex;flex-direction:column;gap:10px;margin-top:8px">'
-    +'<button class="btn btn-gold" id="done-list-btn">查看今日字幕列表</button>'
-    +'<button class="btn btn-white" id="done-story-btn">生成小故事</button>'
-    +'<button class="btn btn-ghost" id="done-home-btn">回主页</button>'
+    +'<button class="btn btn-gold" id="done-list-btn">Today's字幕列表</button>'
+    +'<button class="btn btn-white" id="done-story-btn">Story</button>'
+    +'<button class="btn btn-ghost" id="done-home-btn">Home</button>'
     +'</div></div>';
   var dlb=document.getElementById('done-list-btn');if(dlb)dlb.onclick=function(){goTo('list');listTab('today');};
   var dsb=document.getElementById('done-story-btn');if(dsb)dsb.onclick=function(){goTo('story');resetStory();};
@@ -824,16 +843,16 @@ function compressImg(id,file){
 
 // ── Card Review ───────────────────────────────────────────────────
 function startCardReview(){
-  var all=getAllKw();if(!all.length){toast('词库还没有内容，先上传截图积累词汇');return;}
+  var all=getAllKw();if(!all.length){toast('Library empty — upload screenshots first');return;}
   crList=shuffle(all.slice()).slice(0,20);crIdx=0;crFlip=false;
   goTo('cardreview');renderCR();
 }
 function renderCR(){
   var el=document.getElementById('cr-body');
   if(crIdx>=crList.length){
-    el.innerHTML='<div style="text-align:center;padding:60px 24px;font-size:14px;color:var(--t3)">本轮完成！<br><br>'
-      +'<button class="btn btn-gold" style="max-width:200px;margin:0 auto" onclick="startCardReview()">再来一轮</button><br><br>'
-      +'<button class="btn btn-ghost" style="max-width:200px;margin:0 auto" id="cr-home-btn">回主页</button></div>';
+    el.innerHTML='<div style="text-align:center;padding:60px 24px;font-size:14px;color:var(--t3)">Round complete!<br><br>'
+      +'<button class="btn btn-gold" style="max-width:200px;margin:0 auto" onclick="startCardReview()">Another round</button><br><br>'
+      +'<button class="btn btn-ghost" style="max-width:200px;margin:0 auto" id="cr-home-btn">Home</button></div>';
     document.getElementById('cr-ct').textContent='完成';
     var chb=document.getElementById('cr-home-btn');if(chb)chb.onclick=function(){goTo('home');};
     return;
@@ -849,7 +868,7 @@ function renderCR(){
     +(c.note?'<div class="fn">'+c.note+'</div>':'')
     +(c.ctx&&c.ctx!==c.word?'<div class="fctx">出自："'+c.ctx+'"</div>':'')
     +'</div></div></div>'
-    +(crFlip?'<div class="rrow"><button class="rbtn rno" id="cr-no">没记住</button><button class="rbtn ryes" id="cr-yes">记住了</button></div>':'<div style="font-size:12px;color:var(--t3);text-align:center;padding-top:16px">← 左滑没记住 &nbsp;·&nbsp; 右滑记住了 →</div>')
+    +(crFlip?'<div class="rrow"><button class="rbtn rno" id="cr-no">Forgot</button><button class="rbtn ryes" id="cr-yes">Got it</button></div>':'<div style="font-size:12px;color:var(--t3);text-align:center;padding-top:16px">← 左滑没记住 &nbsp;·&nbsp; 右滑记住了 →</div>')
     +'</div>';
   // Bind click + swipe
   var fw=document.getElementById('fw');
@@ -880,7 +899,7 @@ function renderCR(){
 // ── Conversation ──────────────────────────────────────────────────
 function startConv(){
   var enKw=getAllKw().filter(function(k){return k.lang==='en';});
-  if(enKw.length<3){toast('英语词汇太少，先多输入一些截图');return;}
+  if(enKw.length<3){toast('Not enough English vocab yet');return;}
   goTo('conversation');
   document.getElementById('cv-load').style.display='flex';
   document.getElementById('cv-main').style.display='none';
@@ -890,14 +909,14 @@ function startConv(){
   var wk=DB.weakness?'【用户英语弱点】\n'+DB.weakness:'';
   callDS([{role:'user',content:'你是沉浸式英语口语练习助手。\n\n生成真实对话场景和角色，写出第一句话。\n\n【秘密目标词汇】（自然引入，绝不提示）\n'+wb+'\n\n'+wk+'\n\n返回JSON不要markdown：\n{"name":"英文名","nationality":"国籍（中文）","job":"职业","relationship":"和用户的关系（1句）","scene":"场景（2句细节）","firstMessage":"第一句英文话（自然口语）"}'}],400)
   .then(function(raw){
-    var setup;try{setup=JSON.parse(raw.replace(/```json|```/g,'').trim());}catch(e){toast('生成场景失败，请重试');goTo('home');return;}
+    var setup;try{setup=JSON.parse(raw.replace(/```json|```/g,'').trim());}catch(e){toast('Failed to generate scene, try again');goTo('home');return;}
     setup.words=picked;
     var sys='你扮演'+setup.name+'，'+setup.nationality+'人，'+setup.job+'。'+setup.relationship+'。场景：'+setup.scene
       +'\n\n规则：全程英文；像真人说话，不要每次都用相同句式；回复长度随对话内容而定，短问短答，有话才说长；'
       +'对话自然流动是第一位的，如果以下词汇有自然出现的机会就用，没有机会别硬塞：\n'+wb;
     conv={setup:setup,msgs:[{role:'system',content:sys},{role:'assistant',content:setup.firstMessage}],state:'chatting'};
     document.getElementById('cv-load').style.display='none';
-    var m=document.getElementById('cv-main');m.style.display='flex';m.style.position='absolute';m.style.inset='0';m.style.flexDirection='column';m.style.overflow='hidden';
+    var m=document.getElementById('cv-main');m.style.display='flex';
     document.getElementById('cv-id').innerHTML='<div class="idrow"><div class="idav">'+setup.name.charAt(0)+'</div>'
       +'<div><div class="idname">'+setup.name+'</div><div class="idsub">'+setup.nationality+' · '+setup.job+'</div></div></div>'
       +'<div class="idscene">'+setup.relationship+'。'+setup.scene+'</div>';
@@ -922,7 +941,7 @@ function addBbl(type,txt){
 }
 function addLoad(){var ca=document.getElementById('chat');if(!ca)return;var d=document.createElement('div');d.className='bload';d.id='bload';d.innerHTML='<div class="bld"></div><div class="bld"></div><div class="bld"></div>';ca.appendChild(d);ca.scrollTop=ca.scrollHeight;}
 function rmLoad(){var el=document.getElementById('bload');if(el)el.remove();}
-function sendMsg(){var ta=document.getElementById('cv-ta'),txt=ta?ta.value.trim():'';if(!txt||!conv||conv.state!=='chatting')return;ta.value='';ta.style.height='auto';addBbl('me',txt);conv.msgs.push({role:'user',content:txt});addLoad();callDS(conv.msgs,250).then(function(r){rmLoad();conv.msgs.push({role:'assistant',content:r});addBbl('ai',r);}).catch(function(){rmLoad();toast('网络错误，请重试');});}
+function sendMsg(){var ta=document.getElementById('cv-ta'),txt=ta?ta.value.trim():'';if(!txt||!conv||conv.state!=='chatting')return;ta.value='';ta.style.height='auto';addBbl('me',txt);conv.msgs.push({role:'user',content:txt});addLoad();callDS(conv.msgs,250).then(function(r){rmLoad();conv.msgs.push({role:'assistant',content:r});addBbl('ai',r);}).catch(function(){rmLoad();toast('Network error, please retry');});}
 // leaveConv replaced by showConvExit
 function endConv(){
   if(!conv)return;conv.state='ending';addBbl('sys','对话结束，正在生成反馈…');
@@ -1049,7 +1068,7 @@ function renderLib(filter){
 function filterLib(q){renderLib(q);}
 
 // ── Story ─────────────────────────────────────────────────────────
-function resetStory(){document.getElementById('st-cfg').style.display='block';document.getElementById('st-shim').style.display='none';document.getElementById('st-txt').textContent='';}
+function resetStory(){document.getElementById('st-cfg').style.display='block';document.getElementById('st-shim').style.display='none';document.getElementById('st-txt').textContent='';var w=document.getElementById('st-notes-wrap');if(w)w.style.display='none';}
 function genStory(){
   var ids=DB.days[TODAY]||[];var list=ids.map(function(id){return DB.entries.find(function(e){return e.id===id;});}).filter(Boolean);
   if(!list.length){toast('今日没有字幕记录');return;}
@@ -1059,8 +1078,8 @@ function genStory(){
   var lines=list.map(function(e,i){return (i+1)+'. '+e.text+(e.zh?'（'+e.zh+'）':'');}).join('\n');
   document.getElementById('st-cfg').style.display='none';document.getElementById('st-shim').style.display='flex';
   callDS([{role:'user',content:'今天从影视剧截图里手动输入的字幕：\n'+lines+'\n\n用这些句子编一个短故事。场景：'+scene+'，风格：'+style+'，语言：'+(lang==='中英双语'?'中英双语，每段先英文后中文':lang==='纯英文'?'全程英文':'全程中文')+'。自然融入原句，200-350字，直接开始写，不要标题前言。'}],1200)
-  .then(function(txt){document.getElementById('st-shim').style.display='none';document.getElementById('st-txt').textContent=txt;})
-  .catch(function(){document.getElementById('st-shim').style.display='none';document.getElementById('st-cfg').style.display='block';toast('网络错误，请重试');});
+  .then(function(txt){document.getElementById('st-shim').style.display='none';document.getElementById('st-txt').textContent=txt;var w=document.getElementById('st-notes-wrap');if(w){w.style.display='block';var ta=document.getElementById('st-notes-ta');if(ta)ta.value='';var sv=document.getElementById('st-saved');if(sv)sv.textContent='';}})
+  .catch(function(){document.getElementById('st-shim').style.display='none';document.getElementById('st-cfg').style.display='block';toast('Network error, please retry');});
 }
 
 // ── Settings ──────────────────────────────────────────────────────
@@ -1241,6 +1260,19 @@ function sendWordMsg(){
   }).catch(function(){
     var ldEl=document.getElementById('ws-load');if(ldEl)ldEl.textContent='网络错误，请重试';
   });
+}
+
+
+function saveStoryNote(){
+  var ta=document.getElementById('st-notes-ta');
+  var note=(ta?ta.value:'').trim();
+  if(!note){var sv=document.getElementById('st-saved');if(sv)sv.textContent='Nothing to save';return;}
+  if(!DB.storyNotes)DB.storyNotes=[];
+  var story=document.getElementById('st-txt').textContent.slice(0,80);
+  DB.storyNotes.push({date:TODAY,ts:Date.now(),note:note,story:story});
+  saveDB();
+  var sv=document.getElementById('st-saved');
+  if(sv){sv.textContent='Saved ✓';setTimeout(function(){if(sv)sv.textContent='';},2000);}
 }
 
 </script>
