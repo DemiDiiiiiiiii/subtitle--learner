@@ -524,6 +524,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 </div>
 
 </div><!-- app -->
+<input type="file" id="fp" accept="image/*" multiple style="position:fixed;left:-9999px;top:-9999px;opacity:0;pointer-events:none">
 <div id="word-sheet">
   <div class="ws-backdrop" onclick="closeWordSheet()"></div>
   <div class="ws-panel">
@@ -593,7 +594,8 @@ var sess=null,conv=null,crList=[],crIdx=0,crFlip=false,pendingWeak='';
 var listTabCurrent='today',expandedDates={};
 
 // ── Boot ──────────────────────────────────────────────────────────
-refreshHome();
+document.addEventListener("DOMContentLoaded",function(){refreshHome();});
+if(document.readyState!=='loading')refreshHome();
 kvGet('db').then(function(v){
   if(!v)return;
   try{
@@ -614,19 +616,20 @@ kvGet('db').then(function(v){
     }
   }catch(e){}
 });
-// File input - recreate each time for iOS Safari reliability
+// File input handler - static element, bound after DOM ready
 function triggerFilePicker(){
-  var old = document.getElementById('fp');
-  if(old) old.parentNode.removeChild(old);
-  var fp = document.createElement('input');
-  fp.type='file'; fp.id='fp'; fp.accept='image/*'; fp.multiple=true;
-  fp.style.cssText='position:fixed;left:-9999px;top:-9999px;opacity:0;pointer-events:none';
-  document.body.appendChild(fp);
-  fp.addEventListener('change', function(){
-    if(fp.files && fp.files.length > 0) startStudy(fp.files);
-  });
-  fp.click();
+  document.getElementById('fp').click();
 }
+document.addEventListener('DOMContentLoaded', function(){
+  var fp = document.getElementById('fp');
+  if(!fp) return;
+  fp.addEventListener('change', function(){
+    if(fp.files && fp.files.length > 0){
+      startStudy(fp.files);
+      setTimeout(function(){ try{ fp.value=''; }catch(e){} }, 200);
+    }
+  });
+});
 document.addEventListener('click',function(e){
   var c=e.target.closest('.chip');if(!c||!c.dataset.g)return;
   var g=c.dataset.g;
@@ -705,22 +708,23 @@ function closeModal(){document.getElementById('modal').classList.remove('show');
 
 // ── Home ──────────────────────────────────────────────────────────
 function checkPendingSession(){
-  // Show "resume" banner if there's an unfinished session snap
-  var snap=null;try{var s=localStorage.getItem('jc-sess-snap');if(s)snap=JSON.parse(s);}catch(e){}
-  var banner=document.getElementById('resume-banner');
-  if(snap&&snap.totalCount){
-    if(!banner){
-      banner=document.createElement('div');banner.id='resume-banner';
-      banner.style.cssText='margin:0 0 14px;background:#e0f2fe;border:1px solid #7dd3fc;border-radius:10px;padding:12px 14px;font-size:13px;color:#0369a1;display:flex;align-items:center;justify-content:space-between;gap:10px';
-      var hw=document.querySelector('.home-wrap');
-      var stats=document.querySelector('.stats');
-      if(hw&&stats)hw.insertBefore(banner,stats);
+  try{
+    var snap=null;var s=localStorage.getItem('jc-sess-snap');if(s)snap=JSON.parse(s);
+    var banner=document.getElementById('resume-banner');
+    if(snap&&snap.totalCount){
+      if(!banner){
+        banner=document.createElement('div');banner.id='resume-banner';
+        banner.style.cssText='margin:0 0 14px;background:#e0f2fe;border:1px solid #7dd3fc;border-radius:10px;padding:12px 14px;font-size:13px;color:#0369a1;display:flex;align-items:center;justify-content:space-between;gap:10px';
+        var hw=document.querySelector('.home-wrap');
+        var stats=document.querySelector('.stats');
+        if(hw&&stats)hw.insertBefore(banner,stats);else return;
+      }
+      banner.innerHTML='<span>📌 上次有未完成的 '+snap.totalCount+' 张图片</span>'
+        +'<button onclick="clearSessionSnap()" style="background:none;border:none;color:#0369a1;font-size:12px;cursor:pointer;text-decoration:underline;white-space:nowrap">清除记录</button>';
+    } else {
+      if(banner)banner.remove();
     }
-    banner.innerHTML='<span>📌 上次有未完成的 '+snap.totalCount+' 张图片</span>'
-      +'<button onclick="clearSessionSnap()" style="background:none;border:none;color:#0369a1;font-size:12px;cursor:pointer;text-decoration:underline;white-space:nowrap">清除记录</button>';
-  } else {
-    if(banner)banner.remove();
-  }
+  }catch(e){}
 }
 function clearSessionSnap(){try{localStorage.removeItem('jc-sess-snap');}catch(e){}checkPendingSession();}
 
