@@ -538,6 +538,14 @@ document.addEventListener('click',function(ev){
   // Delete entry button
   var editBtn=ev.target.closest('[data-edit-id]');
   if(editBtn){editEntry(editBtn.getAttribute('data-edit-id'));return;}
+  var delKwBtn=ev.target.closest('[data-del-kw]');
+  if(delKwBtn){
+    var ki=parseInt(delKwBtn.getAttribute('data-del-kw'));
+    var eid=delKwBtn.getAttribute('data-kw-entry');
+    var ent=DB.entries.find(function(e){return e.id===eid;});
+    if(ent&&ent.keywords){ent.keywords.splice(ki,1);saveDB();renderToday();renderLib(document.getElementById('search-inp')?document.getElementById('search-inp').value:'');}
+    return;
+  }
   var editNoteBtn=ev.target.closest('[data-edit-note]');
   if(editNoteBtn){editConvNote(parseInt(editNoteBtn.getAttribute('data-edit-note')));return;}
   var delNoteBtn=ev.target.closest('[data-del-note]');
@@ -926,7 +934,10 @@ function editConvNote(idx){
 }
 function eRowHTML(e,i,showDate){
   var ko=e.lang==='ko';
-  var kws=e.keywords&&e.keywords.length?'<div class="ekws">'+e.keywords.map(function(k){return '<span class="ekwtag">'+k.word+(k.zh?' '+k.zh:'')+'</span>';}).join('')+'</div>':'';
+  var kws=e.keywords&&e.keywords.length?'<div class="ekws">'+e.keywords.map(function(k,ki){
+    return '<span class="ekwtag" style="display:inline-flex;align-items:center;gap:3px">'+k.word+(k.zh?' '+k.zh:'')
+      +'<button data-del-kw="'+ki+'" data-kw-entry="'+e.id+'" style="background:none;border:none;font-size:10px;color:var(--t3);cursor:pointer;padding:0 0 0 2px;line-height:1">×</button></span>';
+  }).join('')+'</div>':'';
   return '<div class="erow" id="er-'+e.id+'">'
     +'<img class="ethumb" id="et-'+e.id+'" src="" alt="" data-entry-id="'+e.id+'" style="cursor:zoom-in">'
     +'<div class="ebody">'
@@ -980,10 +991,11 @@ function editEntry(id){
     +'<div style="font-size:11px;color:var(--t3);margin:10px 0 4px">个人笔记</div>'
     +'<textarea id="edit-notes" style="width:100%;background:var(--bg);border:1px solid var(--bdr);border-radius:var(--rs);padding:10px 12px;font-family:inherit;font-size:14px;resize:none;min-height:52px;outline:none;color:var(--text);box-sizing:border-box">'+(entry.notes||'')+'</textarea>'
     +'<div style="display:flex;gap:10px;margin-top:16px">'
-    +'<button class="btn btn-ghost" style="flex:1" onclick="var em=document.getElementById(\"edit-modal\");if(em)em.remove()">取消</button>'
+    +'<button class="btn btn-ghost" style="flex:1" id="edit-cancel-btn">取消</button>'
     +'<button class="btn btn-gold" style="flex:1" id="edit-save-btn">保存</button>'
     +'</div></div>';
   document.body.appendChild(m);
+  document.getElementById('edit-cancel-btn').onclick=function(){m.remove();};
   document.getElementById('edit-save-btn').onclick=function(){saveEdit(id);};
 }
 function saveEdit(id){
