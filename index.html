@@ -538,6 +538,14 @@ document.addEventListener('click',function(ev){
   // Delete entry button
   var editBtn=ev.target.closest('[data-edit-id]');
   if(editBtn){editEntry(editBtn.getAttribute('data-edit-id'));return;}
+  var editNoteBtn=ev.target.closest('[data-edit-note]');
+  if(editNoteBtn){editConvNote(parseInt(editNoteBtn.getAttribute('data-edit-note')));return;}
+  var delNoteBtn=ev.target.closest('[data-del-note]');
+  if(delNoteBtn){
+    var ni=parseInt(delNoteBtn.getAttribute('data-del-note'));
+    confirmAct('删除这条笔记？','删除后无法恢复','删除',function(){DB.convNotes.splice(ni,1);saveDB();renderConvNotes();});
+    return;
+  }
   var delBtn=ev.target.closest('[data-del-id]');
   if(delBtn){
     var id=delBtn.getAttribute('data-del-id');
@@ -883,12 +891,38 @@ function renderConvNotes(){
   var el=document.getElementById('list-body');
   var notes=DB.convNotes||[];
   if(!notes.length){el.innerHTML='<div style="padding:40px 0;text-align:center;color:var(--t3);font-size:14px">还没有对话笔记<br>对话结束后可以写笔记保存在这里</div>';return;}
-  el.innerHTML=notes.slice().reverse().map(function(n,i){
+  var reversed=notes.slice().reverse();
+  el.innerHTML=reversed.map(function(n,ri){
+    var realIdx=notes.length-1-ri;
     return '<div style="padding:16px 22px;border-bottom:1px solid var(--bdr)">'
-      +'<div style="font-size:11px;color:var(--t3);margin-bottom:6px">'+n.date+'</div>'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
+      +'<div style="font-size:11px;color:var(--t3)">'+n.date+'</div>'
+      +'<div style="display:flex;gap:8px">'
+      +'<button style="background:none;border:none;font-size:13px;color:var(--gold);cursor:pointer;padding:2px 6px" data-edit-note="'+realIdx+'">✏️ 编辑</button>'
+      +'<button style="background:none;border:none;font-size:13px;color:var(--red);cursor:pointer;padding:2px 6px" data-del-note="'+realIdx+'">删除</button>'
+      +'</div></div>'
       +'<div style="font-size:14px;line-height:1.7;white-space:pre-wrap">'+n.notes+'</div>'
       +'</div>';
   }).join('');
+}
+function editConvNote(idx){
+  var note=DB.convNotes[idx];if(!note)return;
+  var old=document.getElementById('edit-note-modal');if(old)old.remove();
+  var m=document.createElement('div');m.id='edit-note-modal';
+  m.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:flex;align-items:flex-end';
+  m.innerHTML='<div style="background:var(--card);border-radius:22px 22px 0 0;padding:22px;width:100%;box-sizing:border-box">'
+    +'<div style="font-size:15px;font-weight:600;margin-bottom:12px">编辑对话笔记</div>'
+    +'<textarea id="edit-note-ta" style="width:100%;background:var(--bg);border:1px solid var(--bdr);border-radius:var(--rs);padding:12px 14px;font-family:inherit;font-size:14px;resize:none;min-height:120px;outline:none;color:var(--text);line-height:1.7;box-sizing:border-box">'+note.notes+'</textarea>'
+    +'<div style="display:flex;gap:10px;margin-top:12px">'
+    +'<button class="btn btn-ghost" style="flex:1" id="edit-note-cancel">取消</button>'
+    +'<button class="btn btn-gold" style="flex:1" id="edit-note-save">保存</button>'
+    +'</div></div>';
+  document.body.appendChild(m);
+  document.getElementById('edit-note-cancel').onclick=function(){m.remove();};
+  document.getElementById('edit-note-save').onclick=function(){
+    var ta=document.getElementById('edit-note-ta');
+    if(ta&&ta.value.trim()){DB.convNotes[idx].notes=ta.value.trim();saveDB();m.remove();renderConvNotes();toast('已保存');}
+  };
 }
 function eRowHTML(e,i,showDate){
   var ko=e.lang==='ko';
