@@ -1114,7 +1114,7 @@ function toggleMic(){
       var t='';for(var i=e.resultIndex;i<e.results.length;i++)t+=e.results[i][0].transcript;
       var ta=document.getElementById('cv-ta');if(ta){var prev=recog._prev||'';ta.value=(prev?(prev+' '):'')+t;autoR(ta);}
     };
-    recog.onend=function(){isRec=false;var b=document.getElementById('mic-btn');if(b){b.textContent='🎤';b.classList.remove('rec');}var ta=document.getElementById('cv-ta');if(ta&&ta.value.trim())sendMsg();};
+    recog.onend=function(){isRec=false;var b=document.getElementById('mic-btn');if(b){b.textContent='🎤';b.classList.remove('rec');}};
     recog.onerror=function(){isRec=false;var b=document.getElementById('mic-btn');if(b){b.textContent='🎤';b.classList.remove('rec');}toast('请检查麦克风权限');};
   }
   var ta=document.getElementById('cv-ta');if(ta){recog._prev=ta.value.trim();ta.value=recog._prev?recog._prev+' ':'';}
