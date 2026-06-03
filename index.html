@@ -518,8 +518,13 @@ document.addEventListener('click',function(e){
   document.querySelectorAll('.chip[data-g="'+g+'"]').forEach(function(x){x.classList.remove('on');});
   c.classList.add('on');
 });
-document.getElementById('cv-ta').addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}});
-document.getElementById('cv-ta').addEventListener('input',function(){autoR(this);});
+document.addEventListener('DOMContentLoaded',function(){
+  var cvta=document.getElementById('cv-ta');
+  if(cvta){
+    cvta.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}});
+    cvta.addEventListener('input',function(){autoR(this);});
+  }
+});
 
 // ── Event delegation for dynamic elements ────────────────────────
 document.addEventListener('click',function(ev){
@@ -685,7 +690,21 @@ function renderDone(el){
   var dhb=document.getElementById('done-home-btn');if(dhb)dhb.onclick=function(){goTo('home');};
 }
 function compressImg(id,file){
-  try{var img=new Image();img.onload=function(){var c=document.createElement('canvas');var s=Math.min(320/img.width,320/img.height,1);c.width=Math.round(img.width*s);c.height=Math.round(img.height*s);c.getContext('2d').drawImage(img,0,0,c.width,c.height);saveImg(id,c.toDataURL('image/jpeg',.65).split(',')[1]);};img.src=URL.createObjectURL(file);}catch(e){}
+  try{
+    var img=new Image();
+    img.onload=function(){
+      var c=document.createElement('canvas');
+      var s=Math.min(800/img.width,800/img.height,1);
+      c.width=Math.round(img.width*s);c.height=Math.round(img.height*s);
+      c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+      var b64=c.toDataURL('image/jpeg',.82).split(',')[1];
+      saveImg(id,b64);
+      var el=document.getElementById('et-'+id);
+      if(el){el.src='data:image/jpeg;base64,'+b64;el.setAttribute('data-full-src','data:image/jpeg;base64,'+b64);}
+      URL.revokeObjectURL(img.src);
+    };
+    img.src=URL.createObjectURL(file);
+  }catch(e){}
 }
 
 // ── Card Review ───────────────────────────────────────────────────
@@ -1008,12 +1027,12 @@ function toggleMic(){
     recog.onstart=function(){isRec=true;var b=document.getElementById('mic-btn');if(b){b.textContent='🔴';b.classList.add('rec');}};
     recog.onresult=function(e){
       var t='';for(var i=e.resultIndex;i<e.results.length;i++)t+=e.results[i][0].transcript;
-      var ta=document.getElementById('cv-ta');if(ta){ta.value=t;autoR(ta);}
+      var ta=document.getElementById('cv-ta');if(ta){var prev=recog._prev||'';ta.value=(prev?(prev+' '):'')+t;autoR(ta);}
     };
-    recog.onend=function(){isRec=false;var b=document.getElementById('mic-btn');if(b){b.textContent='🎤';b.classList.remove('rec');}};
+    recog.onend=function(){isRec=false;var b=document.getElementById('mic-btn');if(b){b.textContent='🎤';b.classList.remove('rec');}var ta=document.getElementById('cv-ta');if(ta&&ta.value.trim())sendMsg();};
     recog.onerror=function(){isRec=false;var b=document.getElementById('mic-btn');if(b){b.textContent='🎤';b.classList.remove('rec');}toast('请检查麦克风权限');};
   }
-  var ta=document.getElementById('cv-ta');if(ta)ta.value='';
+  var ta=document.getElementById('cv-ta');if(ta){recog._prev=ta.value.trim();ta.value=recog._prev?recog._prev+' ':'';}
   recog.start();
 }
 
