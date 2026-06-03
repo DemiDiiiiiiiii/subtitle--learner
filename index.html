@@ -206,8 +206,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 .spk-btn{background:none;border:none;font-size:12px;cursor:pointer;padding:1px 4px;opacity:.45;transition:opacity .15s;align-self:flex-start;line-height:1}
 .spk-btn:active{opacity:1}
 /* CONVERSATION SCROLL FIX */
-#conversation{overflow:hidden!important;display:flex;flex-direction:column}
-#cv-main{display:none;flex-direction:column;position:absolute;top:0;left:0;right:0;bottom:0;overflow:hidden}
+#conversation{overflow:hidden!important}
 /* FEEDBACK NOTES */
 .fb-notes{width:100%;background:var(--bg);border:1px solid var(--bdr);border-radius:var(--rs);padding:12px 14px;font-family:inherit;font-size:14px;resize:none;min-height:80px;outline:none;line-height:1.6;color:var(--text);margin-top:4px}
 .fb-notes::placeholder{color:var(--t3)}
@@ -314,7 +313,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
     <div class="spin"><div class="sp"></div><div class="sp"></div><div class="sp"></div></div>
     <div style="font-size:14px;color:var(--t2)">AI 正在准备角色和场景…</div>
   </div>
-  <div id="cv-main">
+  <div id="cv-main" style="display:none;flex-direction:column;flex:1;min-height:0;overflow:hidden">
     <div class="cvtop">
       <button class="cvback" onclick="showConvExit()">←</button>
       <div style="font-size:15px;font-weight:600">对话练习</div>
@@ -764,7 +763,23 @@ function startConv(){
       +'对话自然流动是第一位的，如果以下词汇有自然出现的机会就用，没有机会别硬塞：\n'+wb;
     conv={setup:setup,msgs:[{role:'system',content:sys},{role:'assistant',content:setup.firstMessage}],state:'chatting'};
     document.getElementById('cv-load').style.display='none';
-    var m=document.getElementById('cv-main');m.style.display='flex';
+    var m=document.getElementById('cv-main');m.style.display='flex';m.style.flexDirection='column';m.style.flex='1';m.style.minHeight='0';m.style.overflow='hidden';
+    // Fix scroll: give chat an explicit height based on available space
+    setTimeout(function(){
+      var chat=document.getElementById('chat');
+      var wrap=document.getElementById('cv-main');
+      var top=document.querySelector('.cvtop');
+      var cvid=document.getElementById('cv-id');
+      var cvwrap=document.querySelector('.cvwrap');
+      if(chat&&wrap&&top&&cvwrap){
+        var total=window.innerHeight;
+        var used=(top.offsetHeight||0)+(cvid.offsetHeight||0)+(cvwrap.offsetHeight||0);
+        chat.style.height=(total-used-8)+'px';
+        chat.style.flex='none';
+        chat.style.overflowY='auto';
+        chat.style.webkitOverflowScrolling='touch';
+      }
+    },100);
     document.getElementById('cv-id').innerHTML='<div class="idrow"><div class="idav">'+setup.name.charAt(0)+'</div>'
       +'<div><div class="idname">'+setup.name+'</div><div class="idsub">'+setup.nationality+' · '+setup.job+'</div></div></div>'
       +'<div class="idscene">'+setup.relationship+'。'+setup.scene+'</div>';
