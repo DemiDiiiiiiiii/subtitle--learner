@@ -57,7 +57,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 /* STUDY */
 #study{background:#000}
 .sim{position:relative;flex-shrink:0}
-.sim img{width:100%;display:block;max-height:54vh;object-fit:contain;background:#000;cursor:zoom-in}
+.sim img{width:100%;display:block;max-height:46vh;object-fit:contain;background:#000;cursor:zoom-in}
 .sov{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.4) 0%,transparent 35%,rgba(0,0,0,.1) 100%)}
 .stb{position:absolute;top:0;left:0;right:0;padding:max(52px,env(safe-area-inset-top)) 18px 10px;display:flex;justify-content:space-between;align-items:center}
 .sx{background:none;border:none;color:rgba(255,255,255,.6);font-size:20px;cursor:pointer;padding:4px}
@@ -65,7 +65,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 .sdots{position:absolute;bottom:8px;left:0;right:0;display:flex;gap:4px;justify-content:center;padding:0 20px;flex-wrap:wrap}
 .dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.2);flex-shrink:0}
 .dot.d{background:var(--gold)}.dot.c{background:rgba(255,255,255,.75)}
-.spanel{background:var(--bg);flex:1;border-radius:22px 22px 0 0;margin-top:-22px;padding:22px 22px max(28px,env(safe-area-inset-bottom));overflow-y:auto}
+.spanel{background:var(--bg);flex:1;border-radius:22px 22px 0 0;margin-top:0;padding:22px 22px max(28px,env(safe-area-inset-bottom));overflow-y:auto}
 .ihint{font-size:12px;color:var(--t3);text-align:center;margin-bottom:12px}
 .irow{display:flex;gap:10px;align-items:flex-end}
 .ita{flex:1;background:var(--card);border:1.5px solid var(--bdr);border-radius:var(--rs);padding:13px 16px;color:var(--text);font-size:16px;font-family:inherit;resize:none;line-height:1.5;min-height:52px;max-height:110px;outline:none}
@@ -355,6 +355,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
       <button class="btn btn-gold" onclick="saveConvFeedback()">保存笔记，回主页</button>
       <button class="btn btn-white" onclick="document.getElementById('fb-sheet').classList.remove('show');startConv()">再来一轮</button>
       <button class="btn btn-ghost" onclick="closeConv(false)">直接离开</button>
+      <button class="btn btn-white" onclick="feedbackChat()">💬 追问 AI</button>
     </div>
   </div>
 </div>
@@ -462,6 +463,12 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
   <div class="stsec">
     <div class="strow"><div><div class="stlbl" id="st-stats"></div><div class="stsub">存储于本地及云端</div></div></div>
   </div>
+  <div class="stsec">
+    <div class="strow" style="cursor:pointer" onclick="exportData()">
+      <div><div class="stlbl">📤 导出全部数据</div><div class="stsub">导出字幕、词汇、笔记为文本文件</div></div>
+      <span style="color:var(--t3)">›</span>
+    </div>
+  </div>
   <div class="safe"></div>
 </div>
 
@@ -529,6 +536,8 @@ document.addEventListener('DOMContentLoaded',function(){
 // ── Event delegation for dynamic elements ────────────────────────
 document.addEventListener('click',function(ev){
   // Delete entry button
+  var editBtn=ev.target.closest('[data-edit-id]');
+  if(editBtn){editEntry(editBtn.getAttribute('data-edit-id'));return;}
   var delBtn=ev.target.closest('[data-del-id]');
   if(delBtn){
     var id=delBtn.getAttribute('data-del-id');
@@ -893,7 +902,10 @@ function eRowHTML(e,i,showDate){
     +(e.notes?'<div class="enote">'+e.notes+'</div>':'')
     +kws
     +'</div>'
+    +'<div style="display:flex;flex-direction:column;gap:4px">'
     +'<button class="edel" data-del-id="'+e.id+'">×</button>'
+    +'<button class="edel" style="font-size:11px;opacity:.5" data-edit-id="'+e.id+'">✏️</button>'
+    +'</div>'
     +'</div>';
 }
 function loadRowImgs(list){list.forEach(function(e){loadImgAsync(e.id,function(b){var el2=document.getElementById('et-'+e.id);if(el2){el2.src='data:image/jpeg;base64,'+b;el2.setAttribute('data-full-src','data:image/jpeg;base64,'+b);}});});}
@@ -919,6 +931,40 @@ function renderHistory(){
   dates.forEach(function(d){if(expandedDates[d]){var entries=DB.days[d].map(function(id){return DB.entries.find(function(e){return e.id===id;});}).filter(Boolean);loadRowImgs(entries);}});
 }
 function toggleDate(d){expandedDates[d]=!expandedDates[d];renderHistory();}
+function editEntry(id){
+  var entry=DB.entries.find(function(e){return e.id===id;});
+  if(!entry)return;
+  var old=document.getElementById('edit-modal');if(old)old.remove();
+  var m=document.createElement('div');m.id='edit-modal';
+  m.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:flex;align-items:flex-end';
+  m.innerHTML='<div style="background:var(--card);border-radius:22px 22px 0 0;padding:22px;width:100%;box-sizing:border-box;max-height:80vh;overflow-y:auto">'
+    +'<div style="font-size:15px;font-weight:600;margin-bottom:14px">编辑记录</div>'
+    +'<div style="font-size:11px;color:var(--t3);margin-bottom:4px">字幕原文</div>'
+    +'<textarea id="edit-text" style="width:100%;background:var(--bg);border:1px solid var(--bdr);border-radius:var(--rs);padding:10px 12px;font-family:inherit;font-size:14px;resize:none;min-height:52px;outline:none;color:var(--text);box-sizing:border-box">'+entry.text+'</textarea>'
+    +'<div style="font-size:11px;color:var(--t3);margin:10px 0 4px">中文译文</div>'
+    +'<textarea id="edit-zh" style="width:100%;background:var(--bg);border:1px solid var(--bdr);border-radius:var(--rs);padding:10px 12px;font-family:inherit;font-size:14px;resize:none;min-height:52px;outline:none;color:var(--text);box-sizing:border-box">'+(entry.zh||'')+'</textarea>'
+    +'<div style="font-size:11px;color:var(--t3);margin:10px 0 4px">个人笔记</div>'
+    +'<textarea id="edit-notes" style="width:100%;background:var(--bg);border:1px solid var(--bdr);border-radius:var(--rs);padding:10px 12px;font-family:inherit;font-size:14px;resize:none;min-height:52px;outline:none;color:var(--text);box-sizing:border-box">'+(entry.notes||'')+'</textarea>'
+    +'<div style="display:flex;gap:10px;margin-top:16px">'
+    +'<button class="btn btn-ghost" style="flex:1" onclick="var em=document.getElementById(\"edit-modal\");if(em)em.remove()">取消</button>'
+    +'<button class="btn btn-gold" style="flex:1" id="edit-save-btn">保存</button>'
+    +'</div></div>';
+  document.body.appendChild(m);
+  document.getElementById('edit-save-btn').onclick=function(){saveEdit(id);};
+}
+function saveEdit(id){
+  var entry=DB.entries.find(function(e){return e.id===id;});if(!entry)return;
+  var t=document.getElementById('edit-text');
+  var z=document.getElementById('edit-zh');
+  var n=document.getElementById('edit-notes');
+  if(t)entry.text=t.value.trim();
+  if(z)entry.zh=z.value.trim();
+  if(n)entry.notes=n.value.trim();
+  saveDB();
+  var m=document.getElementById('edit-modal');if(m)m.remove();
+  toast('已保存');
+  renderToday();renderLib(document.getElementById('search-inp')?document.getElementById('search-inp').value:'');
+}
 function delEntry(id){
   confirmAct('删除这条字幕？','删除后不可恢复','删除',function(){
     DB.entries=DB.entries.filter(function(e){return e.id!==id;});
@@ -1035,6 +1081,43 @@ function genStory(){
 }
 
 // ── Settings ──────────────────────────────────────────────────────
+function exportData(){
+  var lines=[];
+  lines.push('=== 剧词 数据导出 '+new Date().toLocaleDateString('zh-CN')+' ===');
+  // Entries
+  lines.push('【字幕记录】共 '+DB.entries.length+' 条');
+  DB.entries.forEach(function(e,i){
+    lines.push((i+1)+'. ['+e.date+'] '+(e.lang==='ko'?'🇰🇷':'🇺🇸')+' '+e.text);
+    if(e.zh)lines.push('   译: '+e.zh);
+    if(e.keywords&&e.keywords.length)lines.push('   词: '+e.keywords.map(function(k){return k.word+(k.zh?' '+k.zh:'');}).join(' | '));
+    if(e.notes)lines.push('   笔记: '+e.notes);
+    lines.push('');
+  });
+  // Story notes
+  if(DB.storyNotes&&DB.storyNotes.length){
+    lines.push('【故事笔记】共 '+DB.storyNotes.length+' 条');
+    DB.storyNotes.forEach(function(n,i){
+      lines.push((i+1)+'. ['+n.date+'] '+n.note);
+      if(n.story)lines.push('   出自: '+n.story+'…');
+      lines.push('');
+    });
+  }
+  // Conv notes
+  if(DB.convNotes&&DB.convNotes.length){
+    lines.push('【对话笔记】共 '+DB.convNotes.length+' 条');
+    DB.convNotes.forEach(function(n,i){
+      lines.push((i+1)+'. ['+n.date+'] '+n.note);
+      lines.push('');
+    });
+  }
+  var blob=new Blob([lines.join('\n')],{type:'text/plain;charset=utf-8'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='剧词导出_'+TODAY+'.txt';
+  a.click();
+  setTimeout(function(){URL.revokeObjectURL(a.href);},1000);
+  toast('导出成功');
+}
 function applySync(){
   var inp=document.getElementById('syn-inp');var code=(inp.value||'').trim().toUpperCase();
   if(code.length<4){toast('请输入有效的同步码');return;}
@@ -1114,7 +1197,7 @@ function toggleMic(){
       var t='';for(var i=e.resultIndex;i<e.results.length;i++)t+=e.results[i][0].transcript;
       var ta=document.getElementById('cv-ta');if(ta){var prev=recog._prev||'';ta.value=(prev?(prev+' '):'')+t;autoR(ta);}
     };
-    recog.onend=function(){isRec=false;var b=document.getElementById('mic-btn');if(b){b.textContent='🎤';b.classList.remove('rec');}};
+    recog.onend=function(){isRec=false;var b=document.getElementById('mic-btn');if(b){b.textContent='🎤';b.classList.remove('rec');}var ta=document.getElementById('cv-ta');if(ta&&ta.value.trim())sendMsg();};
     recog.onerror=function(){isRec=false;var b=document.getElementById('mic-btn');if(b){b.textContent='🎤';b.classList.remove('rec');}toast('请检查麦克风权限');};
   }
   var ta=document.getElementById('cv-ta');if(ta){recog._prev=ta.value.trim();ta.value=recog._prev?recog._prev+' ':'';}
@@ -1146,6 +1229,32 @@ function showConvExit(){
 function hideExitSheet(){document.getElementById('exit-sheet').classList.remove('show');}
 
 // ── Save conv feedback ─────────────────────────────────────────────
+function feedbackChat(){
+  var fbBody=document.getElementById('fb-body');
+  var feedback=fbBody?fbBody.textContent:'';
+  document.getElementById('fb-sheet').classList.remove('show');
+  var sys='你是一位友善的英语/韩语对话教练。刚才你给用户的对话反馈是：'+feedback+'。用户想继续追问这个反馈，请用中文解释，给出更多例句和建议。';
+  var setup={name:'对话教练',emoji:'🎯',scene:'反馈追问',firstMessage:'关于刚才的对话，你还有什么想深入了解的？'};
+  conv={setup:setup,msgs:[{role:'system',content:sys},{role:'assistant',content:setup.firstMessage}],state:'chatting'};
+  var cid=document.getElementById('cv-id');
+  if(cid)cid.innerHTML='<div class="idrow"><div class="idav">🎯</div><div><div class="idname">对话教练</div><div class="idsub">反馈追问模式</div></div></div><div class="idscene">针对刚才的反馈继续追问</div>';
+  var ca=document.getElementById('chat');if(ca)ca.innerHTML='';
+  var m=document.getElementById('cv-main');
+  m.style.display='flex';m.style.flexDirection='column';m.style.flex='1';m.style.minHeight='0';m.style.overflow='hidden';
+  document.getElementById('cv-load').style.display='none';
+  addBbl('ai',setup.firstMessage);
+  setTimeout(function(){
+    var chat=document.getElementById('chat');
+    var cvwrap=document.querySelector('.cvwrap');
+    var cvtop=document.querySelector('.cvtop');
+    var cvidEl=document.getElementById('cv-id');
+    if(chat&&cvwrap&&cvtop){
+      var used=(cvtop.offsetHeight||0)+(cvidEl?cvidEl.offsetHeight:0)+(cvwrap.offsetHeight||0);
+      chat.style.height=(window.innerHeight-used-8)+'px';
+      chat.style.flex='none';chat.style.overflowY='auto';chat.style.webkitOverflowScrolling='touch';
+    }
+  },100);
+}
 function saveConvFeedback(){
   var notes=(document.getElementById('conv-notes').value||'').trim();
   var saveWk=document.getElementById('wk-cb')&&document.getElementById('wk-cb').checked;
