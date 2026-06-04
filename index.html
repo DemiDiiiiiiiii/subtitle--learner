@@ -520,10 +520,30 @@ kvGet('db').then(function(v){
   if(!v)return;
   try{
     var r=JSON.parse(v);
-    if(r&&r.entries&&r.entries.length>DB.entries.length){
-      DB=r;if(!DB.days)DB.days={};if(!DB.days[TODAY])DB.days[TODAY]=[];
-      try{localStorage.setItem(DB_KEY,JSON.stringify(DB));}catch(e){}
-      refreshHome();toast('云端数据已同步 ✓');
+    if(r&&r.entries){
+      if(!r.days)r.days={};if(!r.fps)r.fps=[];
+      var changed=false;
+      // Merge: for each remote entry, add if missing OR update if remote is newer
+      var localMap={};
+      DB.entries.forEach(function(e){localMap[e.id]=e;});
+      r.entries.forEach(function(re){
+        if(!localMap[re.id]){
+          DB.entries.push(re);DB.fps.push(re.fp||'');changed=true;
+        } else if(re.ts&&localMap[re.id].ts&&re.ts>localMap[re.id].ts){
+          // remote is newer - update in place
+          Object.assign(localMap[re.id],re);changed=true;
+        }
+      });
+      // Merge days
+      Object.keys(r.days).forEach(function(d){
+        if(!DB.days[d])DB.days[d]=[];
+        r.days[d].forEach(function(id){if(DB.days[d].indexOf(id)===-1){DB.days[d].push(id);changed=true;}});
+      });
+      if(!DB.days[TODAY])DB.days[TODAY]=[];
+      if(changed){
+        try{localStorage.setItem(DB_KEY,JSON.stringify(DB));}catch(e){}
+        refreshHome();toast('云端数据已同步 ✓');
+      }
     }
   }catch(e){}
 });
