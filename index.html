@@ -380,7 +380,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
     <div class="tab" id="tab-hist" onclick="listTab('history')">历史</div>
     <div class="tab" id="tab-notes" onclick="listTab('notes')">对话笔记</div>
   </div>
-  <div id="list-body" style="flex:1;overflow-y:auto;padding-bottom:120px"></div>
+  <div id="list-body" style="flex:1;overflow-y:auto;padding-bottom:160px"></div>
   <div style="padding:14px 22px max(20px,env(safe-area-inset-bottom));flex-shrink:0;border-top:1px solid var(--bdr)">
     <button class="btn btn-gold" onclick="goTo('story');resetStory()">生成故事</button>
   </div>
@@ -846,21 +846,28 @@ function startConv(topicOverride){
   document.getElementById('cv-main').style.display='none';
   document.getElementById('fb-sheet').classList.remove('show');
 
-  // Word bank: vocab keywords + recent notes snippets
-  var picked=shuffle(enKw.slice()).slice(0,Math.min(5,enKw.length));
+  // Word bank: vocab keywords (up to 4) + phrases extracted from notes (up to 2)
+  var picked=enKw.slice();
   var wb=picked.map(function(w){return '- "'+w.word+'" ('+w.zh+(w.note?'，'+w.note:'')+')';}).join('\n');
 
-  // Add note snippets as extra context (not as "words" to force in)
-  var noteSnippets=[];
-  if(DB.convNotes&&DB.convNotes.length){
-    var recentNotes=DB.convNotes.slice(-5);
-    recentNotes.forEach(function(n){if(n.notes&&n.notes.trim())noteSnippets.push(n.notes.trim().slice(0,80));});
+  // Extract English expressions from notes to add as extra practice targets
+  var noteKws=[];
+  var allNotes=[];
+  if(DB.convNotes&&DB.convNotes.length)DB.convNotes.slice(-8).forEach(function(n){if(n.notes)allNotes.push(n.notes);});
+  if(DB.storyNotes&&DB.storyNotes.length)DB.storyNotes.slice(-5).forEach(function(n){if(n.note)allNotes.push(n.note);});
+  allNotes.forEach(function(txt){
+    // Extract quoted phrases or bold phrases e.g. "take it in stride" or **phrase**
+    var quoted=txt.match(/[""]([a-zA-Z][^"""]{2,30})[""]|\*\*([a-zA-Z][^*]{2,30})\*\*/g)||[];
+    // Also extract lines starting with a dash that have English content
+    var dashed=txt.match(/^\s*[-•]\s*([a-zA-Z][^\n]{3,40})/mg)||[];
+    quoted.forEach(function(m){var c=m.replace(/[""\*]/g,'').trim();if(c.length>2)noteKws.push(c);});
+    dashed.forEach(function(m){var c=m.replace(/^\s*[-•]\s*/,'').trim();if(/[a-zA-Z]/.test(c)&&c.length>3)noteKws.push(c.slice(0,40));});
+  });
+  noteKws=shuffle(noteKws);
+  if(noteKws.length){
+    wb+='\n'+noteKws.map(function(p){return '- "'+p+'" (用户笔记中记录的表达，自然引入练习)';}).join('\n');
   }
-  if(DB.storyNotes&&DB.storyNotes.length){
-    var recentStory=DB.storyNotes.slice(-3);
-    recentStory.forEach(function(n){if(n.note&&n.note.trim())noteSnippets.push(n.note.trim().slice(0,80));});
-  }
-  var notesCtx=noteSnippets.length?'\n\n【用户最近记录的笔记，可自然融入话题】\n'+noteSnippets.map(function(s){return '- '+s;}).join('\n'):'';
+  var notesCtx='';
 
   var wk=DB.weakness?'【用户英语弱点，对话中注意引导】\n'+DB.weakness:'';
   callDS([{role:'user',content:'你是沉浸式英语口语练习助手。\n\n生成一个真实日常对话场景，角色必须是女性或性别中立。话题方向：'+topicOverride+'。场景贴近真实生活，语气像native speaker，可以有pop culture梗，要自然有趣。\n\n用户背景：在苏州做财务分析，喜欢跑步徒步骑车、文学Kpop韩语、美剧音乐剧，好奇心旺盛——场景和角色可以和这些背景产生交集。\n\n【秘密目标词汇】（自然融入，绝不提示）\n'+wb+'\n\n'+wk+'\n\n返回JSON不要markdown：\n{"name":"英文名（女性或中性名）","nationality":"国籍（中文）","job":"职业","relationship":"和用户的关系（1句）","scene":"场景（2句，具体有画面感，和话题方向相关）","firstMessage":"第一句英文话（自然口语，像真人发消息）"}'}],400)
@@ -869,7 +876,7 @@ function startConv(topicOverride){
     setup.words=picked;
     var userProfile='【关于对话对象（用户）的背景，自然融入对话，不要突兀提及】\n'
       +'- 在苏州一家制造业公司（英格索兰）做FP&A财务分析\n'
-      +'- 兴趣超广：长跑、徒步、公路自行车（有辆法国车）、文学、古诗词、音乐剧、Kpop/Super Junior、韩语学习、旅游、美剧、游泳、乒乓球\n'
+      +'- 兴趣超广：长跑、徒步、公路自行车（有辆法国车）、文学、古诗词、音乐剧（另一个独立爱好）、Kpop/Super Junior（演唱会、综艺、团魂文化，不是音乐剧那种）、韩语学习、旅游、美剧、游泳、乒乓球\n'
       +'- 好奇心很旺盛，喜欢聊有深度的话题也喜欢八卦闲聊\n'
       +'- 话题偏好：'+topicOverride;
 
