@@ -836,13 +836,18 @@ function startConv(){
   var picked=shuffle(enKw.slice()).slice(0,Math.min(6,enKw.length));
   var wb=picked.map(function(w){return '- "'+w.word+'" ('+w.zh+(w.note?'，'+w.note:'')+')';}).join('\n');
   var wk=DB.weakness?'【用户英语弱点】\n'+DB.weakness:'';
-  callDS([{role:'user',content:'你是沉浸式英语口语练习助手。\n\n生成真实对话场景和角色，写出第一句话。\n\n【秘密目标词汇】（自然引入，绝不提示）\n'+wb+'\n\n'+wk+'\n\n返回JSON不要markdown：\n{"name":"英文名","nationality":"国籍（中文）","job":"职业","relationship":"和用户的关系（1句）","scene":"场景（2句细节）","firstMessage":"第一句英文话（自然口语）"}'}],400)
+  callDS([{role:'user',content:'你是沉浸式英语口语练习助手。\n\n生成一个真实日常对话场景，角色必须是女性或性别中立，绝不预设男性视角。场景要贴近真实生活——可以是朋友之间的闲聊、职场对话（职位高低不预设性别）、或轻松的日常互动。语气像真实的native speaker，可以用当下流行的说法、俚语或pop culture梗，但要自然。\n\n【秘密目标词汇】（自然引入，绝不提示）\n'+wb+'\n\n'+wk+'\n\n返回JSON不要markdown：\n{"name":"英文名（女性或中性名）","nationality":"国籍（中文）","job":"职业（不预设性别）","relationship":"和用户的关系（1句，像真实朋友/同事）","scene":"场景（2句，具体有画面感）","firstMessage":"第一句英文话（自然口语，像真人发消息，不要开场白套话）"}'}],400)
   .then(function(raw){
     var setup;try{setup=JSON.parse(raw.replace(/```json|```/g,'').trim());}catch(e){toast('生成场景失败，请重试');goTo('home');return;}
     setup.words=picked;
     var sys='你扮演'+setup.name+'，'+setup.nationality+'人，'+setup.job+'。'+setup.relationship+'。场景：'+setup.scene
-      +'\n\n规则：全程英文；像真人说话，不要每次都用相同句式；回复长度随对话内容而定，短问短答，有话才说长；'
-      +'对话自然流动是第一位的，如果以下词汇有自然出现的机会就用，没有机会别硬塞：\n'+wb;
+      +'\n\n规则：\n'
+      +'- 全程英文，像真实的native speaker发消息，不要书面腔\n'
+      +'- 女性视角/性别中立，不用bro/dude/man等称呼，可以用girl/hon/babe/sis等或者直接不用称呼\n'
+      +'- 语气自然随性，可以用缩写（gonna/wanna/kinda）、感叹词（omg/ugh/wait）、当下流行表达\n'
+      +'- 短问短答，有话才说多，像真人聊天节奏\n'
+      +'- 如果话题合适可以聊聊最近的事、pop culture、或者日常抱怨/八卦，不要生硬\n'
+      +'- 以下词汇有自然机会就用，没有机会别硬塞：\n'+wb;
     conv={setup:setup,msgs:[{role:'system',content:sys},{role:'assistant',content:setup.firstMessage}],state:'chatting'};
     document.getElementById('cv-load').style.display='none';
     var m=document.getElementById('cv-main');m.style.display='flex';m.style.flexDirection='column';m.style.flex='1';m.style.minHeight='0';m.style.overflow='hidden';
@@ -894,7 +899,7 @@ function endConv(){
   var words=conv.setup.words.map(function(w){return w.word;}).join('、');
   // clear notes field
   var notesEl=document.getElementById('conv-notes');if(notesEl)notesEl.value='';
-  callDS([{role:'user',content:'请用中文分析这段英语对话练习，分以下几部分：\n\n'+history+'\n\n本次目标词汇：'+words+'\n\n---\n【你的表达】你哪些地方说得自然地道，哪里不太像母语者，给出更好的说法\n【词汇使用】你用到了哪些目标词，用得准不准，有没有更地道的搭配\n【今日亮点】从'+conv.setup.name+'说的话里挑2-3个值得你借鉴的地道表达或短语，解释含义和典型使用场景\n【一句建议】最值得你改进的一个方向\n【弱点记录】一句话（用于可选择性存入档案）'}],900)
+  callDS([{role:'user',content:'请简洁地用中文点评这段英语对话，只做以下两件事：\n\n'+history+'\n\n1. 【更地道的说法】：列出1-3处可以更native的表达，格式：原句 → 更地道的说法（一句话解释为什么）。没有的话就说"整体很自然，没有明显需要改的地方"。\n\n2. 【弱点记录】：一句话总结最值得改进的一个点（用于存档，如无明显问题写"表达自然"）。\n\n不要展开分析，不要多余的鼓励语，简洁为主。'}],900)
   .then(function(fb){
     var m=fb.match(/弱点记录[：:]\s*(.+)/);pendingWeak=m?m[1].trim():'';
     document.getElementById('fb-body').textContent=fb.replace(/弱点记录[：:].*$/,'').trim();
