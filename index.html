@@ -359,7 +359,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
     </div>
     <div style="margin-top:16px;display:flex;flex-direction:column;gap:10px">
       <button class="btn btn-gold" onclick="saveConvFeedback()">保存笔记，回主页</button>
-      <button class="btn btn-white" onclick="document.getElementById('fb-sheet').classList.remove('show')">← 返回查看对话记录</button>
+      <button class="btn btn-white" onclick="document.getElementById('fb-sheet').classList.remove('show');if(conv)conv.state='chatting';">← 返回继续对话</button>
       <button class="btn btn-white" onclick="document.getElementById('fb-sheet').classList.remove('show');startConv()">再来一轮</button>
       <button class="btn btn-white" onclick="feedbackChat()">💬 追问 AI</button>
       <button class="btn btn-ghost" onclick="closeConv(false)">直接离开</button>
@@ -1042,7 +1042,7 @@ function endConv(){
   var words=conv.setup.words.map(function(w){return w.word;}).join('、');
   // clear notes field
   var notesEl=document.getElementById('conv-notes');if(notesEl)notesEl.value='';
-  callDS([{role:'user',content:'以下是一段英语对话记录，"你"是用户，另一方是AI角色。\n\n'+history+'\n\n请只针对「你」说的话（不是AI角色的话），简洁用中文做以下两件事：\n\n1.【更地道的说法】：列出「你」说的话中1-3处可以更native的表达，格式：原句 → 更地道的说法（一句话解释）。没有明显问题就写"整体自然，没有需要改的地方"。\n\n2.【弱点记录】：一句话总结「你」最值得改进的一个点（如无问题写"表达自然"）。\n\n只分析「你」的表达，不要评价AI角色的话，不要展开，简洁为主。'}],900)
+  callDS([{role:'user',content:'以下是对话记录，「你」是用户，另一方是AI角色。\n\n'+history+'\n\n请简洁用中文做以下三件事：\n\n1.【你可以更地道的说法】：列出「你」说的话中1-3处可以更native的表达，格式：原句 → 更好的说法（一句话解释）。没有问题就写"表达自然"。\n\n2.【AI说的值得学的表达】：从AI角色说的话里挑2-3个地道短语或用法，格式：表达 — 含义及典型场景（一句话）。\n\n3.【弱点记录】：一句话总结最值得改进的一个点。\n\n简洁为主，不展开，不鼓励。'}],900)
   .then(function(fb){
     var m=fb.match(/弱点记录[：:]\s*(.+)/);pendingWeak=m?m[1].trim():'';
     document.getElementById('fb-body').textContent=fb.replace(/弱点记录[：:].*$/,'').trim();
