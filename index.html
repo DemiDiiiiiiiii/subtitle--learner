@@ -1542,8 +1542,15 @@ function feedbackChat(){
   var fbBody=document.getElementById('fb-body');
   var feedback=fbBody?fbBody.textContent:'';
   document.getElementById('fb-sheet').classList.remove('show');
-  var sys='你是一位友善的英语/韩语对话教练。刚才你给用户的对话反馈是：'+feedback+'。用户想继续追问这个反馈，请用中文解释，给出更多例句和建议。';
-  var setup={name:'对话教练',emoji:'🎯',scene:'反馈追问',firstMessage:'关于刚才的对话，你还有什么想深入了解的？'};
+  // Build full conversation history
+  var history='';
+  if(conv&&conv.msgs){
+    conv.msgs.forEach(function(m){
+      if(m.role==='user')history+='你: '+m.content+'\n';else if(m.role==='assistant'&&conv.setup)history+=conv.setup.name+': '+m.content+'\n';
+    });
+  }
+  var sys='你是一位英语/韩语语言教练，用中文回答。\n\n刚才的完整对话记录：\n'+history+'\n\n刚才给用户的反馈：\n'+feedback+'\n\n用户想针对以上内容追问。直接回答用户的具体问题，不要泛泛介绍自己，不要重复废话。如果用户问AI说过的某个表达，直接从对话记录里找出来解释。';
+  var setup={name:'语言教练',emoji:'🎯',scene:'反馈追问',firstMessage:'想深入了解哪个表达或哪部分反馈？'};
   conv={setup:setup,msgs:[{role:'system',content:sys},{role:'assistant',content:setup.firstMessage}],state:'chatting'};
   var cid=document.getElementById('cv-id');
   if(cid)cid.innerHTML='<div class="idrow"><div class="idav">🎯</div><div><div class="idname">对话教练</div><div class="idsub">反馈追问模式</div></div></div><div class="idscene">针对刚才的反馈继续追问</div>';
