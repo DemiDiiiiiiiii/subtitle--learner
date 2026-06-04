@@ -462,6 +462,10 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
   </div>
   <div class="stsec">
     <div class="strow"><div><div class="stlbl" id="st-stats"></div><div class="stsub">存储于本地及云端</div></div></div>
+    <div class="strow" style="cursor:pointer" onclick="uploadToCloud()">
+      <div><div class="stlbl">☁️ 立即上传到云端</div><div class="stsub" id="cloud-status">点击手动同步数据到云端</div></div>
+      <span style="color:var(--t3)">›</span>
+    </div>
   </div>
   <div class="stsec">
     <div class="strow" style="cursor:pointer" onclick="exportData()">
@@ -484,7 +488,15 @@ var UID_KEY = 'jc-uid';
 
 // ── UID / KV ──────────────────────────────────────────────────────
 function getUID(){var id=localStorage.getItem(UID_KEY);if(!id){id=Math.random().toString(36).substr(2,8).toUpperCase();localStorage.setItem(UID_KEY,id);}return id;}
-function kvSet(k,v){try{var c=new AbortController();setTimeout(function(){c.abort();},6000);fetch(WORKER,{method:'POST',headers:{'Content-Type':'application/json','X-Action':'kv-set'},body:JSON.stringify({key:getUID()+'-'+k,value:v}),signal:c.signal}).catch(function(){});}catch(e){}}
+function kvSet(k,v){
+  try{
+    var c=new AbortController();
+    var t=setTimeout(function(){c.abort();},8000);
+    return fetch(WORKER,{method:'POST',headers:{'Content-Type':'application/json','X-Action':'kv-set'},body:JSON.stringify({key:getUID()+'-'+k,value:v}),signal:c.signal})
+      .then(function(r){clearTimeout(t);return r.json();})
+      .catch(function(e){clearTimeout(t);throw e;});
+  }catch(e){return Promise.reject(e);}
+}
 function kvGet(k){var c=new AbortController();setTimeout(function(){c.abort();},6000);return fetch(WORKER,{method:'POST',headers:{'Content-Type':'application/json','X-Action':'kv-get','X-Key':getUID()+'-'+k},signal:c.signal}).then(function(r){return r.json();}).then(function(d){return d.value||null;}).catch(function(){return null;});}
 
 // ── DB ────────────────────────────────────────────────────────────
@@ -1163,6 +1175,23 @@ function exportData(){
   a.click();
   setTimeout(function(){URL.revokeObjectURL(a.href);},1000);
   toast('导出成功');
+}
+function uploadToCloud(){
+  var st=document.getElementById('cloud-status');
+  if(st)st.textContent='上传中…';
+  var v=JSON.stringify(DB);
+  kvSet('db',v).then(function(r){
+    if(r&&r.ok){
+      if(st)st.textContent='上传成功 ✓ ('+new Date().toLocaleTimeString('zh-CN')+')';
+      toast('云端同步成功！');
+    } else {
+      if(st)st.textContent='上传失败：服务器错误';
+      toast('上传失败，请重试');
+    }
+  }).catch(function(e){
+    if(st)st.textContent='上传失败：'+e.message;
+    toast('上传失败：'+e.message);
+  });
 }
 function applySync(){
   var inp=document.getElementById('syn-inp');var code=(inp.value||'').trim().toUpperCase();
