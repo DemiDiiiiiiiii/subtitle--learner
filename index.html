@@ -287,7 +287,8 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
   <div style="padding:0 22px 10px;font-size:13px;color:var(--t2);flex-shrink:0">点 × 移除不想学的，然后开始</div>
   <div class="img-grid" id="img-grid" style="flex:1;overflow-y:auto;align-content:start"></div>
   <div style="padding:16px 22px max(24px,env(safe-area-inset-bottom));flex-shrink:0;background:var(--bg);border-top:1px solid var(--bdr)">
-    <button class="btn btn-gold" onclick="beginStudy()">开始输入</button>
+    <button class="btn btn-gold" onclick="beginStudy()">现在输入字幕</button>
+    <button class="btn btn-ghost" style="margin-top:10px" onclick="saveForLater()">稍后在电脑上输入 →</button>
   </div>
 </div>
 
@@ -653,6 +654,53 @@ function renderPreview(){
   }).join('');
 }
 function rmPreview(i){sess.imgs.splice(i,1);if(!sess.imgs.length){toast('没有图片了');goTo('home');return;}renderPreview();}
+function saveForLater(){
+  if(!sess||!sess.imgs.length){toast('没有图片');return;}
+  var total=sess.imgs.length;
+  var done=0;
+  var ids=[];
+  toast('正在保存并上传图片，请稍候…');
+  sess.imgs.forEach(function(img,i){
+    var id=Date.now()+'-pending-'+i+'-'+Math.random().toString(36).slice(2,6);
+    ids.push(id);
+    var entry={id:id,text:'',lang:'en',zh:'',keywords:[],notes:'',date:TODAY,ts:Date.now(),pending:true,fp:img.fp};
+    DB.entries.push(entry);
+    DB.fps.push(img.fp);
+    if(!DB.days[TODAY])DB.days[TODAY]=[];
+    DB.days[TODAY].push(id);
+    // Compress and upload image, then push DB
+    try{
+      var imgEl=new Image();
+      imgEl.onload=function(){
+        var c=document.createElement('canvas');
+        var s=Math.min(800/imgEl.width,800/imgEl.height,1);
+        c.width=Math.round(imgEl.width*s);c.height=Math.round(imgEl.height*s);
+        c.getContext('2d').drawImage(imgEl,0,0,c.width,c.height);
+        var b64=c.toDataURL('image/jpeg',.82).split(',')[1];
+        saveImg(id,b64);
+        // Push image to cloud immediately
+        kvSet('img-'+id,b64).catch(function(){});
+        URL.revokeObjectURL(imgEl.src);
+        done++;
+        if(done===total){
+          saveDB();
+          // Push DB to cloud after all images done
+          kvSet('db',JSON.stringify(DB)).then(function(r){
+            if(r&&r.ok)toast('已保存 '+total+' 张，在电脑上输入同步码即可开始输入字幕 ✓');
+            else toast('图片已存，云端同步可能失败，请手动上传');
+          }).catch(function(){toast('图片已存，请在设置里手动上传到云端');});
+          refreshHome();
+          goTo('home');
+          sess=null;
+        }
+      };
+      imgEl.src=img.src;
+    }catch(e){
+      done++;
+      if(done===total){saveDB();refreshHome();goTo('home');sess=null;}
+    }
+  });
+}
 function beginStudy(){if(!sess||!sess.imgs.length){toast('没有图片');return;}sess.idx=0;sess.state='input';sess.res=null;sess.notes='';sess.hist=[];goTo('study');renderStudy();}
 
 // ── Study ─────────────────────────────────────────────────────────
@@ -1065,6 +1113,7 @@ function editConvNote(idx){
 }
 function eRowHTML(e,i,showDate){
   var ko=e.lang==='ko';
+  var pendingBadge=e.pending?'<div style="display:inline-block;background:#fef3c7;color:#92400e;font-size:11px;padding:2px 8px;border-radius:8px;margin-bottom:6px">⏳ 待输入字幕 — 点击铅笔编辑</div>':'';
   var kws=e.keywords&&e.keywords.length?'<div class="ekws">'+e.keywords.map(function(k,ki){
     return '<span class="ekwtag" style="display:inline-flex;align-items:center;gap:3px">'+k.word+(k.zh?' '+k.zh:'')
       +'<button data-del-kw="'+ki+'" data-kw-entry="'+e.id+'" style="background:none;border:none;font-size:10px;color:var(--t3);cursor:pointer;padding:0 0 0 2px;line-height:1">×</button></span>';
@@ -1073,7 +1122,8 @@ function eRowHTML(e,i,showDate){
     +'<img class="ethumb" id="et-'+e.id+'" src="" alt="" data-entry-id="'+e.id+'" style="cursor:zoom-in">'
     +'<div class="ebody">'
     +'<div class="enum">'+(showDate?e.date+' ':('0'+(i+1)).slice(-2)+' ')+'<span class="tag '+(ko?'tag-k':'tag-e')+'">'+(ko?'韩':'英')+'</span></div>'
-    +'<div class="een">'+e.text+'</div>'
+    +'<div class="een">'+(e.text||'（待输入字幕）')+'</div>'
+    +(e.pending&&!e.text?'<div style="display:inline-block;background:#fef3c7;color:#92400e;font-size:11px;padding:2px 8px;border-radius:8px;margin:2px 0 4px">⏳ 点铅笔在此设备输入字幕</div>':'')
     +'<div class="ezh">'+(e.zh||'')+'</div>'
     +(e.notes?'<div class="enote">'+e.notes+'</div>':'')
     +kws
