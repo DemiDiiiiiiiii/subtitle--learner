@@ -831,28 +831,59 @@ function renderCR(){
 }
 
 // ── Conversation ──────────────────────────────────────────────────
-function startConv(){
+function startConv(topicOverride){
   var enKw=getAllKw().filter(function(k){return k.lang==='en';});
   if(enKw.length<3){toast('英语词汇太少，先多输入一些截图');return;}
+
+  // If no topic given, show topic/mood selector first
+  if(!topicOverride){
+    showTopicPicker();
+    return;
+  }
+
   goTo('conversation');
   document.getElementById('cv-load').style.display='flex';
   document.getElementById('cv-main').style.display='none';
   document.getElementById('fb-sheet').classList.remove('show');
-  var picked=shuffle(enKw.slice()).slice(0,Math.min(6,enKw.length));
+
+  // Word bank: vocab keywords + recent notes snippets
+  var picked=shuffle(enKw.slice()).slice(0,Math.min(5,enKw.length));
   var wb=picked.map(function(w){return '- "'+w.word+'" ('+w.zh+(w.note?'，'+w.note:'')+')';}).join('\n');
-  var wk=DB.weakness?'【用户英语弱点】\n'+DB.weakness:'';
-  callDS([{role:'user',content:'你是沉浸式英语口语练习助手。\n\n生成一个真实日常对话场景，角色必须是女性或性别中立，绝不预设男性视角。场景要贴近真实生活——可以是朋友之间的闲聊、职场对话（职位高低不预设性别）、或轻松的日常互动。语气像真实的native speaker，可以用当下流行的说法、俚语或pop culture梗，但要自然。\n\n【秘密目标词汇】（自然引入，绝不提示）\n'+wb+'\n\n'+wk+'\n\n返回JSON不要markdown：\n{"name":"英文名（女性或中性名）","nationality":"国籍（中文）","job":"职业（不预设性别）","relationship":"和用户的关系（1句，像真实朋友/同事）","scene":"场景（2句，具体有画面感）","firstMessage":"第一句英文话（自然口语，像真人发消息，不要开场白套话）"}'}],400)
+
+  // Add note snippets as extra context (not as "words" to force in)
+  var noteSnippets=[];
+  if(DB.convNotes&&DB.convNotes.length){
+    var recentNotes=DB.convNotes.slice(-5);
+    recentNotes.forEach(function(n){if(n.notes&&n.notes.trim())noteSnippets.push(n.notes.trim().slice(0,80));});
+  }
+  if(DB.storyNotes&&DB.storyNotes.length){
+    var recentStory=DB.storyNotes.slice(-3);
+    recentStory.forEach(function(n){if(n.note&&n.note.trim())noteSnippets.push(n.note.trim().slice(0,80));});
+  }
+  var notesCtx=noteSnippets.length?'\n\n【用户最近记录的笔记，可自然融入话题】\n'+noteSnippets.map(function(s){return '- '+s;}).join('\n'):'';
+
+  var wk=DB.weakness?'【用户英语弱点，对话中注意引导】\n'+DB.weakness:'';
+  callDS([{role:'user',content:'你是沉浸式英语口语练习助手。\n\n生成一个真实日常对话场景，角色必须是女性或性别中立。话题方向：'+topicOverride+'。场景贴近真实生活，语气像native speaker，可以有pop culture梗，要自然有趣。\n\n用户背景：在苏州做财务分析，喜欢跑步徒步骑车、文学Kpop韩语、美剧音乐剧，好奇心旺盛——场景和角色可以和这些背景产生交集。\n\n【秘密目标词汇】（自然融入，绝不提示）\n'+wb+'\n\n'+wk+'\n\n返回JSON不要markdown：\n{"name":"英文名（女性或中性名）","nationality":"国籍（中文）","job":"职业","relationship":"和用户的关系（1句）","scene":"场景（2句，具体有画面感，和话题方向相关）","firstMessage":"第一句英文话（自然口语，像真人发消息）"}'}],400)
   .then(function(raw){
     var setup;try{setup=JSON.parse(raw.replace(/```json|```/g,'').trim());}catch(e){toast('生成场景失败，请重试');goTo('home');return;}
     setup.words=picked;
+    var userProfile='【关于对话对象（用户）的背景，自然融入对话，不要突兀提及】\n'
+      +'- 在苏州一家制造业公司（英格索兰）做FP&A财务分析\n'
+      +'- 兴趣超广：长跑、徒步、公路自行车（有辆法国车）、文学、古诗词、音乐剧、Kpop/Super Junior、韩语学习、旅游、美剧、游泳、乒乓球\n'
+      +'- 好奇心很旺盛，喜欢聊有深度的话题也喜欢八卦闲聊\n'
+      +'- 话题偏好：'+topicOverride;
+
     var sys='你扮演'+setup.name+'，'+setup.nationality+'人，'+setup.job+'。'+setup.relationship+'。场景：'+setup.scene
+      +'\n\n'+userProfile
       +'\n\n规则：\n'
-      +'- 全程英文，像真实的native speaker发消息，不要书面腔\n'
-      +'- 女性视角/性别中立，不用bro/dude/man等称呼，可以用girl/hon/babe/sis等或者直接不用称呼\n'
-      +'- 语气自然随性，可以用缩写（gonna/wanna/kinda）、感叹词（omg/ugh/wait）、当下流行表达\n'
-      +'- 短问短答，有话才说多，像真人聊天节奏\n'
-      +'- 如果话题合适可以聊聊最近的事、pop culture、或者日常抱怨/八卦，不要生硬\n'
-      +'- 以下词汇有自然机会就用，没有机会别硬塞：\n'+wb;
+      +'- 全程英文，像真实的native speaker，不要书面腔\n'
+      +'- 女性视角/性别中立，不用bro/dude/man，可以用girl/hon/omg等\n'
+      +'- 自然随性，用缩写（gonna/wanna/kinda）、感叹词、当下流行表达\n'
+      +'- 每隔2-3轮主动问用户一个问题，推动对话，不要光回应\n'
+      +'- 如果用户某句话说得特别地道，可以顺带夸一下（比如oh that is such a good way to put it）\n'
+      +'- 短问短答为主，有话才说多\n'
+      +'- 以下词汇有自然机会就用，没有机会别硬塞：\n'+wb
+      +(notesCtx||'');
     conv={setup:setup,msgs:[{role:'system',content:sys},{role:'assistant',content:setup.firstMessage}],state:'chatting'};
     document.getElementById('cv-load').style.display='none';
     var m=document.getElementById('cv-main');m.style.display='flex';m.style.flexDirection='column';m.style.flex='1';m.style.minHeight='0';m.style.overflow='hidden';
@@ -898,6 +929,37 @@ function addLoad(){var ca=document.getElementById('chat');if(!ca)return;var d=do
 function rmLoad(){var el=document.getElementById('bload');if(el)el.remove();}
 function sendMsg(){var ta=document.getElementById('cv-ta'),txt=ta?ta.value.trim():'';if(!txt||!conv||conv.state!=='chatting')return;ta.value='';ta.style.height='auto';addBbl('me',txt);conv.msgs.push({role:'user',content:txt});addLoad();callDS(conv.msgs,250).then(function(r){rmLoad();conv.msgs.push({role:'assistant',content:r});addBbl('ai',r);}).catch(function(){rmLoad();toast('网络错误，请重试');});}
 // leaveConv replaced by showConvExit
+function showTopicPicker(){
+  var old=document.getElementById('topic-modal');if(old)old.remove();
+  var topics=[
+    {label:'🎲 随机来一场',value:'随机，任何话题都行，越出其不意越好'},
+    {label:'💼 职场 & 职业',value:'职场、工作、职业发展、职场人际'},
+    {label:'🏃 运动 & 健康',value:'跑步、徒步、骑车、游泳、健身、运动'},
+    {label:'✈️ 旅行 & 生活',value:'旅行、城市生活、美食、日常闲聊'},
+    {label:'🎵 娱乐 & 流行',value:'Kpop、音乐剧、美剧、电影、pop culture'},
+    {label:'📚 文学 & 文化',value:'书、文学、艺术、历史、有深度的话题'},
+    {label:'😂 八卦 & 闲聊',value:'朋友间的八卦、日常抱怨、轻松闲聊'},
+  ];
+  var m=document.createElement('div');m.id='topic-modal';
+  m.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:flex;align-items:flex-end';
+  m.innerHTML='<div style="background:var(--card);border-radius:22px 22px 0 0;padding:22px;width:100%;box-sizing:border-box">'
+    +'<div style="font-size:15px;font-weight:600;margin-bottom:4px">今天想聊什么？</div>'
+    +'<div style="font-size:13px;color:var(--t3);margin-bottom:16px">选个话题方向，AI 会生成相关场景</div>'
+    +'<div id="topic-list" style="display:flex;flex-direction:column;gap:8px"></div>'
+    +'<button class="btn btn-ghost" style="margin-top:12px" id="topic-cancel">取消</button>'
+    +'</div>';
+  document.body.appendChild(m);
+  var list=document.getElementById('topic-list');
+  topics.forEach(function(t){
+    var btn=document.createElement('button');
+    btn.className='btn btn-white';
+    btn.style.cssText='text-align:left;padding:12px 16px;font-size:14px';
+    btn.textContent=t.label;
+    btn.onclick=function(){m.remove();startConv(t.value);};
+    list.appendChild(btn);
+  });
+  document.getElementById('topic-cancel').onclick=function(){m.remove();};
+}
 function saveExitNote(){
   var ta=document.getElementById('exit-note-ta');
   if(ta&&ta.value.trim()){
