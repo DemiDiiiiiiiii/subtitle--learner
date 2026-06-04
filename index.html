@@ -331,9 +331,14 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
     <div class="fbh"></div>
     <div style="font-size:16px;font-weight:600;text-align:center;margin-bottom:6px">结束本次对话？</div>
     <div style="font-size:13px;color:var(--t3);text-align:center;margin-bottom:20px" id="exit-ct"></div>
+    <div style="margin-bottom:14px">
+      <div style="font-size:11px;color:var(--t3);margin-bottom:6px">📝 随手记一笔（可选）</div>
+      <textarea id="exit-note-ta" placeholder="记下刚才学到的表达、想复习的词…" style="width:100%;background:var(--bg);border:1px solid var(--bdr);border-radius:var(--rs);padding:10px 12px;font-family:inherit;font-size:14px;resize:none;min-height:72px;outline:none;color:var(--text);line-height:1.6;box-sizing:border-box"></textarea>
+    </div>
     <div style="display:flex;flex-direction:column;gap:10px">
-      <button class="btn btn-gold" onclick="hideExitSheet();endConv()">获取对话反馈</button>
-      <button class="btn btn-ghost" onclick="hideExitSheet();closeConv(false)">直接离开，不需要反馈</button>
+      <button class="btn btn-gold" onclick="saveExitNoteAndFeedback()">获取对话反馈</button>
+      <button class="btn btn-white" onclick="saveExitNoteAndLeave()">保存笔记，直接离开</button>
+      <button class="btn btn-ghost" onclick="hideExitSheet();closeConv(false)">直接离开</button>
       <button class="btn btn-white" onclick="hideExitSheet()">继续对话</button>
     </div>
   </div>
@@ -893,13 +898,34 @@ function addLoad(){var ca=document.getElementById('chat');if(!ca)return;var d=do
 function rmLoad(){var el=document.getElementById('bload');if(el)el.remove();}
 function sendMsg(){var ta=document.getElementById('cv-ta'),txt=ta?ta.value.trim():'';if(!txt||!conv||conv.state!=='chatting')return;ta.value='';ta.style.height='auto';addBbl('me',txt);conv.msgs.push({role:'user',content:txt});addLoad();callDS(conv.msgs,250).then(function(r){rmLoad();conv.msgs.push({role:'assistant',content:r});addBbl('ai',r);}).catch(function(){rmLoad();toast('网络错误，请重试');});}
 // leaveConv replaced by showConvExit
+function saveExitNote(){
+  var ta=document.getElementById('exit-note-ta');
+  if(ta&&ta.value.trim()){
+    if(!DB.convNotes)DB.convNotes=[];
+    DB.convNotes.push({date:TODAY,ts:Date.now(),notes:ta.value.trim()});
+    saveDB();
+    ta.value='';
+  }
+}
+function saveExitNoteAndFeedback(){
+  saveExitNote();
+  hideExitSheet();
+  endConv();
+}
+function saveExitNoteAndLeave(){
+  saveExitNote();
+  hideExitSheet();
+  closeConv(false);
+  if(document.querySelector('.convnote-saved')){return;}
+  toast('笔记已保存');
+}
 function endConv(){
   if(!conv)return;conv.state='ending';addBbl('sys','对话结束，正在生成反馈…');
   var history=conv.msgs.filter(function(m){return m.role!=='system';}).map(function(m){return(m.role==='user'?'你':conv.setup.name)+': '+m.content;}).join('\n');
   var words=conv.setup.words.map(function(w){return w.word;}).join('、');
   // clear notes field
   var notesEl=document.getElementById('conv-notes');if(notesEl)notesEl.value='';
-  callDS([{role:'user',content:'请简洁地用中文点评这段英语对话，只做以下两件事：\n\n'+history+'\n\n1. 【更地道的说法】：列出1-3处可以更native的表达，格式：原句 → 更地道的说法（一句话解释为什么）。没有的话就说"整体很自然，没有明显需要改的地方"。\n\n2. 【弱点记录】：一句话总结最值得改进的一个点（用于存档，如无明显问题写"表达自然"）。\n\n不要展开分析，不要多余的鼓励语，简洁为主。'}],900)
+  callDS([{role:'user',content:'以下是一段英语对话记录，"你"是用户，另一方是AI角色。\n\n'+history+'\n\n请只针对「你」说的话（不是AI角色的话），简洁用中文做以下两件事：\n\n1.【更地道的说法】：列出「你」说的话中1-3处可以更native的表达，格式：原句 → 更地道的说法（一句话解释）。没有明显问题就写"整体自然，没有需要改的地方"。\n\n2.【弱点记录】：一句话总结「你」最值得改进的一个点（如无问题写"表达自然"）。\n\n只分析「你」的表达，不要评价AI角色的话，不要展开，简洁为主。'}],900)
   .then(function(fb){
     var m=fb.match(/弱点记录[：:]\s*(.+)/);pendingWeak=m?m[1].trim():'';
     document.getElementById('fb-body').textContent=fb.replace(/弱点记录[：:].*$/,'').trim();
