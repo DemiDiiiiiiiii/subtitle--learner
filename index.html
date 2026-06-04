@@ -379,7 +379,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
   <div class="tabs" style="flex-shrink:0">
     <div class="tab on" id="tab-today" onclick="listTab('today')">今日</div>
     <div class="tab" id="tab-hist" onclick="listTab('history')">历史</div>
-    <div class="tab" id="tab-notes" onclick="listTab('notes')">对话笔记</div>
+    <div class="tab" id="tab-notes" onclick="listTab('notes')">学习笔记</div>
   </div>
   <div id="list-body" style="flex:1;overflow-y:auto;padding-bottom:160px"></div>
   <div style="padding:14px 22px max(20px,env(safe-area-inset-bottom));flex-shrink:0;border-top:1px solid var(--bdr)">
@@ -581,6 +581,35 @@ document.addEventListener('click',function(ev){
     var eid=delKwBtn.getAttribute('data-kw-entry');
     var ent=DB.entries.find(function(e){return e.id===eid;});
     if(ent&&ent.keywords){ent.keywords.splice(ki,1);saveDB();renderToday();renderLib(document.getElementById('search-inp')?document.getElementById('search-inp').value:'');}
+    return;
+  }
+  var editStoryBtn=ev.target.closest('[data-edit-story-note]');
+  if(editStoryBtn){
+    var si=parseInt(editStoryBtn.getAttribute('data-edit-story-note'));
+    var sn=DB.storyNotes&&DB.storyNotes[si];
+    if(!sn)return;
+    var old=document.getElementById('edit-note-modal');if(old)old.remove();
+    var mm=document.createElement('div');mm.id='edit-note-modal';
+    mm.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:flex;align-items:flex-end';
+    mm.innerHTML='<div style="background:var(--card);border-radius:22px 22px 0 0;padding:22px;width:100%;box-sizing:border-box">'
+      +'<div style="font-size:15px;font-weight:600;margin-bottom:12px">编辑故事笔记</div>'
+      +'<textarea id="edit-note-ta" style="width:100%;background:var(--bg);border:1px solid var(--bdr);border-radius:var(--rs);padding:12px 14px;font-family:inherit;font-size:14px;resize:none;min-height:100px;outline:none;color:var(--text);line-height:1.7;box-sizing:border-box">'+sn.note+'</textarea>'
+      +'<div style="display:flex;gap:10px;margin-top:12px">'
+      +'<button class="btn btn-ghost" style="flex:1" id="edit-note-cancel">取消</button>'
+      +'<button class="btn btn-gold" style="flex:1" id="edit-note-save">保存</button>'
+      +'</div></div>';
+    document.body.appendChild(mm);
+    document.getElementById('edit-note-cancel').onclick=function(){mm.remove();};
+    document.getElementById('edit-note-save').onclick=function(){
+      var ta=document.getElementById('edit-note-ta');
+      if(ta&&ta.value.trim()){DB.storyNotes[si].note=ta.value.trim();saveDB();mm.remove();renderConvNotes();toast('已保存');}
+    };
+    return;
+  }
+  var delStoryBtn=ev.target.closest('[data-del-story-note]');
+  if(delStoryBtn){
+    var di=parseInt(delStoryBtn.getAttribute('data-del-story-note'));
+    confirmAct('删除这条笔记？','删除后无法恢复','删除',function(){DB.storyNotes.splice(di,1);saveDB();renderConvNotes();});
     return;
   }
   var editNoteBtn=ev.target.closest('[data-edit-note]');
@@ -918,26 +947,13 @@ function startConv(topicOverride){
   var notesCtx='';
 
   var wk=DB.weakness?'【用户英语弱点，对话中注意引导】\n'+DB.weakness:'';
-  callDS([{role:'user',content:'你是沉浸式英语口语练习助手。\n\n生成一个真实日常对话场景，角色必须是女性或性别中立。话题方向：'+topicOverride+'。场景贴近真实生活，语气像native speaker，可以有pop culture梗，要自然有趣。\n\n用户背景：在苏州做财务分析，喜欢跑步徒步骑车、文学Kpop韩语、美剧音乐剧，好奇心旺盛——场景和角色可以和这些背景产生交集。\n\n【秘密目标词汇】（自然融入，绝不提示）\n'+wb+'\n\n'+wk+'\n\n返回JSON不要markdown：\n{"name":"英文名（女性或中性名）","nationality":"国籍（中文）","job":"职业","relationship":"和用户的关系（1句）","scene":"场景（2句，具体有画面感，和话题方向相关）","firstMessage":"第一句英文话（自然口语，像真人发消息）"}'}],400)
+  callDS([{role:'user',content:'你是英语口语练习助手。生成一个真实的日常对话场景，角色女性或性别中立。话题方向：'+topicOverride+'。\n\n场景要具体有画面感，第一句话像真人发消息，不要套话。\n\n目标词汇（自然融入，绝不点破）：\n'+wb+'\n\n'+wk+'\n\n返回JSON：{"name":"英文名","nationality":"国籍","job":"职业","relationship":"和用户关系（1句）","scene":"场景（2句）","firstMessage":"第一句话"}'}],400)
   .then(function(raw){
     var setup;try{setup=JSON.parse(raw.replace(/```json|```/g,'').trim());}catch(e){toast('生成场景失败，请重试');goTo('home');return;}
     setup.words=picked;
-    var userProfile='【关于对话对象（用户）的背景，自然融入对话，不要突兀提及】\n'
-      +'- 在苏州一家制造业公司（英格索兰）做FP&A财务分析\n'
-      +'- 兴趣超广：长跑、徒步、公路自行车（有辆法国车）、文学、古诗词、音乐剧（另一个独立爱好）、Kpop/Super Junior（演唱会、综艺、团魂文化，不是音乐剧那种）、韩语学习、旅游、美剧、游泳、乒乓球\n'
-      +'- 好奇心很旺盛，喜欢聊有深度的话题也喜欢八卦闲聊\n'
-      +'- 话题偏好：'+topicOverride;
-
-    var sys='你扮演'+setup.name+'，'+setup.nationality+'人，'+setup.job+'。'+setup.relationship+'。场景：'+setup.scene
-      +'\n\n'+userProfile
-      +'\n\n规则：\n'
-      +'- 全程英文，像真实的native speaker，不要书面腔\n'
-      +'- 女性视角/性别中立，不用bro/dude/man，可以用girl/hon/omg等\n'
-      +'- 自然随性，用缩写（gonna/wanna/kinda）、感叹词、当下流行表达\n'
-      +'- 每隔2-3轮主动问用户一个问题，推动对话，不要光回应\n'
-      +'- 如果用户某句话说得特别地道，可以顺带夸一下（比如oh that is such a good way to put it）\n'
-      +'- 短问短答为主，有话才说多\n'
-      +'- 以下词汇有自然机会就用，没有机会别硬塞：\n'+wb
+    var sys='你扮演'+setup.name+'，'+setup.nationality+'人，'+setup.job+'。'+setup.relationship+'。场景：'+setup.scene+'。'
+      +'\n\n你的对话对象是个住在苏州、好奇心很强的中国女生，兴趣广泛。就像真实朋友聊天，全程英文，地道自然。'
+      +'\n\n如果这些词汇有机会自然融入就用，不必强塞：\n'+wb
       +(notesCtx||'');
     conv={setup:setup,msgs:[{role:'system',content:sys},{role:'assistant',content:setup.firstMessage}],state:'chatting'};
     document.getElementById('cv-load').style.display='none';
@@ -1042,10 +1058,9 @@ function endConv(){
   var words=conv.setup.words.map(function(w){return w.word;}).join('、');
   // clear notes field
   var notesEl=document.getElementById('conv-notes');if(notesEl)notesEl.value='';
-  callDS([{role:'user',content:'以下是对话记录，「你」是用户，另一方是AI角色。\n\n'+history+'\n\n请简洁用中文做以下三件事：\n\n1.【你可以更地道的说法】：列出「你」说的话中1-3处可以更native的表达，格式：原句 → 更好的说法（一句话解释）。没有问题就写"表达自然"。\n\n2.【AI说的值得学的表达】：从AI角色说的话里挑2-3个地道短语或用法，格式：表达 — 含义及典型场景（一句话）。\n\n3.【弱点记录】：一句话总结最值得改进的一个点。\n\n简洁为主，不展开，不鼓励。'}],900)
+  callDS([{role:'user',content:'以下是对话记录，「你」是用户，另一方是AI角色。\n\n'+history+'\n\n请用中文做两件事，简洁：\n\n1.【更地道的说法】：「你」说的话里有没有可以更native的地方？有就列出来，格式：原句 → 更好的说法。没有就写"挺自然的"。\n\n2.【AI说的值得偷的表达】：从AI说的话里挑1-3个地道表达，格式：表达 — 一句话说明怎么用。'}],900)
   .then(function(fb){
-    var m=fb.match(/弱点记录[：:]\s*(.+)/);pendingWeak=m?m[1].trim():'';
-    document.getElementById('fb-body').textContent=fb.replace(/弱点记录[：:].*$/,'').trim();
+    document.getElementById('fb-body').textContent=fb.trim();
     var wkRow=document.getElementById('wk-save-row');
     var wkLbl=document.getElementById('wk-label');
     var wkCb=document.getElementById('wk-cb');
@@ -1076,19 +1091,27 @@ function listTab(tab){
 }
 function renderConvNotes(){
   var el=document.getElementById('list-body');
-  var notes=DB.convNotes||[];
-  if(!notes.length){el.innerHTML='<div style="padding:40px 0;text-align:center;color:var(--t3);font-size:14px">还没有对话笔记<br>对话结束后可以写笔记保存在这里</div>';return;}
-  var reversed=notes.slice().reverse();
-  el.innerHTML=reversed.map(function(n,ri){
-    var realIdx=notes.length-1-ri;
+  var convNotes=(DB.convNotes||[]).map(function(n,i){return {type:'conv',idx:i,date:n.date,ts:n.ts||0,text:n.notes};});
+  var storyNotes=(DB.storyNotes||[]).map(function(n,i){return {type:'story',idx:i,date:n.date,ts:n.ts||0,text:n.note,story:n.story};});
+  var all=convNotes.concat(storyNotes).sort(function(a,b){return (b.ts||0)-(a.ts||0);});
+  if(!all.length){el.innerHTML='<div style="padding:40px 0;text-align:center;color:var(--t3);font-size:14px">还没有学习笔记<br>对话结束或生成故事后可以记笔记</div>';return;}
+  el.innerHTML=all.map(function(n){
+    var badge=n.type==='story'
+      ?'<span style="font-size:10px;background:#e0f2fe;color:#0369a1;padding:1px 6px;border-radius:6px;margin-left:6px">故事</span>'
+      :'<span style="font-size:10px;background:var(--glt);color:var(--gold);padding:1px 6px;border-radius:6px;margin-left:6px">对话</span>';
+    var editBtn=n.type==='conv'
+      ?'<button style="background:none;border:none;font-size:13px;color:var(--gold);cursor:pointer;padding:2px 6px" data-edit-note="'+n.idx+'">✏️</button>'
+      :'<button style="background:none;border:none;font-size:13px;color:var(--gold);cursor:pointer;padding:2px 6px" data-edit-story-note="'+n.idx+'">✏️</button>';
+    var delBtn=n.type==='conv'
+      ?'<button style="background:none;border:none;font-size:13px;color:var(--red);cursor:pointer;padding:2px 6px" data-del-note="'+n.idx+'">×</button>'
+      :'<button style="background:none;border:none;font-size:13px;color:var(--red);cursor:pointer;padding:2px 6px" data-del-story-note="'+n.idx+'">×</button>';
+    var preview=n.story?'<div style="font-size:11px;color:var(--t3);margin-bottom:4px;font-style:italic">出自故事：'+n.story+'…</div>':'';
     return '<div style="padding:16px 22px;border-bottom:1px solid var(--bdr)">'
       +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
-      +'<div style="font-size:11px;color:var(--t3)">'+n.date+'</div>'
-      +'<div style="display:flex;gap:8px">'
-      +'<button style="background:none;border:none;font-size:13px;color:var(--gold);cursor:pointer;padding:2px 6px" data-edit-note="'+realIdx+'">✏️ 编辑</button>'
-      +'<button style="background:none;border:none;font-size:13px;color:var(--red);cursor:pointer;padding:2px 6px" data-del-note="'+realIdx+'">删除</button>'
-      +'</div></div>'
-      +'<div style="font-size:14px;line-height:1.7;white-space:pre-wrap">'+n.notes+'</div>'
+      +'<div style="font-size:11px;color:var(--t3)">'+n.date+badge+'</div>'
+      +'<div style="display:flex;gap:4px">'+editBtn+delBtn+'</div></div>'
+      +preview
+      +'<div style="font-size:14px;line-height:1.7;white-space:pre-wrap">'+n.text+'</div>'
       +'</div>';
   }).join('');
 }
