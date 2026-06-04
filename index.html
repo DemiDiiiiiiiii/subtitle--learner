@@ -1004,11 +1004,14 @@ function editEntry(id){
     +'<textarea id="edit-notes" style="width:100%;background:var(--bg);border:1px solid var(--bdr);border-radius:var(--rs);padding:10px 12px;font-family:inherit;font-size:14px;resize:none;min-height:52px;outline:none;color:var(--text);box-sizing:border-box">'+(entry.notes||'')+'</textarea>'
     +'<div style="display:flex;gap:10px;margin-top:16px">'
     +'<button class="btn btn-ghost" style="flex:1" id="edit-cancel-btn">取消</button>'
-    +'<button class="btn btn-gold" style="flex:1" id="edit-save-btn">保存</button>'
-    +'</div></div>';
+    +'<button class="btn btn-white" style="flex:1" id="edit-save-btn">仅保存</button>'
+    +'</div>'
+    +'<button class="btn btn-gold" style="margin-top:8px" id="edit-analyze-btn">保存并重新分析</button>'
+    +'</div>';
   document.body.appendChild(m);
   document.getElementById('edit-cancel-btn').onclick=function(){m.remove();};
   document.getElementById('edit-save-btn').onclick=function(){saveEdit(id);};
+  document.getElementById('edit-analyze-btn').onclick=function(){saveEditAndAnalyze(id);};
 }
 function saveEdit(id){
   var entry=DB.entries.find(function(e){return e.id===id;});if(!entry)return;
@@ -1022,6 +1025,33 @@ function saveEdit(id){
   var m=document.getElementById('edit-modal');if(m)m.remove();
   toast('已保存');
   renderToday();renderLib(document.getElementById('search-inp')?document.getElementById('search-inp').value:'');
+}
+function saveEditAndAnalyze(id){
+  var entry=DB.entries.find(function(e){return e.id===id;});if(!entry)return;
+  var t=document.getElementById('edit-text');
+  var z=document.getElementById('edit-zh');
+  var n=document.getElementById('edit-notes');
+  if(t)entry.text=t.value.trim();
+  if(z)entry.zh=z.value.trim();
+  if(n)entry.notes=n.value.trim();
+  var txt=entry.text;
+  if(!txt){toast('请先输入字幕内容');return;}
+  var m=document.getElementById('edit-modal');if(m)m.remove();
+  toast('正在重新分析…');
+  callDS([{role:'user',content:'分析影视字幕（英文或韩文）："'+txt+'"\n只返回JSON，不要markdown：{"orig":"原文","zh":"中文翻译","lang":"en或ko","keywords":[{"word":"词/短语","zh":"含义","note":"地道用法；韩文注明반말/존댓말"}]}\n提取2-3个值得学的词。'}],500)
+  .then(function(raw){
+    try{
+      var clean=raw.replace(/```json|```/g,'').trim();
+      var res=JSON.parse(clean);
+      entry.zh=res.zh||entry.zh;
+      entry.lang=res.lang||entry.lang;
+      entry.keywords=res.keywords||entry.keywords;
+      saveDB();
+      renderToday();renderLib(document.getElementById('search-inp')?document.getElementById('search-inp').value:'');
+      toast('重新分析完成 ✓');
+    }catch(e){saveDB();renderToday();toast('分析结果解析失败，已保存原文');}
+  })
+  .catch(function(){saveDB();renderToday();toast('分析失败，请重试');});
 }
 function delEntry(id){
   confirmAct('删除这条字幕？','删除后不可恢复','删除',function(){
@@ -1181,12 +1211,39 @@ function uploadToCloud(){
   if(st)st.textContent='上传中…';
   var v=JSON.stringify(DB);
   kvSet('db',v).then(function(r){
-    if(r&&r.ok){
-      if(st)st.textContent='上传成功 ✓ ('+new Date().toLocaleTimeString('zh-CN')+')';
-      toast('云端同步成功！');
-    } else {
+    if(!r||!r.ok){
       if(st)st.textContent='上传失败：服务器错误';
       toast('上传失败，请重试');
+      return;
+    }
+    // Also upload all images from localStorage
+    var imgKeys=[];
+    try{
+      for(var i=0;i<localStorage.length;i++){
+        var k=localStorage.key(i);
+        if(k&&k.startsWith('jc-img-'))imgKeys.push(k);
+      }
+    }catch(e){}
+    if(!imgKeys.length){
+      if(st)st.textContent='上传成功 ✓ ('+new Date().toLocaleTimeString('zh-CN')+')';
+      toast('云端同步成功！');
+      return;
+    }
+    if(st)st.textContent='上传中，正在同步 '+imgKeys.length+' 张图片…';
+    var done=0;
+    imgKeys.forEach(function(k){
+      var b64=null;try{b64=localStorage.getItem(k);}catch(e){}
+      if(!b64){done++;if(done===imgKeys.length)finish();return;}
+      var id=k.replace('jc-img-','');
+      kvSet('img-'+id,b64).then(function(){
+        done++;if(done===imgKeys.length)finish();
+      }).catch(function(){
+        done++;if(done===imgKeys.length)finish();
+      });
+    });
+    function finish(){
+      if(st)st.textContent='全部上传成功 ✓ ('+new Date().toLocaleTimeString('zh-CN')+')';
+      toast('数据和图片已全部同步到云端！');
     }
   }).catch(function(e){
     if(st)st.textContent='上传失败：'+e.message;
