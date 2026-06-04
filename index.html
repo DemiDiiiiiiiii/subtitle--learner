@@ -353,9 +353,10 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
     </div>
     <div style="margin-top:16px;display:flex;flex-direction:column;gap:10px">
       <button class="btn btn-gold" onclick="saveConvFeedback()">保存笔记，回主页</button>
+      <button class="btn btn-white" onclick="document.getElementById('fb-sheet').classList.remove('show')">← 返回查看对话记录</button>
       <button class="btn btn-white" onclick="document.getElementById('fb-sheet').classList.remove('show');startConv()">再来一轮</button>
-      <button class="btn btn-ghost" onclick="closeConv(false)">直接离开</button>
       <button class="btn btn-white" onclick="feedbackChat()">💬 追问 AI</button>
+      <button class="btn btn-ghost" onclick="closeConv(false)">直接离开</button>
     </div>
   </div>
 </div>
@@ -528,10 +529,14 @@ kvGet('db').then(function(v){
       DB.entries.forEach(function(e){localMap[e.id]=e;});
       r.entries.forEach(function(re){
         if(!localMap[re.id]){
-          DB.entries.push(re);DB.fps.push(re.fp||'');changed=true;
-        } else if(re.ts&&localMap[re.id].ts&&re.ts>localMap[re.id].ts){
-          // remote is newer - update in place
-          Object.assign(localMap[re.id],re);changed=true;
+          DB.entries.push(re);if(re.fp&&DB.fps.indexOf(re.fp)===-1)DB.fps.push(re.fp);changed=true;
+        } else {
+          var localTs=localMap[re.id].ts||0;
+          var remoteTs=re.ts||0;
+          if(remoteTs>localTs){
+            // remote is newer - update in place
+            Object.assign(localMap[re.id],re);changed=true;
+          }
         }
       });
       // Merge days
@@ -1041,6 +1046,7 @@ function saveEdit(id){
   if(t)entry.text=t.value.trim();
   if(z)entry.zh=z.value.trim();
   if(n)entry.notes=n.value.trim();
+  entry.ts=Date.now();
   saveDB();
   var m=document.getElementById('edit-modal');if(m)m.remove();
   toast('已保存');
@@ -1054,6 +1060,7 @@ function saveEditAndAnalyze(id){
   if(t)entry.text=t.value.trim();
   if(z)entry.zh=z.value.trim();
   if(n)entry.notes=n.value.trim();
+  entry.ts=Date.now();
   var txt=entry.text;
   if(!txt){toast('请先输入字幕内容');return;}
   var m=document.getElementById('edit-modal');if(m)m.remove();
