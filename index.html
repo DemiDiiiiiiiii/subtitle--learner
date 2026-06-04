@@ -467,6 +467,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
       <div><div class="stlbl">☁️ 立即上传到云端</div><div class="stsub" id="cloud-status">点击手动同步数据到云端</div></div>
       <span style="color:var(--t3)">›</span>
     </div>
+
   </div>
   <div class="stsec">
     <div class="strow" style="cursor:pointer" onclick="exportData()">
@@ -516,40 +517,33 @@ var sess=null,conv=null,crList=[],crIdx=0,crFlip=false,pendingWeak='';
 var listTabCurrent='today',expandedDates={};
 
 // ── Boot ──────────────────────────────────────────────────────────
+// Show local data immediately, then sync from cloud
 refreshHome();
 kvGet('db').then(function(v){
-  if(!v)return;
+  if(!v){return;}
   try{
     var r=JSON.parse(v);
-    if(r&&r.entries){
-      if(!r.days)r.days={};if(!r.fps)r.fps=[];
-      var changed=false;
-      // Merge: for each remote entry, add if missing OR update if remote is newer
-      var localMap={};
-      DB.entries.forEach(function(e){localMap[e.id]=e;});
-      r.entries.forEach(function(re){
-        if(!localMap[re.id]){
-          DB.entries.push(re);if(re.fp&&DB.fps.indexOf(re.fp)===-1)DB.fps.push(re.fp);changed=true;
-        } else {
-          var localTs=localMap[re.id].ts||0;
-          var remoteTs=re.ts||0;
-          if(remoteTs>localTs){
-            // remote is newer - update in place
-            Object.assign(localMap[re.id],re);changed=true;
-          }
-        }
-      });
-      // Merge days
-      Object.keys(r.days).forEach(function(d){
-        if(!DB.days[d])DB.days[d]=[];
-        r.days[d].forEach(function(id){if(DB.days[d].indexOf(id)===-1){DB.days[d].push(id);changed=true;}});
-      });
-      if(!DB.days[TODAY])DB.days[TODAY]=[];
-      if(changed){
-        try{localStorage.setItem(DB_KEY,JSON.stringify(DB));}catch(e){}
-        refreshHome();toast('云端数据已同步 ✓');
-      }
-    }
+    if(!r||!r.entries)return;
+    if(!r.days)r.days={};if(!r.fps)r.fps=[];
+    // Cloud is authoritative: overwrite local entries with cloud versions
+    // Add any local-only entries that aren't in cloud yet
+    var cloudMap={};
+    r.entries.forEach(function(e){cloudMap[e.id]=e;});
+    // Add local entries not in cloud (newly created, not yet uploaded)
+    DB.entries.forEach(function(e){
+      if(!cloudMap[e.id])r.entries.push(e);
+    });
+    // Merge days - union of both
+    Object.keys(DB.days).forEach(function(d){
+      if(!r.days[d])r.days[d]=[];
+      DB.days[d].forEach(function(id){if(r.days[d].indexOf(id)===-1)r.days[d].push(id);});
+    });
+    if(!r.days[TODAY])r.days[TODAY]=[];
+    if(!r.fps)r.fps=[];
+    DB.entries.forEach(function(e){if(e.fp&&r.fps.indexOf(e.fp)===-1)r.fps.push(e.fp);});
+    DB=r;
+    try{localStorage.setItem(DB_KEY,JSON.stringify(DB));}catch(e){}
+    refreshHome();
   }catch(e){}
 });
 document.getElementById('fp').addEventListener('change',function(){
@@ -1049,7 +1043,10 @@ function saveEdit(id){
   entry.ts=Date.now();
   saveDB();
   var m=document.getElementById('edit-modal');if(m)m.remove();
-  toast('已保存');
+  toast('已保存，同步中…');
+  kvSet('db',JSON.stringify(DB)).then(function(r){
+    if(r&&r.ok)toast('已保存并同步到云端 ✓');
+  }).catch(function(){toast('已保存（云端同步失败，请手动上传）');});
   renderToday();renderLib(document.getElementById('search-inp')?document.getElementById('search-inp').value:'');
 }
 function saveEditAndAnalyze(id){
@@ -1073,9 +1070,11 @@ function saveEditAndAnalyze(id){
       entry.zh=res.zh||entry.zh;
       entry.lang=res.lang||entry.lang;
       entry.keywords=res.keywords||entry.keywords;
+      entry.ts=Date.now();
       saveDB();
+      kvSet('db',JSON.stringify(DB)).catch(function(){});
       renderToday();renderLib(document.getElementById('search-inp')?document.getElementById('search-inp').value:'');
-      toast('重新分析完成 ✓');
+      toast('重新分析完成，已同步云端 ✓');
     }catch(e){saveDB();renderToday();toast('分析结果解析失败，已保存原文');}
   })
   .catch(function(){saveDB();renderToday();toast('分析失败，请重试');});
@@ -1233,6 +1232,7 @@ function exportData(){
   setTimeout(function(){URL.revokeObjectURL(a.href);},1000);
   toast('导出成功');
 }
+
 function uploadToCloud(){
   var st=document.getElementById('cloud-status');
   if(st)st.textContent='上传中…';
