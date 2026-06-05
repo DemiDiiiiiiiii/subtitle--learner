@@ -33,6 +33,9 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 .home-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px}
 .hero h1{font-size:26px;font-weight:300;letter-spacing:1px;line-height:1.3}
 .hero p{font-size:13px;color:var(--t3);margin-top:4px}
+.home-link{background:none;border:none;font-size:12px;color:var(--t3);cursor:pointer;padding:4px 6px;font-family:inherit;letter-spacing:0.3px}
+.home-link:active{color:var(--gold)}
+.home-link-sep{font-size:12px;color:var(--bdr);line-height:2}
 .gear{width:36px;height:36px;border-radius:50%;background:var(--card);border:1px solid var(--bdr);box-shadow:var(--sh);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:17px;flex-shrink:0}
 .stats{display:flex;gap:10px;margin-bottom:22px}
 .stat{flex:1;background:var(--card);border-radius:var(--r);padding:16px 8px;text-align:center;box-shadow:0 1px 8px rgba(0,0,0,.05);border:1px solid var(--bdr);cursor:pointer;transition:transform .15s}
@@ -245,48 +248,45 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
       <div class="hero"><h1>剧词</h1><p style="font-size:12px;letter-spacing:0.5px">鲁女惜园葵</p></div>
       <div class="gear" onclick="goTo('settings')">···</div>
     </div>
-    <div class="stats">
-      <div class="stat" onclick="goTo('library')">
-        <div class="stat-n" id="h-total">0</div><div class="stat-l">词库 →</div>
-      </div>
-      <div class="stat" onclick="goTo('list');listTab('today')">
-        <div class="stat-n" id="h-today" style="color:var(--blue)">0</div><div class="stat-l">今日 →</div>
-      </div>
-      <div class="stat" onclick="goTo('list');listTab('history')">
-        <div class="stat-n" id="h-days" style="color:var(--green)">0</div><div class="stat-l">历史 →</div>
+
+    <!-- Single streak stat -->
+    <div style="margin-bottom:22px">
+      <div class="stat" style="display:inline-flex;align-items:baseline;gap:6px;padding:12px 18px;background:var(--card);border:1px solid var(--bdr);border-radius:12px;box-shadow:0 1px 6px rgba(0,0,0,.05)">
+        <div class="stat-n" id="h-streak" style="font-size:28px">0</div>
+        <div style="font-size:12px;color:var(--t3)">天连续打卡</div>
       </div>
     </div>
-    <div style="display:flex;gap:8px;margin-bottom:14px">
-      <div class="stat" style="flex:1" onclick="">
-        <div class="stat-n" id="h-streak" style="color:var(--purple,#a855f7)">0</div>
-        <div class="stat-l">连续天 🔥</div>
-      </div>
-      <div class="stat" style="flex:1" onclick="">
-        <div class="stat-n" id="h-time" style="color:var(--t2);font-size:20px">0m</div>
-        <div class="stat-l">累计时长</div>
-      </div>
-    </div>
-    <div class="slbl">今日学习</div>
-    <label for="fp" style="display:block;margin-bottom:22px">
-      <div class="btn btn-gold">上传截图，开始输入</div>
+
+    <!-- Big upload button -->
+    <label for="fp" style="display:block;margin-bottom:14px">
+      <div class="btn btn-gold" style="font-size:16px;padding:18px;letter-spacing:1px">上传截图</div>
     </label>
-    <div class="slbl">复习</div>
-    <div class="rev-grid">
-      <button class="rev-card" onclick="startCardReview()">
-        <div class="rev-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/></svg></div><div class="rev-name">卡片复习</div>
-        <div class="rev-meta" id="card-meta">0个词汇</div>
-        
-      </button>
-      <button class="rev-card" onclick="startConv()">
-        <div class="rev-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><div class="rev-name">对话练习</div>
-        <div class="rev-meta" id="conv-meta">随机词汇</div>
-        
-      </button>
+
+    <!-- Three equal secondary buttons -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:28px">
+      <button class="btn btn-white" style="padding:14px 6px;font-size:13px" onclick="startConv()">开始对话</button>
+      <button class="btn btn-white" style="padding:14px 6px;font-size:13px" onclick="goTo('story');resetStory()">生成故事</button>
+      <button class="btn btn-white" style="padding:14px 6px;font-size:13px" onclick="startCardReview()">卡片复习</button>
     </div>
-    <div style="display:flex;flex-direction:column;gap:10px">
-      <button class="btn btn-white" id="btn-list" style="display:none" onclick="goTo('list');listTab('today')">查看今日字幕列表</button>
-      <button class="btn btn-ghost" onclick="goTo('story');resetStory()">生成故事</button>
+
+    <!-- Bottom small links -->
+    <div style="display:flex;justify-content:center;gap:0;flex-wrap:wrap;padding-bottom:12px">
+      <button class="home-link" onclick="goTo('library')">词库</button>
+      <span class="home-link-sep">·</span>
+      <button class="home-link" onclick="goTo('list');listTab('today')">今日记录</button>
+      <span class="home-link-sep">·</span>
+      <button class="home-link" onclick="goTo('list');listTab('notes')">学习笔记</button>
+      <span class="home-link-sep">·</span>
+      <button class="home-link" id="sync-link" onclick="uploadToCloud()">☁️ 同步</button>
     </div>
+    <!-- hidden elements for compatibility -->
+    <div id="h-total" style="display:none">0</div>
+    <div id="h-today" style="display:none">0</div>
+    <div id="h-days" style="display:none">0</div>
+    <div id="h-time" style="display:none">0</div>
+    <div id="card-meta" style="display:none"></div>
+    <div id="conv-meta" style="display:none"></div>
+    <button id="btn-list" style="display:none" onclick="goTo('list');listTab('today')"></button>
   </div>
   <div class="safe"></div>
 </div>
@@ -553,7 +553,26 @@ var TODAY=new Date().toLocaleDateString('zh-CN');
 try{var _s=localStorage.getItem(DB_KEY);if(_s)DB=JSON.parse(_s);}catch(e){}
 if(!DB.entries)DB.entries=[];if(!DB.fps)DB.fps=[];if(!DB.days)DB.days={};if(!DB.weakness)DB.weakness='';
 if(!DB.days[TODAY])DB.days[TODAY]=[];
-function saveDB(){var v=JSON.stringify(DB);try{localStorage.setItem(DB_KEY,v);}catch(e){}kvSet('db',v);}
+var _syncTimer=null;
+function saveDB(){
+  var v=JSON.stringify(DB);
+  try{localStorage.setItem(DB_KEY,v);}catch(e){}
+  // throttle cloud push: wait 30s after last save before pushing
+  var sl=document.getElementById('sync-link');
+  if(_syncTimer)clearTimeout(_syncTimer);
+  if(sl)sl.textContent='· 待同步';
+  _syncTimer=setTimeout(function(){
+    _syncTimer=null;
+    if(sl)sl.textContent='⟳ 同步中';
+    kvSet('db',v).then(function(r){
+      var sl2=document.getElementById('sync-link');
+      if(sl2)sl2.textContent=r&&r.ok?'☁️ 已同步':'! 待同步';
+    }).catch(function(){
+      var sl2=document.getElementById('sync-link');
+      if(sl2)sl2.textContent='! 待同步';
+    });
+  },30000);
+}
 function saveImg(id,b64){try{localStorage.setItem(IP+id,b64);}catch(e){}kvSet('img-'+id,b64);}
 function getImgLocal(id){try{return localStorage.getItem(IP+id);}catch(e){return null;}}
 function loadImgAsync(id,cb){var l=getImgLocal(id);if(l){cb(l);return;}kvGet('img-'+id).then(function(v){if(v)cb(v);});}
@@ -1039,9 +1058,17 @@ function startConv(topicOverride){
   .then(function(raw){
     var setup;try{setup=JSON.parse(raw.replace(/```json|```/g,'').trim());}catch(e){toast('生成场景失败，请重试');goTo('home');return;}
     setup.words=picked;
+    // Pick a random word for translation challenge
+    var allKws=getAllKw().filter(function(k){return k.lang==='en'&&k.zh;});
+    var challengeWord=allKws.length?allKws[Math.floor(Math.random()*allKws.length)]:null;
+    var challengeCtx=challengeWord
+      ?'\n\n【翻译挑战】在对话进行中，找一个自然的时机（不要太刻意），用中文问用户"'+challengeWord.zh+'，英文怎么说？"，等她回答后给出地道说法（正确答案是"'+challengeWord.word+'"），然后继续聊天。只做一次，不要重复。'
+      :'';
+
     var sys='你扮演'+setup.name+'，'+setup.nationality+'人，'+setup.job+'。'+setup.relationship+'。场景：'+setup.scene+'。'
       +'\n\n你的对话对象是个住在苏州、好奇心很强的中国女生，兴趣广泛。就像真实朋友聊天，全程英文，地道自然。'
       +'\n\n如果这些词汇有机会自然融入就用，不必强塞：\n'+wb
+      +challengeCtx
       +(notesCtx||'');
     conv={setup:setup,msgs:[{role:'system',content:sys},{role:'assistant',content:setup.firstMessage}],state:'chatting'};
     document.getElementById('cv-load').style.display='none';
