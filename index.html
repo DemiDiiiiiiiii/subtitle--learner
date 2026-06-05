@@ -242,7 +242,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 <div class="screen on" id="home">
   <div class="home-wrap">
     <div class="home-top">
-      <div class="hero"><h1>剧词</h1><p>追剧积词，每天进一点</p></div>
+      <div class="hero"><h1>剧词</h1><p style="font-size:12px;letter-spacing:0.5px">鲁女惜园葵</p></div>
       <div class="gear" onclick="goTo('settings')">···</div>
     </div>
     <div class="stats">
@@ -254,6 +254,16 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
       </div>
       <div class="stat" onclick="goTo('list');listTab('history')">
         <div class="stat-n" id="h-days" style="color:var(--green)">0</div><div class="stat-l">历史 →</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      <div class="stat" style="flex:1" onclick="">
+        <div class="stat-n" id="h-streak" style="color:var(--purple,#a855f7)">0</div>
+        <div class="stat-l">连续天 🔥</div>
+      </div>
+      <div class="stat" style="flex:1" onclick="">
+        <div class="stat-n" id="h-time" style="color:var(--t2);font-size:20px">0m</div>
+        <div class="stat-l">累计时长</div>
       </div>
     </div>
     <div class="slbl">今日学习</div>
@@ -462,16 +472,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
       <button class="btn btn-gold" style="width:auto;padding:10px 18px;font-size:14px" onclick="applySync()">应用</button>
     </div>
   </div>
-  <div class="stsec">
-    <div class="strow" style="cursor:pointer" onclick="confirmAct('清除今日记录？','将删除今天的所有字幕','清除',clearToday)">
-      <div><div class="stlbl" style="color:var(--red)">清除今日记录</div><div class="stsub" id="st-today-cnt"></div></div>
-      <span style="color:var(--t3)">›</span>
-    </div>
-    <div class="strow" style="cursor:pointer" onclick="confirmAct('清除全部数据？','所有字幕词汇将被永久删除','清除全部',clearAll)">
-      <div><div class="stlbl" style="color:var(--red)">清除全部数据</div><div class="stsub">不可撤销，谨慎操作</div></div>
-      <span style="color:var(--t3)">›</span>
-    </div>
-  </div>
+
   <div class="stsec">
     <div class="strow"><div><div class="stlbl" id="st-stats"></div><div class="stsub">存储于本地及云端</div></div></div>
     <div class="strow" style="cursor:pointer" onclick="uploadToCloud()">
@@ -496,6 +497,40 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 var WORKER = 'https://silent-star-8a3f.demi89612.workers.dev/';
 var DS_KEY  = 'sk-4e126a125433427c97678d423a2f53e2';
 var DB_KEY  = 'jc-v1';
+var TIME_KEY = 'jc-time';   // {total: minutes, lastDate: 'yyyy/m/d', streak: n, lastStreakDate: 'yyyy/m/d'}
+var _sessionStart = Date.now();
+
+// Save session time on page hide/unload
+function saveSessionTime(){
+  var mins=Math.round((Date.now()-_sessionStart)/60000);
+  if(mins<1)return;
+  var t={total:0,streak:0,lastStreakDate:''};
+  try{var s=localStorage.getItem(TIME_KEY);if(s)t=JSON.parse(s);}catch(e){}
+  t.total=(t.total||0)+mins;
+  // update streak
+  var today=new Date().toLocaleDateString('zh-CN');
+  var yesterday=new Date(Date.now()-86400000).toLocaleDateString('zh-CN');
+  if(t.lastStreakDate===today){/* already counted today */}
+  else if(t.lastStreakDate===yesterday){t.streak=(t.streak||0)+1;t.lastStreakDate=today;}
+  else{t.streak=1;t.lastStreakDate=today;}
+  try{localStorage.setItem(TIME_KEY,JSON.stringify(t));}catch(e){}
+  _sessionStart=Date.now();
+}
+document.addEventListener('visibilitychange',function(){
+  if(document.hidden)saveSessionTime();
+  else _sessionStart=Date.now();
+});
+window.addEventListener('pagehide',saveSessionTime);
+
+function getTimeStats(){
+  try{var s=localStorage.getItem(TIME_KEY);if(s)return JSON.parse(s);}catch(e){}
+  return {total:0,streak:0,lastStreakDate:''};
+}
+function formatTime(mins){
+  if(!mins)return '0m';
+  if(mins<60)return mins+'m';
+  return Math.floor(mins/60)+'h'+(mins%60?mins%60+'m':'');
+}
 var IP      = 'jc-img-';
 var UID_KEY = 'jc-uid';
 
@@ -670,6 +705,21 @@ function refreshHome(){
   var todayE=todayIds.map(function(id){return DB.entries.find(function(e){return e.id===id;});}).filter(Boolean);
   var days=Object.keys(DB.days).filter(function(d){return DB.days[d].length>0;}).length;
   var allKw=getAllKw();var enKw=allKw.filter(function(k){return k.lang==='en';});
+  // streak + time
+  var ts=getTimeStats();
+  var today2=new Date().toLocaleDateString('zh-CN');
+  if(todayE.length>0&&ts.lastStreakDate!==today2){
+    var yesterday2=new Date(Date.now()-86400000).toLocaleDateString('zh-CN');
+    if(ts.lastStreakDate===yesterday2)ts.streak=(ts.streak||0)+1;
+    else if(!ts.streak)ts.streak=1;
+    else ts.streak=1;
+    ts.lastStreakDate=today2;
+    try{localStorage.setItem(TIME_KEY,JSON.stringify(ts));}catch(e){}
+  }
+  var streakEl=document.getElementById('h-streak');
+  var timeEl=document.getElementById('h-time');
+  if(streakEl)streakEl.textContent=ts.streak||0;
+  if(timeEl)timeEl.textContent=formatTime(ts.total||0);
   document.getElementById('h-total').textContent=DB.entries.length;
   document.getElementById('h-today').textContent=todayE.length;
   document.getElementById('h-days').textContent=days;
