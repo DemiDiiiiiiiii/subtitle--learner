@@ -814,10 +814,13 @@ function submitS(){
   var ta=document.getElementById('s-ta'),txt=ta?ta.value.trim():'';
   if(!txt){toast('请先输入字幕内容');return;}
   sess.state='analyzing';renderStudy();
-  callDS([{role:'user',content:'分析影视字幕（英文或韩文）："'+txt+'"\n只返回JSON，不要markdown：{"orig":"原文","zh":"中文翻译","lang":"en或ko","keywords":[{"word":"词/短语","zh":"含义","note":"地道用法；韩文注明반말/존댓말"}]}\n提取2-3个值得学的词。'}],500)
+  callDS([{role:'user',content:'分析以下影视字幕（英文或韩文），只返回JSON不要markdown：\n"'+txt+'"\n\n{"zh":"整体中文翻译","lang":"en或ko","keywords":[{"word":"词或短语","zh":"含义","note":"地道用法说明，韩文注明반말/존댓말"}]}\n\n提取所有值得学的词和短语，不要限制数量。'}],600)
   .then(function(raw){
-    try{sess.res=JSON.parse(raw.replace(/```json|```/g,'').trim());}
-    catch(e){sess.res={orig:txt,zh:'',lang:'en',keywords:[]};}
+    try{
+      var parsed=JSON.parse(raw.replace(/```json|```/g,'').trim());
+      parsed.orig=txt; // always use user input as orig
+      sess.res=parsed;
+    }catch(e){sess.res={orig:txt,zh:'',lang:'en',keywords:[]};}
     sess.state='result';sess.notes='';renderStudy();
   }).catch(function(){
     sess.res={orig:txt,zh:'（分析失败）',lang:'en',keywords:[]};
@@ -1122,7 +1125,7 @@ function endConv(){
   var words=conv.setup.words.map(function(w){return w.word;}).join('、');
   // clear notes field
   var notesEl=document.getElementById('conv-notes');if(notesEl)notesEl.value='';
-  callDS([{role:'user',content:'以下是对话记录，「你」是用户，另一方是AI角色。\n\n'+history+'\n\n请用中文做两件事，简洁：\n\n1.【更地道的说法】：「你」说的话里有没有可以更native的地方？有就列出来，格式：原句 → 更好的说法。没有就写"挺自然的"。\n\n2.【AI说的值得偷的表达】：从AI说的话里挑1-3个地道表达，格式：表达 — 一句话说明怎么用。'}],900)
+  callDS([{role:'user',content:'以下是对话记录，「你」是用户，另一方是AI角色。\n\n'+history+'\n\n请用中文做两件事，简洁：\n\n1.【更地道的说法】：「你」说的话里有没有可以更native的地方？有就列出来，格式：原句 → 更好的说法。没有就写"挺自然的"。\n\n2.【AI说的值得学的表达】：把AI说的话里所有地道短语、口语表达、俚语全部列出来，一条一条，格式：表达 — 含义和用法（一句话）。宁多勿少，不要筛选。'}],900)
   .then(function(fb){
     document.getElementById('fb-body').textContent=fb.trim();
     var wkRow=document.getElementById('wk-save-row');
@@ -1300,7 +1303,7 @@ function saveEditAndAnalyze(id){
   if(!txt){toast('请先输入字幕内容');return;}
   var m=document.getElementById('edit-modal');if(m)m.remove();
   toast('正在重新分析…');
-  callDS([{role:'user',content:'分析影视字幕（英文或韩文）："'+txt+'"\n只返回JSON，不要markdown：{"orig":"原文","zh":"中文翻译","lang":"en或ko","keywords":[{"word":"词/短语","zh":"含义","note":"地道用法；韩文注明반말/존댓말"}]}\n提取2-3个值得学的词。'}],500)
+  callDS([{role:'user',content:'分析以下影视字幕（英文或韩文），只返回JSON不要markdown：\n"'+txt+'"\n\n{"zh":"整体中文翻译","lang":"en或ko","keywords":[{"word":"词或短语","zh":"含义","note":"地道用法说明，韩文注明반말/존댓말"}]}\n\n提取所有值得学的词和短语，不要限制数量。'}],600)
   .then(function(raw){
     try{
       var clean=raw.replace(/```json|```/g,'').trim();
@@ -1308,6 +1311,7 @@ function saveEditAndAnalyze(id){
       entry.zh=res.zh||entry.zh;
       entry.lang=res.lang||entry.lang;
       entry.keywords=res.keywords||entry.keywords;
+      // keep original text, don't overwrite with AI's version
       entry.ts=Date.now();
       saveDB();
       kvSet('db',JSON.stringify(DB)).catch(function(){});
