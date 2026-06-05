@@ -7,15 +7,20 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
-  --bg:#f8f5f1;--card:#fff;--text:#1c1917;--t2:#6b6560;--t3:#a8a29e;
-  --gold:#c27b0f;--glt:rgba(194,123,15,.1);
-  --blue:#2563eb;--blt:rgba(37,99,235,.08);
-  --purple:#7c3aed;--plt:rgba(124,58,237,.08);
-  --green:#16a34a;--red:#dc2626;--rlt:rgba(220,38,38,.09);
+  --bg:#050d1e;--card:rgba(255,255,255,.06);--text:rgba(255,255,255,.88);
+  --t2:rgba(255,255,255,.55);--t3:rgba(255,255,255,.28);
+  --gold:#c8982e;--glt:rgba(200,152,46,.12);
+  --blue:#4a7fff;--blt:rgba(74,127,255,.15);
+  --purple:#a78bfa;--plt:rgba(167,139,250,.12);
+  --green:#34d399;--red:#ef4444;--rlt:rgba(239,68,68,.12);
   --bdr:rgba(255,255,255,.1);--sh:0 4px 24px rgba(0,0,0,.25);
   --r:16px;--rs:10px;
 }
 html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(ellipse 55% 42% at -6% -4%,rgba(185,140,40,.22) 0%,transparent 55%),
+    radial-gradient(ellipse 72% 62% at 112% 112%,rgba(28,85,245,.3) 0%,transparent 60%);}
+.screen{position:relative;z-index:1;}
 #app{height:100vh;position:relative}
 .screen{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity .22s;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column}
 .screen.on{opacity:1;pointer-events:all}
@@ -293,6 +298,17 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
     <button id="btn-list" style="display:none" onclick="goTo('list');listTab('today')"></button>
     <div id="card-meta" style="display:none"></div>
     <div id="conv-meta" style="display:none"></div>
+
+    <!-- Bottom nav links -->
+    <div style="display:flex;justify-content:center;align-items:center;flex-wrap:wrap;padding:12px 0 16px;gap:0">
+      <button onclick="goTo('library')" style="background:none;border:none;font-size:11px;color:rgba(255,255,255,.25);cursor:pointer;padding:4px 8px;font-family:inherit;letter-spacing:0.3px;">冥想盆</button>
+      <span style="font-size:10px;color:rgba(255,255,255,.12);">·</span>
+      <button onclick="goTo('list');listTab('today')" style="background:none;border:none;font-size:11px;color:rgba(255,255,255,.25);cursor:pointer;padding:4px 8px;font-family:inherit;letter-spacing:0.3px;">今日记录</button>
+      <span style="font-size:10px;color:rgba(255,255,255,.12);">·</span>
+      <button onclick="goTo('list');listTab('notes')" style="background:none;border:none;font-size:11px;color:rgba(255,255,255,.25);cursor:pointer;padding:4px 8px;font-family:inherit;letter-spacing:0.3px;">学习物料</button>
+      <span style="font-size:10px;color:rgba(255,255,255,.12);">·</span>
+      <button id="sync-link" onclick="uploadToCloud()" style="background:none;border:none;font-size:11px;color:rgba(255,255,255,.25);cursor:pointer;padding:4px 8px;font-family:inherit;letter-spacing:0.3px;display:inline-flex;align-items:center;gap:3px;"><span id="sdot" style="width:5px;height:5px;border-radius:50%;background:rgba(80,210,130,.65);display:inline-block;"></span>已同步</button>
+    </div>
   </div>
   <div class="safe"></div>
 </div>
@@ -1750,24 +1766,95 @@ function saveConvFeedback(){
     resize();
     var ctx=canvas.getContext('2d');
     var tipX=44,tipY=28;
-    function getParams(){return{W:canvas.width,H:canvas.height,cx:canvas.width*.5,cy:canvas.height*.48,rx:canvas.width*.40,ry:canvas.height*.30};}
-    var p=getParams();
-    var startAngle=Math.atan2(tipY-p.cy,tipX-p.cx);
-    var particles=[];
-    var animAngle=startAngle;
-    var running=false;var pauseTimer=0;var PAUSE=120;var SPEED=0.045;
-    function spawn(x,y,n){for(var i=0;i<n;i++){var a=Math.random()*Math.PI*2,s=.3+Math.random()*1.2,sz=1+Math.random()*2.5;particles.push({x:x,y:y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1,decay:.04+Math.random()*.04,size:sz});}}
+
+    // Trail: array of past positions
+    var trail=[];
+    var TRAIL_LEN=28;
+    var animAngle=0;
+    var running=false;
+    var pauseTimer=0;
+    var PAUSE=100; // frames pause between orbits
+    var SPEED=0.042;
+    var p={};
+
+    function getParams(){
+      p={W:canvas.width,H:canvas.height,
+         cx:canvas.width*.5,cy:canvas.height*.48,
+         rx:canvas.width*.40,ry:canvas.height*.30};
+      return p;
+    }
+    getParams();
+    animAngle=Math.atan2(tipY-p.cy,tipX-p.cx);
+    var startAngle=animAngle;
+
     function loop(){
       ctx.clearRect(0,0,canvas.width,canvas.height);
-      for(var i=particles.length-1;i>=0;i--){var pt=particles[i];pt.x+=pt.vx;pt.y+=pt.vy;pt.vy+=.04;pt.life-=pt.decay;if(pt.life<=0){particles.splice(i,1);continue;}ctx.beginPath();ctx.arc(pt.x,pt.y,pt.size*pt.life,0,Math.PI*2);ctx.fillStyle='rgba(80,140,255,'+pt.life*.75+')';ctx.fill();ctx.beginPath();ctx.arc(pt.x,pt.y,pt.size*.4*pt.life,0,Math.PI*2);ctx.fillStyle='rgba(180,220,255,'+pt.life*.5+')';ctx.fill();}
-      if(!running){pauseTimer++;if(pauseTimer>=PAUSE){pauseTimer=0;running=true;animAngle=startAngle;p=getParams();}requestAnimationFrame(loop);return;}
+
+      if(!running){
+        // draw nothing, just count pause
+        pauseTimer++;
+        if(pauseTimer>=PAUSE){
+          pauseTimer=0;running=true;
+          getParams();
+          animAngle=startAngle=Math.atan2(tipY-p.cy,tipX-p.cx);
+          trail=[];
+        }
+        requestAnimationFrame(loop);
+        return;
+      }
+
+      // advance
       animAngle+=SPEED;
-      var hx=p.cx+Math.cos(animAngle)*p.rx,hy=p.cy+Math.sin(animAngle)*p.ry;
-      spawn(hx,hy,3);
-      var g=ctx.createRadialGradient(hx,hy,0,hx,hy,8);g.addColorStop(0,'rgba(220,245,255,.9)');g.addColorStop(.4,'rgba(120,190,255,.5)');g.addColorStop(1,'rgba(60,130,255,0)');
-      ctx.beginPath();ctx.arc(hx,hy,8,0,Math.PI*2);ctx.fillStyle=g;ctx.fill();
-      ctx.beginPath();ctx.arc(hx,hy,2,0,Math.PI*2);ctx.fillStyle='rgba(230,248,255,.95)';ctx.fill();
-      if(animAngle-startAngle>=Math.PI*2){spawn(tipX,tipY,12);running=false;pauseTimer=0;}
+      var hx=p.cx+Math.cos(animAngle)*p.rx;
+      var hy=p.cy+Math.sin(animAngle)*p.ry;
+      trail.push({x:hx,y:hy});
+      if(trail.length>TRAIL_LEN) trail.shift();
+
+      // draw trail as tapering ribbon — NO bright head dot
+      for(var i=1;i<trail.length;i++){
+        var t=(i/trail.length); // 0=oldest tail, 1=newest head
+        var alpha=t*t*0.65;     // quadratic fade
+        var w=t*3.5+0.3;        // taper width
+
+        // outer glow stroke
+        ctx.beginPath();
+        ctx.moveTo(trail[i-1].x,trail[i-1].y);
+        ctx.lineTo(trail[i].x,trail[i].y);
+        ctx.strokeStyle='rgba(60,130,255,'+( alpha*0.55 ).toFixed(3)+')';
+        ctx.lineWidth=w*2.2;
+        ctx.lineCap='round';
+        ctx.stroke();
+
+        // bright inner core
+        ctx.beginPath();
+        ctx.moveTo(trail[i-1].x,trail[i-1].y);
+        ctx.lineTo(trail[i].x,trail[i].y);
+        ctx.strokeStyle='rgba(180,225,255,'+( alpha*0.75 ).toFixed(3)+')';
+        ctx.lineWidth=w*0.55;
+        ctx.stroke();
+      }
+
+      // scatter a few tiny sparkles near newest point (NO big glow circle)
+      if(trail.length>1){
+        var last=trail[trail.length-1];
+        for(var j=0;j<2;j++){
+          var ox=(Math.random()-0.5)*6;
+          var oy=(Math.random()-0.5)*6;
+          var sr=0.4+Math.random()*0.8;
+          ctx.beginPath();
+          ctx.arc(last.x+ox,last.y+oy,sr,0,Math.PI*2);
+          ctx.fillStyle='rgba(150,210,255,0.5)';
+          ctx.fill();
+        }
+      }
+
+      // check if completed orbit
+      if(animAngle-startAngle>=Math.PI*2){
+        running=false;
+        pauseTimer=0;
+        trail=[];
+      }
+
       requestAnimationFrame(loop);
     }
     loop();
