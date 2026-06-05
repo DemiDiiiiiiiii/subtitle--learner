@@ -585,7 +585,7 @@ document.addEventListener('click',function(ev){
     var ki=parseInt(delKwBtn.getAttribute('data-del-kw'));
     var eid=delKwBtn.getAttribute('data-kw-entry');
     var ent=DB.entries.find(function(e){return e.id===eid;});
-    if(ent&&ent.keywords){ent.keywords.splice(ki,1);saveDB();renderToday();renderLib(document.getElementById('search-inp')?document.getElementById('search-inp').value:'');}
+    if(ent&&ent.keywords){ent.keywords.splice(ki,1);saveDB();if(listTabCurrent==='today')renderToday();else if(listTabCurrent==='history')renderHistory();}
     return;
   }
   var editStoryBtn=ev.target.closest('[data-edit-story-note]');
@@ -764,7 +764,14 @@ function renderStudy(){
       +'<p style="text-align:center;font-size:13px;color:var(--t2)">AI 分析中…</p>';
   }else if(sess.state==='result'&&sess.res){
     var r=sess.res;var ko=r.lang==='ko';
-    var kws=(r.keywords||[]).map(function(k){return '<div class="kw'+(ko?' ko':'')+'"><div class="kw-w">'+k.word+'</div><div class="kw-z">'+k.zh+'</div><div class="kw-n">'+k.note+'</div></div>';}).join('');
+    var kws=(r.keywords||[]).map(function(k,ki){
+      return '<div class="kw'+(ko?' ko':'')+'" style="position:relative">'
+        +'<div class="kw-w">'+k.word+'</div>'
+        +'<div class="kw-z">'+k.zh+'</div>'
+        +'<div class="kw-n">'+k.note+'</div>'
+        +'<button onclick="sessDelKw('+ki+')" style="position:absolute;top:6px;right:6px;background:none;border:none;font-size:12px;color:var(--t3);cursor:pointer;line-height:1">×</button>'
+        +'</div>';
+    }).join('');
     var nxt=sess.idx>=sess.imgs.length-1?'完成 ✓':'下一张 →';
     panel='<div class="ren">'+r.orig+'<span class="tag '+(ko?'tag-k':'tag-e')+'">'+(ko?'韩':'英')+'</span></div>'
       +'<div class="rzh">'+r.zh+'</div>'
@@ -772,6 +779,9 @@ function renderStudy(){
       +'<div class="nlbl">随手记</div>'
       +'<textarea class="nta" id="s-notes" placeholder="碎碎念、用法联想…"></textarea>'
       +'<div style="display:flex;gap:10px;margin-top:16px">'
+      +'<div style="display:flex;gap:8px;margin-bottom:10px">'
+      +'<button class="btn btn-white" style="flex:1;padding:9px;font-size:13px" onclick="editInputS()">修改输入</button>'
+      +'</div>'
       +(sess.idx>0?'<button class="btn btn-ghost" style="flex:1" onclick="prevS()">← 上一张</button>':'')
       +'<button class="btn btn-gold" style="flex:2" onclick="saveNext()">'+nxt+'</button>'
       +'</div>';
@@ -788,6 +798,17 @@ function renderStudy(){
   if(exitBtn)exitBtn.onclick=function(){confirmAct('退出学习？','已输入内容不会丢失','退出',function(){goTo('home');});};
   if(sess.state==='input')setTimeout(function(){var t=document.getElementById('s-ta');if(t)t.focus();},300);
   if(sess.state==='result'){var ni=document.getElementById('s-notes');if(ni){ni.value=sess.notes||'';ni.oninput=function(){sess.notes=ni.value;};}}
+}
+function sessDelKw(ki){
+  if(!sess||!sess.res||!sess.res.keywords)return;
+  sess.res.keywords.splice(ki,1);
+  renderStudy();
+}
+function editInputS(){
+  var prevText=sess.res?sess.res.orig:'';
+  sess.state='input';sess.res=null;renderStudy();
+  var ta=document.getElementById('s-ta');
+  if(ta&&prevText){ta.value=prevText;ta.focus();}
 }
 function submitS(){
   var ta=document.getElementById('s-ta'),txt=ta?ta.value.trim():'';
@@ -1264,7 +1285,7 @@ function saveEdit(id){
   kvSet('db',JSON.stringify(DB)).then(function(r){
     if(r&&r.ok)toast('已保存并同步到云端 ✓');
   }).catch(function(){toast('已保存（云端同步失败，请手动上传）');});
-  renderToday();renderLib(document.getElementById('search-inp')?document.getElementById('search-inp').value:'');
+  if(listTabCurrent==='today')renderToday();else if(listTabCurrent==='history')renderHistory();else renderConvNotes();
 }
 function saveEditAndAnalyze(id){
   var entry=DB.entries.find(function(e){return e.id===id;});if(!entry)return;
@@ -1290,11 +1311,11 @@ function saveEditAndAnalyze(id){
       entry.ts=Date.now();
       saveDB();
       kvSet('db',JSON.stringify(DB)).catch(function(){});
-      renderToday();renderLib(document.getElementById('search-inp')?document.getElementById('search-inp').value:'');
+      if(listTabCurrent==='today')renderToday();else if(listTabCurrent==='history')renderHistory();
       toast('重新分析完成，已同步云端 ✓');
-    }catch(e){saveDB();renderToday();toast('分析结果解析失败，已保存原文');}
+    }catch(e){saveDB();if(listTabCurrent==='today')renderToday();else if(listTabCurrent==='history')renderHistory();toast('分析结果解析失败，已保存原文');}
   })
-  .catch(function(){saveDB();renderToday();toast('分析失败，请重试');});
+  .catch(function(){saveDB();if(listTabCurrent==='today')renderToday();else if(listTabCurrent==='history')renderHistory();toast('分析失败，请重试');});
 }
 function delEntry(id){
   confirmAct('删除这条字幕？','删除后不可恢复','删除',function(){
