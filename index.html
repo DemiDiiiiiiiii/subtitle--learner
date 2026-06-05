@@ -111,12 +111,16 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 .cvtop{padding:max(52px,env(safe-area-inset-top)) 20px 12px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
 .cvback{background:none;border:none;color:var(--t2);font-size:20px;cursor:pointer;padding:4px;width:32px;text-align:left}
 .cvend{background:none;border:1px solid rgba(220,38,38,.3);color:var(--red);border-radius:20px;padding:6px 14px;font-size:13px;font-family:inherit;cursor:pointer}
-.cvid{padding:0 18px 12px;flex-shrink:0;border-bottom:1px solid rgba(0,0,0,.06)}
+.cvid{flex-shrink:0;border-bottom:1px solid rgba(0,0,0,.06);overflow:hidden;transition:max-height .3s ease,padding .3s ease;max-height:200px;padding:0 18px 12px}
+.cvid.collapsed{max-height:0;padding:0;border-bottom:none}
 .idrow{display:flex;align-items:center;gap:10px;margin-bottom:8px}
 .idav{width:38px;height:38px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;color:#fff;font-weight:600}
 .idname{font-size:14px;font-weight:600}
 .idsub{font-size:11px;color:var(--t2);margin-top:1px}
 .idscene{font-size:12px;color:var(--t2);background:rgba(255,255,255,.7);border-radius:10px;padding:8px 12px;line-height:1.7}
+.cvid-toggle{height:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+.cvid-toggle-dot{width:32px;height:3px;border-radius:2px;background:var(--bdr);transition:background .2s}
+.cvid-toggle:hover .cvid-toggle-dot,.cvid-toggle:active .cvid-toggle-dot{background:var(--gold)}
 .chat{flex:1;overflow-y:auto;min-height:0;padding:14px 16px 8px;display:flex;flex-direction:column;gap:10px;-webkit-overflow-scrolling:touch}
 .bbl{max-width:82%;line-height:1.6;font-size:15px}
 .bai{align-self:flex-start;background:var(--card);border-radius:4px 18px 18px 18px;padding:12px 16px;box-shadow:0 1px 6px rgba(0,0,0,.08)}
@@ -321,6 +325,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
       <div style="width:32px"></div>
     </div>
     <div class="cvid" id="cv-id"></div>
+    <div class="cvid-toggle" id="cvid-toggle" onclick="toggleCvid()"><div class="cvid-toggle-dot"></div></div>
     <div class="chat" id="chat"></div>
     <div class="cvwrap">
       <button class="mic-btn" id="mic-btn" onclick="toggleMic()" title="语音输入">🎤</button>
@@ -379,7 +384,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
   <div class="tabs" style="flex-shrink:0">
     <div class="tab on" id="tab-today" onclick="listTab('today')">今日</div>
     <div class="tab" id="tab-hist" onclick="listTab('history')">历史</div>
-    <div class="tab" id="tab-notes" onclick="listTab('notes')">学习笔记</div>
+    <div class="tab" id="tab-notes" onclick="listTab('notes')">学习笔记<span id="notes-count" style="font-size:10px;color:var(--t3);margin-left:3px"></span></div>
   </div>
   <div id="list-body" style="flex:1;overflow-y:auto;padding-bottom:160px"></div>
   <div style="padding:14px 22px max(20px,env(safe-area-inset-bottom));flex-shrink:0;border-top:1px solid var(--bdr)">
@@ -642,10 +647,19 @@ function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()
 function fpOf(f){return f.name+'|'+f.size+'|'+f.lastModified;}
 function autoR(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,100)+'px';}
 function getAllKw(){
-  // Return full entry sentences as cards - not extracted keywords
-  return DB.entries.map(function(e){
-    return {word:e.text,zh:e.zh||'',note:(e.keywords||[]).map(function(k){return k.word+': '+k.zh;}).join(' · '),lang:e.lang,ctx:e.notes||''};
+  // Return extracted keyword tags, not full sentences
+  var kws=[];
+  DB.entries.forEach(function(e){
+    if(e.keywords&&e.keywords.length){
+      e.keywords.forEach(function(k){
+        kws.push({word:k.word,zh:k.zh||'',note:k.note||'',lang:e.lang||'en',ctx:e.text||''});
+      });
+    } else if(e.text){
+      // fallback: entry has no keywords, use the sentence itself
+      kws.push({word:e.text,zh:e.zh||'',note:'',lang:e.lang||'en',ctx:''});
+    }
   });
+  return kws;
 }
 function confirmAct(msg,sub,okTxt,cb){document.getElementById('modal-msg').textContent=msg;document.getElementById('modal-sub').textContent=sub||'';var ok=document.getElementById('modal-ok');ok.textContent=okTxt||'确认删除';ok.onclick=function(){closeModal();cb();};document.getElementById('modal').classList.add('show');}
 function closeModal(){document.getElementById('modal').classList.remove('show');}
@@ -998,6 +1012,35 @@ function addBbl(type,txt){
 }
 function addLoad(){var ca=document.getElementById('chat');if(!ca)return;var d=document.createElement('div');d.className='bload';d.id='bload';d.innerHTML='<div class="bld"></div><div class="bld"></div><div class="bld"></div>';ca.appendChild(d);ca.scrollTop=ca.scrollHeight;}
 function rmLoad(){var el=document.getElementById('bload');if(el)el.remove();}
+function toggleCvid(){
+  var el=document.getElementById('cv-id');
+  if(!el)return;
+  el.classList.toggle('collapsed');
+  // recalculate chat height after toggle
+  setTimeout(function(){
+    var chat=document.getElementById('chat');
+    var wrap=document.getElementById('cv-main');
+    var top=document.querySelector('.cvtop');
+    var cvid=document.getElementById('cv-id');
+    var cvwrap=document.querySelector('.cvwrap');
+    var toggle=document.getElementById('cvid-toggle');
+    if(chat&&top&&cvwrap){
+      var used=(top.offsetHeight||0)+(cvid.classList.contains('collapsed')?0:cvid.offsetHeight||0)+(toggle?toggle.offsetHeight:0)+(cvwrap.offsetHeight||0);
+      chat.style.height=(window.innerHeight-used-8)+'px';
+    }
+  },320);
+}
+// Auto-collapse cv-id when user starts scrolling chat
+(function(){
+  var lastScrollTop=0;var timer=null;
+  document.addEventListener('scroll',function(e){
+    var chat=document.getElementById('chat');
+    if(!chat||!e.target===chat)return;
+    var cvid=document.getElementById('cv-id');
+    if(!cvid)return;
+    if(!cvid.classList.contains('collapsed'))cvid.classList.add('collapsed');
+  },true);
+})();
 function sendMsg(){var ta=document.getElementById('cv-ta'),txt=ta?ta.value.trim():'';if(!txt||!conv||conv.state!=='chatting')return;ta.value='';ta.style.height='auto';addBbl('me',txt);conv.msgs.push({role:'user',content:txt});addLoad();callDS(conv.msgs,250).then(function(r){rmLoad();conv.msgs.push({role:'assistant',content:r});addBbl('ai',r);}).catch(function(){rmLoad();toast('网络错误，请重试');});}
 // leaveConv replaced by showConvExit
 function showTopicPicker(){
@@ -1094,6 +1137,7 @@ function renderConvNotes(){
   var convNotes=(DB.convNotes||[]).map(function(n,i){return {type:'conv',idx:i,date:n.date,ts:n.ts||0,text:n.notes};});
   var storyNotes=(DB.storyNotes||[]).map(function(n,i){return {type:'story',idx:i,date:n.date,ts:n.ts||0,text:n.note,story:n.story};});
   var all=convNotes.concat(storyNotes).sort(function(a,b){return (b.ts||0)-(a.ts||0);});
+  var nc=document.getElementById('notes-count');if(nc)nc.textContent=all.length?all.length+'':'';
   if(!all.length){el.innerHTML='<div style="padding:40px 0;text-align:center;color:var(--t3);font-size:14px">还没有学习笔记<br>对话结束或生成故事后可以记笔记</div>';return;}
   el.innerHTML=all.map(function(n){
     var badge=n.type==='story'
