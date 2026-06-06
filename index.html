@@ -24,7 +24,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
     radial-gradient(ellipse 25% 20% at 0% 0%,rgba(255,235,120,.22) 0%,transparent 35%),
     radial-gradient(ellipse 80% 65% at 115% 115%,rgba(28,85,245,.32) 0%,transparent 62%),
     radial-gradient(ellipse 45% 35% at 108% 108%,rgba(60,120,255,.22) 0%,transparent 48%);}
-.screen{position:relative;z-index:1;}
+.screen{position:relative;z-index:2;}
 #app{height:100vh;position:relative}
 .screen{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity .22s;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column}
 .screen.on{opacity:1;pointer-events:all}
@@ -253,7 +253,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 
 <!-- HOME -->
 <!-- ELF lightstick starfield + confetti -->
-<canvas id="elf-canvas" style="position:fixed;inset:0;z-index:0;pointer-events:none;width:100%;height:100%;"></canvas>
+<canvas id="elf-canvas" style="position:fixed;inset:0;z-index:1;pointer-events:none;width:100%;height:100%;"></canvas>
 
 <div class="screen on" id="home">
   <div class="home-wrap">
@@ -1109,7 +1109,7 @@ function startConv(topicOverride){
   var notesCtx='';
 
   var wk=DB.weakness?'【用户英语弱点，对话中注意引导】\n'+DB.weakness:'';
-  callDS([{role:'user',content:'你是英语口语练习助手。生成一个真实的日常对话场景，角色女性或性别中立。话题方向：'+topicOverride+'。\n\n场景要具体有画面感，第一句话像真人发消息，不要套话。\n\n目标词汇（自然融入，绝不点破）：\n'+wb+'\n\n'+wk+'\n\n返回JSON：{"name":"英文名","nationality":"国籍","job":"职业","relationship":"和用户关系（1句）","scene":"场景（2句）","firstMessage":"第一句话"}'}],400)
+  callDS([{role:'user',content:'你是英语口语练习助手。生成一个真实的日常对话场景，角色女性或性别中立。话题方向：'+topicOverride+'。\n\n场景要具体有画面感，第一句话像真人发消息，不要套话。\n\n目标词汇（自然融入，绝不点破）：\n'+wb+'\n\n'+wk+'\n\n返回JSON（所有字段英文，firstMessage必须是英文）：{"name":"English name","nationality":"nationality in English","job":"job in English","relationship":"one sentence in English","scene":"2 sentences in English","firstMessage":"opening message in natural English"}'}],400)
   .then(function(raw){
     var setup;try{setup=JSON.parse(raw.replace(/```json|```/g,'').trim());}catch(e){toast('生成场景失败，请重试');goTo('home');return;}
     setup.words=picked;
