@@ -116,11 +116,11 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .rbtn:active{opacity:.7}
 .rno{background:var(--rlt);color:var(--red)}.ryes{background:rgba(22,163,74,.1);color:var(--green)}
 /* CONVERSATION */
-#conversation{background:#eef2ff}
-.cvtop{padding:max(52px,env(safe-area-inset-top)) 20px 12px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
-.cvback{background:none;border:none;color:var(--t2);font-size:20px;cursor:pointer;padding:4px;width:32px;text-align:left}
+#conversation{background:var(--bg)}
+.cvtop{padding:max(52px,env(safe-area-inset-top)) 20px 12px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;background:linear-gradient(180deg,rgba(5,13,30,.98) 70%,transparent);backdrop-filter:blur(12px);}
+.cvback{background:none;border:none;color:rgba(255,255,255,.45);font-size:20px;cursor:pointer;padding:4px;width:32px;text-align:left}
 .cvend{background:none;border:1px solid rgba(220,38,38,.3);color:var(--red);border-radius:20px;padding:6px 14px;font-size:13px;font-family:inherit;cursor:pointer}
-.cvid{flex-shrink:0;border-bottom:1px solid rgba(0,0,0,.06);overflow:hidden;transition:max-height .3s ease,padding .3s ease;max-height:200px;padding:0 18px 12px}
+.cvid{flex-shrink:0;border-bottom:1px solid rgba(255,255,255,.08);overflow:hidden;transition:max-height .3s ease,padding .3s ease;max-height:200px;padding:0 18px 12px}
 .cvid.collapsed{max-height:0;padding:0;border-bottom:none}
 .idrow{display:flex;align-items:center;gap:10px;margin-bottom:8px}
 .idav{width:38px;height:38px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;color:#fff;font-weight:600}
@@ -130,19 +130,19 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .cvid-toggle{height:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
 .cvid-toggle-dot{width:32px;height:3px;border-radius:2px;background:var(--bdr);transition:background .2s}
 .cvid-toggle:hover .cvid-toggle-dot,.cvid-toggle:active .cvid-toggle-dot{background:var(--gold)}
-.chat{flex:1;overflow-y:auto;min-height:0;padding:14px 16px 8px;display:flex;flex-direction:column;gap:10px;-webkit-overflow-scrolling:touch}
+.chat{flex:1;overflow-y:auto;min-height:0;padding:14px 16px 8px;display:flex;flex-direction:column;gap:10px;-webkit-overflow-scrolling:touch;background:transparent}
 .bbl{max-width:82%;line-height:1.6;font-size:15px}
-.bai{align-self:flex-start;background:var(--card);border-radius:4px 18px 18px 18px;padding:12px 16px;box-shadow:0 1px 6px rgba(0,0,0,.08)}
-.bme{align-self:flex-end;background:var(--gold);color:#fff;border-radius:18px 4px 18px 18px;padding:12px 16px}
-.bsys{align-self:center;font-size:12px;color:var(--t3);background:rgba(255,255,255,.6);border-radius:20px;padding:5px 14px}
+.bai{align-self:flex-start;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.08);border-radius:4px 18px 18px 18px;padding:12px 16px;color:rgba(255,255,255,.88);}
+.bme{align-self:flex-end;background:rgba(55,110,255,.6);color:rgba(255,255,255,.95);border-radius:18px 4px 18px 18px;padding:12px 16px;}
+.bsys{align-self:center;font-size:12px;color:rgba(255,255,255,.3);background:rgba(255,255,255,.6);border-radius:20px;padding:5px 14px}
 .bload{align-self:flex-start;background:var(--card);border-radius:4px 18px 18px 18px;padding:14px 18px;box-shadow:0 1px 6px rgba(0,0,0,.08);display:flex;gap:5px}
 .bld{width:7px;height:7px;border-radius:50%;background:var(--t3);animation:sp 1.2s ease-in-out infinite}
 .bld:nth-child(2){animation-delay:.2s}.bld:nth-child(3){animation-delay:.4s}
 .cvwrap{padding:10px 14px max(20px,env(safe-area-inset-bottom));background:rgba(8,18,40,.97);border-top:1px solid rgba(255,255,255,.08);display:flex;gap:10px;align-items:flex-end;flex-shrink:0}
-.cvta{flex:1;background:var(--card);border:1.5px solid var(--bdr);border-radius:22px;padding:11px 18px;color:var(--text);font-size:15px;font-family:inherit;resize:none;line-height:1.5;min-height:44px;max-height:100px;outline:none}
+.cvta{flex:1;border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:9px 14px;font-size:15px;resize:none;outline:none;font-family:inherit;line-height:1.5;max-height:120px;overflow-y:auto;background:rgba(255,255,255,.07);color:rgba(255,255,255,.88);}
 .cvta::placeholder{color:var(--t3)}
-.cvsend{width:44px;height:44px;border-radius:50%;border:none;flex-shrink:0;background:var(--blue);color:#fff;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center}
-.cvload{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:40px}
+.cvsend{background:rgba(60,120,255,.7);border:none;border-radius:50%;width:36px;height:36px;color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.cvload{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:var(--bg);padding:40px}
 .fbs{position:absolute;bottom:0;left:0;right:0;background:rgba(6,15,38,.97);border-radius:22px 22px 0 0;border-top:1px solid rgba(255,255,255,.08);box-shadow:0 -4px 32px rgba(0,0,0,.12);transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);z-index:10;max-height:90vh;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:20px 22px max(36px,env(safe-area-inset-bottom))}
 .fbs.show{transform:translateY(0)}
 .fbh{width:36px;height:4px;border-radius:2px;background:var(--bdr);margin:0 auto 18px}
@@ -179,8 +179,8 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 #story{background:var(--bg);}
 .clbl{font-size:11px;color:var(--t3);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
 .chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
-.chip{padding:7px 14px;border-radius:20px;font-size:13px;cursor:pointer;border:1px solid var(--bdr);background:var(--card);color:var(--t2);font-family:inherit;box-shadow:var(--sh)}
-.chip.on{background:var(--glt);border-color:var(--gold);color:var(--gold)}
+.chip{padding:7px 14px;border-radius:20px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);font-size:13px;cursor:pointer;color:rgba(255,255,255,.55);transition:all .18s;font-family:inherit;}
+.chip.on{background:rgba(60,120,255,.35);border-color:rgba(80,150,255,.5);color:rgba(200,228,255,.9);}
 .stxt{font-size:15px;font-weight:300;line-height:2.1;white-space:pre-wrap;padding-bottom:40px}
 .shim{height:14px;border-radius:4px;background:linear-gradient(90deg,var(--bdr) 25%,rgba(0,0,0,.04) 50%,var(--bdr) 75%);background-size:200% 100%;animation:sh 1.4s infinite}
 @keyframes sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
@@ -212,7 +212,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .lb-x{position:absolute;top:max(14px,env(safe-area-inset-top));right:14px;width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.15);border:none;color:#fff;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .lb-hint{position:absolute;bottom:max(20px,env(safe-area-inset-bottom));font-size:12px;color:rgba(255,255,255,.35);pointer-events:none}
 /* VOICE */
-.mic-btn{width:40px;height:40px;border-radius:50%;border:1.5px solid var(--bdr);background:var(--card);font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s}
+.mic-btn{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);border-radius:50%;width:38px;height:38px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .mic-btn.rec{background:rgba(220,38,38,.1);border-color:rgba(220,38,38,.5);animation:rp 1s ease-in-out infinite}
 @keyframes rp{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
 .ai-bbl-wrap{align-self:flex-start;display:flex;flex-direction:column;gap:3px;max-width:84%}
@@ -372,7 +372,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
     <div class="chat" id="chat"></div>
     <div class="cvwrap">
       <button class="mic-btn" id="mic-btn" onclick="toggleMic()" title="语音输入">🎤</button>
-      <textarea class="cvta" id="cv-ta" placeholder="用英文回复，或点 🎤 说话…" rows="1"></textarea>
+      <textarea class="cvta" id="cv-ta" placeholder="用英文回复，或点 🎤 说话…" style="color:rgba(255,255,255,.3)" rows="1"></textarea>
       <button class="cvsend" onclick="sendMsg()">↑</button>
     </div>
   </div>
@@ -430,7 +430,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
     <div class="tab" id="tab-notes" onclick="listTab('notes')">学习笔记<span id="notes-count" style="font-size:10px;color:var(--t3);margin-left:3px"></span></div>
   </div>
   <div id="list-body" style="flex:1;overflow-y:auto;padding-bottom:160px"></div>
-  <div style="padding:14px 22px max(20px,env(safe-area-inset-bottom));flex-shrink:0;border-top:1px solid var(--bdr)">
+  <div style="padding:14px 22px max(20px,env(safe-area-inset-bottom));flex-shrink:0;border-top:1px solid rgba(255,255,255,.08)">
     <button class="btn btn-gold" onclick="goTo('story');resetStory()">生成故事</button>
   </div>
 </div>
@@ -663,8 +663,8 @@ document.addEventListener('click',function(ev){
     if(!sn)return;
     var old=document.getElementById('edit-note-modal');if(old)old.remove();
     var mm=document.createElement('div');mm.id='edit-note-modal';
-    mm.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:flex;align-items:flex-end';
-    mm.innerHTML='<div style="background:var(--card);border-radius:22px 22px 0 0;padding:22px;width:100%;box-sizing:border-box">'
+    mm.style.cssText='position:fixed;inset:0;background:rgba(2,8,25,.5);z-index:200;display:flex;align-items:flex-end';
+    mm.innerHTML='<div style="background:rgba(6,16,38,.97);border-radius:22px 22px 0 0;padding:24px;width:100%;box-sizing:border-box;border-top:1px solid rgba(255,255,255,.1);">'
       +'<div style="font-size:15px;font-weight:600;margin-bottom:12px">编辑故事笔记</div>'
       +'<textarea id="edit-note-ta" style="width:100%;background:var(--bg);border:1px solid var(--bdr);border-radius:var(--rs);padding:12px 14px;font-family:inherit;font-size:14px;resize:none;min-height:100px;outline:none;color:var(--text);line-height:1.7;box-sizing:border-box">'+sn.note+'</textarea>'
       +'<div style="display:flex;gap:10px;margin-top:12px">'
@@ -1194,28 +1194,28 @@ function sendMsg(){var ta=document.getElementById('cv-ta'),txt=ta?ta.value.trim(
 function showTopicPicker(){
   var old=document.getElementById('topic-modal');if(old)old.remove();
   var topics=[
-    {label:'🎲 随机来一场',value:'随机，任何话题都行，越出其不意越好'},
-    {label:'💼 职场 & 职业',value:'职场、工作、职业发展、职场人际'},
-    {label:'🏃 运动 & 健康',value:'跑步、徒步、骑车、游泳、健身、运动'},
-    {label:'✈️ 旅行 & 生活',value:'旅行、城市生活、美食、日常闲聊'},
-    {label:'🎵 娱乐 & 流行',value:'Kpop、音乐剧、美剧、电影、pop culture'},
-    {label:'📚 文学 & 文化',value:'书、文学、艺术、历史、有深度的话题'},
-    {label:'😂 八卦 & 闲聊',value:'朋友间的八卦、日常抱怨、轻松闲聊'},
+    {label:'随机来一场',value:'随机，任何话题都行，越出其不意越好'},
+    {label:'职场 & 职业',value:'职场、工作、职业发展、职场人际'},
+    {label:'运动 & 健康',value:'跑步、徒步、骑车、游泳、健身、运动'},
+    {label:'旅行 & 生活',value:'旅行、城市生活、美食、日常闲聊'},
+    {label:'娱乐 & 流行',value:'Kpop、音乐剧、美剧、电影、pop culture'},
+    {label:'文学 & 文化',value:'书、文学、艺术、历史、有深度的话题'},
+    {label:'八卦 & 闲聊',value:'朋友间的八卦、日常抱怨、轻松闲聊'},
   ];
   var m=document.createElement('div');m.id='topic-modal';
-  m.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:flex;align-items:flex-end';
+  m.style.cssText='position:fixed;inset:0;background:rgba(2,8,25,.75);z-index:200;display:flex;align-items:flex-end;backdrop-filter:blur(8px);';
   m.innerHTML='<div style="background:var(--card);border-radius:22px 22px 0 0;padding:22px;width:100%;box-sizing:border-box">'
-    +'<div style="font-size:15px;font-weight:600;margin-bottom:4px">今天想聊什么？</div>'
-    +'<div style="font-size:13px;color:var(--t3);margin-bottom:16px">选个话题方向，AI 会生成相关场景</div>'
+    +'<div style="font-size:16px;font-weight:400;margin-bottom:6px;color:rgba(255,255,255,.88);letter-spacing:1px;font-family:serif;">今天想聊什么？</div>'
+    +'<div style="font-size:12px;color:rgba(255,255,255,.3);margin-bottom:18px;letter-spacing:0.5px;">选个话题方向，AI 会生成相关场景</div>'
     +'<div id="topic-list" style="display:flex;flex-direction:column;gap:8px"></div>'
-    +'<button class="btn btn-ghost" style="margin-top:12px" id="topic-cancel">取消</button>'
+    +'<button id="topic-cancel" style="margin-top:12px;padding:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;color:rgba(255,255,255,.3);font-size:14px;cursor:pointer;width:100%;font-family:inherit;">取消</button>'
     +'</div>';
   document.body.appendChild(m);
   var list=document.getElementById('topic-list');
   topics.forEach(function(t){
     var btn=document.createElement('button');
-    btn.className='btn btn-white';
-    btn.style.cssText='text-align:left;padding:12px 16px;font-size:14px';
+    btn.className='';
+    btn.style.cssText='text-align:left;padding:14px 18px;font-size:14px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:14px;color:rgba(255,255,255,.75);cursor:pointer;width:100%;font-family:inherit;letter-spacing:0.5px;';
     btn.textContent=t.label;
     btn.onclick=function(){m.remove();startConv(t.value);};
     list.appendChild(btn);
