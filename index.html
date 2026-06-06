@@ -231,6 +231,8 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 </style>
 </head>
 <body>
+<!-- ELF starfield + pearl snowfall — fixed outside #app stacking context -->
+<canvas id="elf-canvas" style="position:fixed;inset:0;z-index:9999;pointer-events:none;width:100%;height:100%;"></canvas>
 <div id="lightbox" onclick="if(event.target===this)closeLightbox()">
   <button class="lb-x" onclick="closeLightbox()">✕</button>
   <img id="lb-img" src="" alt="">
@@ -251,9 +253,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 <div id="app">
 
 <!-- HOME -->
-<!-- ELF lightstick starfield + confetti -->
-<canvas id="elf-canvas" style="position:fixed;inset:0;z-index:1;pointer-events:none;width:100%;height:100%;"></canvas>
-
 <div class="screen on" id="home">
   <div class="home-wrap">
     <div class="home-top">
