@@ -308,6 +308,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
     <button id="btn-list" style="display:none" onclick="goTo('list');listTab('today')"></button>
     <div id="card-meta" style="display:none"></div>
     <div id="conv-meta" style="display:none"></div>
+    <div style="flex:1;min-height:20px;"></div>
 
     <!-- Bottom nav links -->
     <div style="display:flex;justify-content:center;align-items:center;flex-wrap:wrap;padding:12px 0 16px;gap:0">
@@ -1808,7 +1809,7 @@ function saveConvFeedback(){
 </script>
 
 <script>
-(funct(function(){
+(function(){
   function initMeteor(){
     var btn=document.getElementById('upload-btn-main');
     var canvas=document.getElementById('meteor-canvas');
