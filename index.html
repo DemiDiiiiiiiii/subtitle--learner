@@ -125,7 +125,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 .idav{width:38px;height:38px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;color:#fff;font-weight:600}
 .idname{font-size:14px;font-weight:600}
 .idsub{font-size:11px;color:var(--t2);margin-top:1px}
-.idscene{font-size:13px;color:rgba(255,255,255,.65);background:rgba(10,20,50,.45);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:10px 14px;line-height:1.8;backdrop-filter:blur(8px);}
+.idscene{font-size:13px;color:rgba(255,255,255,.65);background:rgba(10,20,50,.45);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:10px 14px;line-height:1.8;backdrop-filter:blur(8px);;max-height:120px;overflow-y:auto;-webkit-overflow-scrolling:touch;}
 .cvid-toggle{height:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
 .cvid-toggle-dot{width:32px;height:3px;border-radius:2px;background:var(--bdr);transition:background .2s}
 .cvid-toggle:hover .cvid-toggle-dot,.cvid-toggle:active .cvid-toggle-dot{background:var(--gold)}
@@ -784,10 +784,20 @@ function refreshHome(){
 
 // ── Preview ───────────────────────────────────────────────────────
 function startStudy(files){
-  files=Array.from(files);if(!files.length){toast('没有选到图片');return;}
+  files=Array.from(files);
+  if(!files.length){toast('没有选到图片');return;}
   shuffle(files);
-  sess={imgs:files.slice(0,25).map(function(f){return{file:f,fp:fpOf(f),src:URL.createObjectURL(f)};}),idx:0,state:'input',res:null,notes:'',hist:[]};
-  goTo('preview');renderPreview();
+  alert('step1: files='+files.length);
+  try{
+    sess={imgs:files.slice(0,25).map(function(f){return{file:f,fp:fpOf(f),src:URL.createObjectURL(f)};}),idx:0,state:'input',res:null,notes:'',hist:[]};
+    alert('step2: sess created, imgs='+sess.imgs.length);
+    goTo('preview');
+    alert('step3: goTo preview done');
+    renderPreview();
+    alert('step4: renderPreview done');
+  }catch(e){
+    alert('ERROR: '+e.message+' | '+e.stack);
+  }
 }
 function renderPreview(){
   document.getElementById('prev-ct').textContent=sess.imgs.length+' 张';
