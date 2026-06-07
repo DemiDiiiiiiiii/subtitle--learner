@@ -606,6 +606,9 @@ var DB={entries:[],fps:[],days:{},weakness:''};
 var TODAY=new Date().toLocaleDateString('zh-CN');
 try{var _s=localStorage.getItem(DB_KEY);if(_s)DB=JSON.parse(_s);}catch(e){}
 if(!DB.entries)DB.entries=[];if(!DB.fps)DB.fps=[];if(!DB.days)DB.days={};if(!DB.weakness)DB.weakness='';
+// Migrate old fps format (name|size|lastModified) to new (name|size)
+DB.fps=DB.fps.map(function(fp){var p=fp.split('|');return p.length>=2?p[0]+'|'+p[1]:fp;});
+DB.fps=DB.fps.filter(function(fp,i){return DB.fps.indexOf(fp)===i;}); // dedupe
 if(!DB.days[TODAY])DB.days[TODAY]=[];
 function saveDB(){var v=JSON.stringify(DB);try{localStorage.setItem(DB_KEY,v);}catch(e){}kvSet('db',v);}
 function saveImg(id,b64){try{localStorage.setItem(IP+id,b64);}catch(e){}kvSet('img-'+id,b64);}
@@ -722,6 +725,14 @@ document.addEventListener('click',function(ev){
   if(togBtn){
     var d=togBtn.getAttribute('data-toggle-date');
     toggleDate(d);
+    return;
+  }
+  // Image thumbnail click -> open lightbox
+  var thumb=ev.target.closest('.ethumb');
+  if(thumb){
+    var eid=thumb.getAttribute('data-entry-id');
+    var entry=DB.entries.find(function(e){return e.id===eid;});
+    if(entry&&entry.img) openImg(entry.img);
     return;
   }
 });
