@@ -645,7 +645,13 @@ kvGet('db').then(function(v){
   }catch(e){}
 });
 document.getElementById('fp').addEventListener('change',function(){
-  if(this.files&&this.files.length>0)startStudy(this.files);
+  if(this.files&&this.files.length>0){
+    try{
+      startStudy(this.files);
+    }catch(e){
+      alert('上传错误: '+e.message);
+    }
+  }
   this.value='';
 });
 document.addEventListener('click',function(e){
@@ -784,9 +790,11 @@ function refreshHome(){
 
 // ── Preview ───────────────────────────────────────────────────────
 function startStudy(files){
+  alert('startStudy called, files: '+files.length);
   files=Array.from(files);if(!files.length){toast('没有选到图片');return;}
   shuffle(files);
   sess={imgs:files.slice(0,25).map(function(f){return{file:f,fp:fpOf(f),src:URL.createObjectURL(f)};}),idx:0,state:'input',res:null,notes:'',hist:[]};
+  alert('going to preview');
   goTo('preview');renderPreview();
 }
 function renderPreview(){
