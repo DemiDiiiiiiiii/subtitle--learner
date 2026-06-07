@@ -123,9 +123,9 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 .cvid.collapsed{max-height:0;padding:0;border-bottom:none}
 .idrow{display:flex;align-items:center;gap:10px;margin-bottom:8px}
 .idav{width:38px;height:38px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;color:#fff;font-weight:600}
-.idname{font-size:14px;font-weight:500;color:rgba(255,255,255,.88)}
+.idname{font-size:14px;font-weight:600}
 .idsub{font-size:11px;color:var(--t2);margin-top:1px}
-.idscene{font-size:12px;color:rgba(255,255,255,.45);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:8px 12px;line-height:1.7}
+.idscene{font-size:12px;color:var(--t2);background:rgba(255,255,255,.7);border-radius:10px;padding:8px 12px;line-height:1.7}
 .cvid-toggle{height:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
 .cvid-toggle-dot{width:32px;height:3px;border-radius:2px;background:var(--bdr);transition:background .2s}
 .cvid-toggle:hover .cvid-toggle-dot,.cvid-toggle:active .cvid-toggle-dot{background:var(--gold)}
@@ -231,41 +231,9 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 </style>
 </head>
 <body>
-
-<!-- Stars + snowfall via DOM (no canvas z-index issues) -->
-<div id="star-layer" style="position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden;"></div>
-<style>
-.star{position:absolute;border-radius:50%;background:rgba(140,195,255,.55);pointer-events:none;}
-.star.b{background:rgba(100,170,255,.6);}
-.star.w{background:rgba(230,242,255,.7);box-shadow:0 0 4px 1px rgba(180,220,255,.3);}
-
-</style>
-<script>
-(function(){
-  var layer=document.getElementById('star-layer');
-  if(!layer)return;
-  var W=window.innerWidth,H=window.innerHeight;
-
-  // ── Static stars ──
-  var starDefs=[
-    {count:110,minR:.15,maxR:.85,cls:'star'},
-    {count:60,minR:.4,maxR:1.5,cls:'star b'},
-    {count:30,minR:.5,maxR:1.4,cls:'star w'}
-  ];
-  starDefs.forEach(function(d){
-    for(var i=0;i<d.count;i++){
-      var el=document.createElement('div');
-      el.className=d.cls;
-      var r=d.minR+Math.random()*(d.maxR-d.minR);
-      var a=.06+Math.random()*.55;
-      el.style.cssText='width:'+r*2+'px;height:'+r*2+'px;left:'+(Math.random()*100)+'%;top:'+(Math.random()*100)+'%;opacity:'+a+';';
-      layer.appendChild(el);
-    }
-  });
-
-  // no confetti
-})();
-</script>
+<!-- Stars + snowfall layer — outside #app, no stacking context issues -->
+<div id="star-layer" style="position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;"></div>
+<canvas id="elf-canvas" style="position:fixed;inset:0;z-index:0;pointer-events:none;width:100%;height:100%;display:none;"></canvas>
 <div id="lightbox" onclick="if(event.target===this)closeLightbox()">
   <button class="lb-x" onclick="closeLightbox()">✕</button>
   <img id="lb-img" src="" alt="">
@@ -304,7 +272,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 
     <!-- Upload button with wand & meteor -->
     <div style="margin-bottom:24px;">
-      <label for="fp" style="display:block;cursor:pointer;-webkit-tap-highlight-color:transparent;">
+      <label for="fp" style="display:block;cursor:pointer;">
         <div id="upload-btn-main" style="padding:22px;background:rgba(195,150,42,.07);border:1px solid rgba(210,165,55,.2);border-radius:18px;position:relative;overflow:hidden;backdrop-filter:blur(24px);">
           <div style="position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(240,195,70,.4),transparent);z-index:1;"></div>
           <img src="data:image/png;base64,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" style="position:absolute;left:-71px;top:6px;width:198px;height:auto;opacity:.78;z-index:3;-webkit-mask-image:radial-gradient(ellipse 85% 80% at 55% 40%,black 30%,transparent 100%);mask-image:radial-gradient(ellipse 85% 80% at 55% 40%,black 30%,transparent 100%);pointer-events:none;">
@@ -799,7 +767,10 @@ function refreshHome(){
 function startStudy(files){
   files=Array.from(files);if(!files.length){toast('没有选到图片');return;}
   shuffle(files);
-  sess={imgs:files.slice(0,25).map(function(f){return{file:f,fp:fpOf(f),src:URL.createObjectURL(f)};}),idx:0,state:'input',res:null,notes:'',hist:[]};
+  var fresh=files.filter(function(f){return DB.fps.indexOf(fpOf(f))===-1;});
+  if(!fresh.length){toast('这批图片都处理过了，请选新的截图');return;}
+  var dupes=files.length-fresh.length;if(dupes>0)toast('已过滤 '+dupes+' 张重复');
+  sess={imgs:fresh.slice(0,25).map(function(f){return{file:f,fp:fpOf(f),src:URL.createObjectURL(f)};}),idx:0,state:'input',res:null,notes:'',hist:[]};
   goTo('preview');renderPreview();
 }
 function renderPreview(){
@@ -1848,47 +1819,45 @@ function saveConvFeedback(){
     var ctx=canvas.getContext('2d');
     var tipX=44,tipY=28;
 
-    // Galaxy ribbon: dense persistent pearl dots that build up a milky-way trail
+    // Particles: scattered glowing dots along orbit path
     var particles=[];
     var animAngle=0;
     var running=false;
     var pauseTimer=0;
-    var PAUSE=110;
-    var SPEED=0.018; // slow graceful orbit
+    var PAUSE=130;
+    var SPEED=0.025; // slow orbit
     var p={};
     var startAngle=0;
 
     function getParams(){
-      p={cx:canvas.width*.5,cy:canvas.height*.48,
+      p={W:canvas.width,H:canvas.height,
+         cx:canvas.width*.5,cy:canvas.height*.48,
          rx:canvas.width*.40,ry:canvas.height*.30};
     }
     getParams();
     startAngle=animAngle=Math.atan2(tipY-p.cy,tipX-p.cx);
 
-    // Spawn galaxy dust at (x,y)
-    // Each call spawns 3-5 dots with very slow decay = long-lived trail
-    function spawnDust(x,y){
-      var count=3+Math.floor(Math.random()*3);
-      for(var i=0;i<count;i++){
-        var spread=8+Math.random()*10; // perpendicular scatter = ribbon width
-        var angle=Math.random()*Math.PI*2;
-        var dist=Math.random()*spread;
-        var rnd=Math.random();
-        // size: mostly tiny, occasional larger pearl
-        var r=rnd<0.7 ? 0.4+Math.random()*0.9
-                      : 1.0+Math.random()*1.8;
-        // color: ELF blue dominant, occasional white pearl or cyan
-        var type=Math.random()<0.55?0:Math.random()<0.6?1:2;
-        // decay very slow so dots linger and build up the galaxy look
+    // Spawn a cluster of pearl dots at position
+    function spawnPearls(x,y){
+      // main dot
+      var sz=Math.random()*2.0+0.8;
+      particles.push({x:x,y:y,
+        vx:(Math.random()-0.5)*0.8,vy:(Math.random()-0.5)*0.8,
+        r:sz,life:1.0,
+        decay:0.018+Math.random()*0.015,
+        // vary between ELF blue, pearl white, cyan
+        type:Math.random()<0.5?0:Math.random()<0.6?1:2
+      });
+      // 1-2 satellite micro-dots
+      for(var j=0;j<(Math.random()<0.4?2:1);j++){
         particles.push({
-          x:x+Math.cos(angle)*dist,
-          y:y+Math.sin(angle)*dist,
-          vx:(Math.random()-0.5)*0.12,
-          vy:(Math.random()-0.5)*0.12,
-          r:r,
-          life:1.0,
-          decay:0.004+Math.random()*0.006, // very slow fade
-          type:type
+          x:x+(Math.random()-0.5)*10,
+          y:y+(Math.random()-0.5)*8,
+          vx:(Math.random()-0.5)*0.5,vy:(Math.random()-0.5)*0.5,
+          r:Math.random()*0.9+0.3,
+          life:0.8+Math.random()*0.2,
+          decay:0.025+Math.random()*0.02,
+          type:Math.random()<0.6?1:2
         });
       }
     }
@@ -1897,33 +1866,27 @@ function saveConvFeedback(){
       for(var i=particles.length-1;i>=0;i--){
         var pt=particles[i];
         pt.x+=pt.vx; pt.y+=pt.vy;
+        pt.vx*=0.96; pt.vy*=0.96; // decelerate
         pt.life-=pt.decay;
         if(pt.life<=0){particles.splice(i,1);continue;}
-        var a=pt.life*pt.life;
-        // color
-        var r,g,b;
-        if(pt.type===0){r=80;g=150;b=255;}       // ELF blue
-        else if(pt.type===1){r=190;g=220;b=255;}  // pearl white-blue
-        else{r=120;g=200;b=245;}                  // cyan
-        var col='rgba('+r+','+g+','+b+',';
-        // soft outer glow (wide, transparent) — no hard circle
-        var grd=ctx.createRadialGradient(pt.x,pt.y,0,pt.x,pt.y,pt.r*5);
-        grd.addColorStop(0,col+(a*0.45).toFixed(3)+')');
-        grd.addColorStop(0.4,col+(a*0.2).toFixed(3)+')');
-        grd.addColorStop(1,col+'0)');
-        ctx.beginPath();ctx.arc(pt.x,pt.y,pt.r*5,0,Math.PI*2);
-        ctx.fillStyle=grd;ctx.fill();
-        // tiny bright core — small enough to not look like a ball
-        if(pt.r>0.8){
-          ctx.beginPath();ctx.arc(pt.x,pt.y,pt.r*0.4,0,Math.PI*2);
-          ctx.fillStyle=col+(a*0.9).toFixed(3)+')';ctx.fill();
-        }
+        var a=(pt.life*pt.life).toFixed(3);
+        var col;
+        if(pt.type===0) col='rgba(90,160,255,'+a+')';      // ELF blue
+        else if(pt.type===1) col='rgba(200,228,255,'+a+')'; // pearl white
+        else col='rgba(140,210,240,'+a+')';                 // cyan
+        // glow halo
+        var g=ctx.createRadialGradient(pt.x,pt.y,0,pt.x,pt.y,pt.r*3);
+        g.addColorStop(0,col);
+        g.addColorStop(1,col.replace(','+a+')',',0)'));
+        ctx.beginPath();ctx.arc(pt.x,pt.y,pt.r*3,0,Math.PI*2);
+        ctx.fillStyle=g;ctx.fill();
+        // bright core
+        ctx.beginPath();ctx.arc(pt.x,pt.y,pt.r*0.55,0,Math.PI*2);
+        ctx.fillStyle=col;ctx.fill();
       }
     }
 
     function loop(){
-      // Don't clearRect fully — let particles linger (they fade via life)
-      // But we need to clear to avoid smearing. Use semi-transparent clear.
       ctx.clearRect(0,0,canvas.width,canvas.height);
       drawParticles();
 
@@ -1933,6 +1896,7 @@ function saveConvFeedback(){
           pauseTimer=0;running=true;
           getParams();
           startAngle=animAngle=Math.atan2(tipY-p.cy,tipX-p.cx);
+          particles=[];
         }
         requestAnimationFrame(loop);return;
       }
@@ -1940,9 +1904,12 @@ function saveConvFeedback(){
       animAngle+=SPEED;
       var hx=p.cx+Math.cos(animAngle)*p.rx;
       var hy=p.cy+Math.sin(animAngle)*p.ry;
-      spawnDust(hx,hy);
+      // spawn pearls at head position (not every frame)
+      if(Math.random()<0.7) spawnPearls(hx,hy);
 
       if(animAngle-startAngle>=Math.PI*2){
+        // burst at wand tip on return
+        for(var k=0;k<8;k++) spawnPearls(tipX,tipY);
         running=false;pauseTimer=0;
       }
       requestAnimationFrame(loop);
@@ -1953,6 +1920,70 @@ function saveConvFeedback(){
   else{setTimeout(initMeteor,200);}
 })();
 
+<script>
+(function(){
+  var layer = document.getElementById('star-layer');
+  if(!layer) return;
+  var W = window.innerWidth, H = window.innerHeight;
 
+  // ── 200 static ELF stars ──
+  var types = [
+    {cls:'', count:110, minR:0.15, maxR:0.85, minA:0.06, maxA:0.3,  color:'rgba(140,195,255,'},
+    {cls:'', count:60,  minR:0.4,  maxR:1.5,  minA:0.15, maxA:0.55, color:'rgba(100,170,255,'},
+    {cls:'', count:30,  minR:0.5,  maxR:1.4,  minA:0.25, maxA:0.75, color:'rgba(230,242,255,'}
+  ];
+  types.forEach(function(t){
+    for(var i=0;i<t.count;i++){
+      var el=document.createElement('div');
+      var r=t.minR+Math.random()*(t.maxR-t.minR);
+      var a=(t.minA+Math.random()*(t.maxA-t.minA)).toFixed(2);
+      var glow = (t.count===30 && parseFloat(a)>0.5)
+        ? ';box-shadow:0 0 '+(r*3)+'px '+(r*1.5)+'px rgba(180,220,255,0.2)' : '';
+      el.style.cssText=
+        'position:absolute;border-radius:50%;pointer-events:none;'+
+        'width:'+(r*2)+'px;height:'+(r*2)+'px;'+
+        'left:'+(Math.random()*100)+'%;top:'+(Math.random()*100)+'%;'+
+        'background:'+t.color+a+')'+glow+';';
+      layer.appendChild(el);
+    }
+  });
+
+  // ── One-time pearl snowfall ──
+  var total=140, done=0;
+  for(var i=0;i<total;i++){
+    (function(){
+      var el=document.createElement('div');
+      var colors=['rgba(210,232,255,','rgba(130,190,255,','rgba(240,248,255,'];
+      var col=colors[Math.floor(Math.random()*colors.length)];
+      var r=0.6+Math.random()*2.2;
+      var a=(0.45+Math.random()*0.5).toFixed(2);
+      var dur=5000+Math.random()*8000;
+      var delay=Math.random()*6000;
+      var sx=((Math.random()-0.5)*60).toFixed(0)+'px';
+      var startX=(Math.random()*100).toFixed(1);
+      var startY=-(Math.random()*80).toFixed(0);
+      el.style.cssText=
+        'position:absolute;border-radius:50%;pointer-events:none;'+
+        'width:'+(r*2)+'px;height:'+(r*2)+'px;'+
+        'left:'+startX+'%;top:'+startY+'vh;'+
+        'background:'+col+a+');'+
+        'box-shadow:0 0 '+(r*2.5)+'px '+r+'px '+col+(parseFloat(a)*0.4).toFixed(2)+');'+
+        'animation:elfsnow '+dur+'ms '+delay+'ms linear forwards;';
+      layer.appendChild(el);
+      setTimeout(function(){
+        if(el.parentNode) el.parentNode.removeChild(el);
+      }, delay+dur+200);
+    })();
+  }
+})();
+</script>
+<style>
+@keyframes elfsnow{
+  0%{transform:translateY(0) translateX(0);opacity:0;}
+  5%{opacity:1;}
+  95%{opacity:0.8;}
+  100%{transform:translateY(110vh) translateX(var(--sx,0px));opacity:0;}
+}
+</style>
 </body>
 </html>
