@@ -230,8 +230,9 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 }
 </style>
 <style id="star-css">
-#star-bg{position:fixed;inset:0;pointer-events:none;z-index:9999;overflow:hidden;}
-#star-bg span{position:absolute;border-radius:50%;pointer-events:none;}
+#star-bg{position:fixed;inset:0;pointer-events:none !important;z-index:1;overflow:hidden;}
+#star-bg *{pointer-events:none !important;}
+#star-bg span{position:absolute;border-radius:50%;}
 </style>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&display=swap" rel="stylesheet">
 </head>
@@ -727,14 +728,7 @@ document.addEventListener('click',function(ev){
     toggleDate(d);
     return;
   }
-  // Image thumbnail click -> open lightbox
-  var thumb=ev.target.closest('.ethumb');
-  if(thumb){
-    var eid=thumb.getAttribute('data-entry-id');
-    var entry=DB.entries.find(function(e){return e.id===eid;});
-    if(entry&&entry.img) openImg(entry.img);
-    return;
-  }
+
 });
 
 // ── Utils ─────────────────────────────────────────────────────────
