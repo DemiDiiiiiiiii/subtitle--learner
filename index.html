@@ -238,13 +238,13 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 .star{position:absolute;border-radius:50%;background:rgba(140,195,255,.55);}
 .star.b{background:rgba(100,170,255,.6);}
 .star.w{background:rgba(230,242,255,.7);box-shadow:0 0 4px 1px rgba(180,220,255,.3);}
-@keyframes snowfall{
-  0%{transform:translateY(0) translateX(0);opacity:0;}
+@keyframes confetti-fall{
+  0%{transform:translateY(0) translateX(0) rotate(0deg);opacity:0;}
   5%{opacity:1;}
-  95%{opacity:.8;}
-  100%{transform:translateY(110vh) translateX(var(--sx));opacity:0;}
+  95%{opacity:.85;}
+  100%{transform:translateY(110vh) translateX(var(--sx)) rotate(var(--rot));opacity:0;}
 }
-.flake{position:absolute;border-radius:50%;pointer-events:none;animation:snowfall linear forwards;}
+.flake{position:absolute;pointer-events:none;animation:confetti-fall linear forwards;}
 </style>
 <script>
 (function(){
@@ -269,34 +269,41 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
     }
   });
 
-  // ── One-time pearl snowfall ──
-  var colors=['rgba(210,232,255,','rgba(130,190,255,','rgba(240,248,255,'];
-  var total=140;
-  var done=0;
+  // ── One-time colourful ribbon confetti ──
+  var confColors=[
+    {bg:'rgba(220,185,70,',sh:'rgba(220,185,70,'},   // gold
+    {bg:'rgba(255,255,255,',sh:'rgba(200,220,255,'},  // white
+    {bg:'rgba(100,170,255,',sh:'rgba(80,150,255,'},   // ELF blue
+    {bg:'rgba(255,210,100,',sh:'rgba(240,190,60,'},   // warm gold
+    {bg:'rgba(160,210,255,',sh:'rgba(120,185,255,'},  // pale blue
+  ];
+  var total=130;
   for(var i=0;i<total;i++){
     (function(i){
       var el=document.createElement('div');
       el.className='flake';
-      var r=.6+Math.random()*2.2;
-      var color=colors[Math.floor(Math.random()*colors.length)];
-      var a=.45+Math.random()*.5;
-      var dur=5000+Math.random()*8000;
-      var delay=Math.random()*6000;
-      var sx=((Math.random()-.5)*60)+'px';
+      var col=confColors[Math.floor(Math.random()*confColors.length)];
+      var w=3+Math.random()*6;
+      var h=2+Math.random()*3;
+      var a=0.65+Math.random()*0.35;
+      var dur=4000+Math.random()*7000;
+      var delay=Math.random()*5000;
+      var sx=((Math.random()-.5)*80)+'px';
+      var rot=(Math.random()*720-360)+'deg';
       var startX=Math.random()*100;
-      var startY=-(Math.random()*80);
+      var startY=-(5+Math.random()*90);
       el.style.cssText=
-        'width:'+(r*2)+'px;height:'+(r*2)+'px;'+
+        'width:'+w+'px;height:'+h+'px;'+
         'left:'+startX+'%;top:'+startY+'vh;'+
-        'background:'+color+a+');'+
-        'box-shadow:0 0 '+(r*2.5)+'px '+(r)+'px '+color+(a*.4)+');'+
-        '--sx:'+sx+';'+
+        'background:'+col.bg+a+');'+
+        'border-radius:1px;'+
+        '--sx:'+sx+';--rot:'+rot+';'+
         'animation-duration:'+dur+'ms;'+
-        'animation-delay:'+delay+'ms;';
+        'animation-delay:'+delay+'ms;'+
+        'animation-name:confetti-fall;';
       layer.appendChild(el);
       setTimeout(function(){
         if(el.parentNode)el.parentNode.removeChild(el);
-        done++;
       }, delay+dur+100);
     })(i);
   }
@@ -1887,45 +1894,47 @@ function saveConvFeedback(){
     var ctx=canvas.getContext('2d');
     var tipX=44,tipY=28;
 
-    // Particles: scattered glowing dots along orbit path
+    // Galaxy ribbon: dense persistent pearl dots that build up a milky-way trail
     var particles=[];
     var animAngle=0;
     var running=false;
     var pauseTimer=0;
-    var PAUSE=130;
-    var SPEED=0.025; // slow orbit
+    var PAUSE=110;
+    var SPEED=0.018; // slow graceful orbit
     var p={};
     var startAngle=0;
 
     function getParams(){
-      p={W:canvas.width,H:canvas.height,
-         cx:canvas.width*.5,cy:canvas.height*.48,
+      p={cx:canvas.width*.5,cy:canvas.height*.48,
          rx:canvas.width*.40,ry:canvas.height*.30};
     }
     getParams();
     startAngle=animAngle=Math.atan2(tipY-p.cy,tipX-p.cx);
 
-    // Spawn a cluster of pearl dots at position
-    function spawnPearls(x,y){
-      // main dot
-      var sz=Math.random()*2.0+0.8;
-      particles.push({x:x,y:y,
-        vx:(Math.random()-0.5)*0.8,vy:(Math.random()-0.5)*0.8,
-        r:sz,life:1.0,
-        decay:0.018+Math.random()*0.015,
-        // vary between ELF blue, pearl white, cyan
-        type:Math.random()<0.5?0:Math.random()<0.6?1:2
-      });
-      // 1-2 satellite micro-dots
-      for(var j=0;j<(Math.random()<0.4?2:1);j++){
+    // Spawn galaxy dust at (x,y)
+    // Each call spawns 3-5 dots with very slow decay = long-lived trail
+    function spawnDust(x,y){
+      var count=3+Math.floor(Math.random()*3);
+      for(var i=0;i<count;i++){
+        var spread=8+Math.random()*10; // perpendicular scatter = ribbon width
+        var angle=Math.random()*Math.PI*2;
+        var dist=Math.random()*spread;
+        var rnd=Math.random();
+        // size: mostly tiny, occasional larger pearl
+        var r=rnd<0.7 ? 0.4+Math.random()*0.9
+                      : 1.0+Math.random()*1.8;
+        // color: ELF blue dominant, occasional white pearl or cyan
+        var type=Math.random()<0.55?0:Math.random()<0.6?1:2;
+        // decay very slow so dots linger and build up the galaxy look
         particles.push({
-          x:x+(Math.random()-0.5)*10,
-          y:y+(Math.random()-0.5)*8,
-          vx:(Math.random()-0.5)*0.5,vy:(Math.random()-0.5)*0.5,
-          r:Math.random()*0.9+0.3,
-          life:0.8+Math.random()*0.2,
-          decay:0.025+Math.random()*0.02,
-          type:Math.random()<0.6?1:2
+          x:x+Math.cos(angle)*dist,
+          y:y+Math.sin(angle)*dist,
+          vx:(Math.random()-0.5)*0.12,
+          vy:(Math.random()-0.5)*0.12,
+          r:r,
+          life:1.0,
+          decay:0.004+Math.random()*0.006, // very slow fade
+          type:type
         });
       }
     }
@@ -1934,27 +1943,33 @@ function saveConvFeedback(){
       for(var i=particles.length-1;i>=0;i--){
         var pt=particles[i];
         pt.x+=pt.vx; pt.y+=pt.vy;
-        pt.vx*=0.96; pt.vy*=0.96; // decelerate
         pt.life-=pt.decay;
         if(pt.life<=0){particles.splice(i,1);continue;}
-        var a=(pt.life*pt.life).toFixed(3);
-        var col;
-        if(pt.type===0) col='rgba(90,160,255,'+a+')';      // ELF blue
-        else if(pt.type===1) col='rgba(200,228,255,'+a+')'; // pearl white
-        else col='rgba(140,210,240,'+a+')';                 // cyan
-        // glow halo
-        var g=ctx.createRadialGradient(pt.x,pt.y,0,pt.x,pt.y,pt.r*3);
-        g.addColorStop(0,col);
-        g.addColorStop(1,col.replace(','+a+')',',0)'));
-        ctx.beginPath();ctx.arc(pt.x,pt.y,pt.r*3,0,Math.PI*2);
-        ctx.fillStyle=g;ctx.fill();
-        // bright core
-        ctx.beginPath();ctx.arc(pt.x,pt.y,pt.r*0.55,0,Math.PI*2);
-        ctx.fillStyle=col;ctx.fill();
+        var a=pt.life*pt.life;
+        // color
+        var r,g,b;
+        if(pt.type===0){r=80;g=150;b=255;}       // ELF blue
+        else if(pt.type===1){r=190;g=220;b=255;}  // pearl white-blue
+        else{r=120;g=200;b=245;}                  // cyan
+        var col='rgba('+r+','+g+','+b+',';
+        // soft outer glow (wide, transparent) — no hard circle
+        var grd=ctx.createRadialGradient(pt.x,pt.y,0,pt.x,pt.y,pt.r*5);
+        grd.addColorStop(0,col+(a*0.45).toFixed(3)+')');
+        grd.addColorStop(0.4,col+(a*0.2).toFixed(3)+')');
+        grd.addColorStop(1,col+'0)');
+        ctx.beginPath();ctx.arc(pt.x,pt.y,pt.r*5,0,Math.PI*2);
+        ctx.fillStyle=grd;ctx.fill();
+        // tiny bright core — small enough to not look like a ball
+        if(pt.r>0.8){
+          ctx.beginPath();ctx.arc(pt.x,pt.y,pt.r*0.4,0,Math.PI*2);
+          ctx.fillStyle=col+(a*0.9).toFixed(3)+')';ctx.fill();
+        }
       }
     }
 
     function loop(){
+      // Don't clearRect fully — let particles linger (they fade via life)
+      // But we need to clear to avoid smearing. Use semi-transparent clear.
       ctx.clearRect(0,0,canvas.width,canvas.height);
       drawParticles();
 
@@ -1964,7 +1979,6 @@ function saveConvFeedback(){
           pauseTimer=0;running=true;
           getParams();
           startAngle=animAngle=Math.atan2(tipY-p.cy,tipX-p.cx);
-          particles=[];
         }
         requestAnimationFrame(loop);return;
       }
@@ -1972,12 +1986,9 @@ function saveConvFeedback(){
       animAngle+=SPEED;
       var hx=p.cx+Math.cos(animAngle)*p.rx;
       var hy=p.cy+Math.sin(animAngle)*p.ry;
-      // spawn pearls at head position (not every frame)
-      if(Math.random()<0.7) spawnPearls(hx,hy);
+      spawnDust(hx,hy);
 
       if(animAngle-startAngle>=Math.PI*2){
-        // burst at wand tip on return
-        for(var k=0;k<8;k++) spawnPearls(tipX,tipY);
         running=false;pauseTimer=0;
       }
       requestAnimationFrame(loop);
