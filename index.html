@@ -125,7 +125,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 .idav{width:38px;height:38px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;color:#fff;font-weight:600}
 .idname{font-size:14px;font-weight:600}
 .idsub{font-size:11px;color:var(--t2);margin-top:1px}
-.idscene{font-size:12px;color:var(--t2);background:rgba(255,255,255,.7);border-radius:10px;padding:8px 12px;line-height:1.7}
+.idscene{font-size:13px;color:rgba(255,255,255,.65);background:rgba(10,20,50,.45);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:10px 14px;line-height:1.8;backdrop-filter:blur(8px);}
 .cvid-toggle{height:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
 .cvid-toggle-dot{width:32px;height:3px;border-radius:2px;background:var(--bdr);transition:background .2s}
 .cvid-toggle:hover .cvid-toggle-dot,.cvid-toggle:active .cvid-toggle-dot{background:var(--gold)}
@@ -543,7 +543,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 </div>
 
 </div><!-- app -->
-<input type="file" id="fp" accept="image/*" multiple style="position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;opacity:0;" onchange="alert('onchange fired! files:'+this.files.length)">
+<input type="file" id="fp" accept="image/*" multiple style="position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;opacity:0;">
 
 <script>
 var WORKER = 'https://silent-star-8a3f.demi89612.workers.dev/';
@@ -645,13 +645,7 @@ kvGet('db').then(function(v){
   }catch(e){}
 });
 document.getElementById('fp').addEventListener('change',function(){
-  if(this.files&&this.files.length>0){
-    try{
-      startStudy(this.files);
-    }catch(e){
-      alert('上传错误: '+e.message);
-    }
-  }
+  if(this.files&&this.files.length>0)startStudy(this.files);
   this.value='';
 });
 document.addEventListener('click',function(e){
@@ -790,11 +784,9 @@ function refreshHome(){
 
 // ── Preview ───────────────────────────────────────────────────────
 function startStudy(files){
-  alert('startStudy called, files: '+files.length);
   files=Array.from(files);if(!files.length){toast('没有选到图片');return;}
   shuffle(files);
   sess={imgs:files.slice(0,25).map(function(f){return{file:f,fp:fpOf(f),src:URL.createObjectURL(f)};}),idx:0,state:'input',res:null,notes:'',hist:[]};
-  alert('going to preview');
   goTo('preview');renderPreview();
 }
 function renderPreview(){
