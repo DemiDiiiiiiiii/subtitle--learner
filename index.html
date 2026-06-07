@@ -443,9 +443,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
   <div class="nav" style="flex-shrink:0">
     <div class="back" onclick="goTo('home')">←</div>
     <span class="nav-t" style="font-family:'Cinzel',serif;letter-spacing:1px;">Grimoire</span>
-    <label for="fp" style="margin-left:auto">
-      <div class="btn btn-ghost" style="padding:8px 14px;width:auto;font-size:12px;border-radius:20px">上传</div>
-    </label>
+    <button onclick="document.getElementById('fp').click()" style="margin-left:auto;padding:8px 14px;font-size:12px;border-radius:20px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.75);cursor:pointer;font-family:inherit;">上传</button>
   </div>
   <div class="tabs" style="flex-shrink:0">
     <div class="tab on" id="tab-today" onclick="listTab('today')">今日</div>
