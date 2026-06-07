@@ -229,11 +229,33 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
   50%{filter:brightness(1.6) saturate(1.0) opacity(.92) drop-shadow(0 0 8px rgba(140,190,255,.75)) drop-shadow(0 0 18px rgba(80,150,255,.45));}
 }
 </style>
+
+<style id="star-css">
+/* Star layer - pure CSS, no JS needed */
+#star-bg{
+  position:fixed;inset:0;
+  pointer-events:none;
+  z-index:9999;
+  overflow:hidden;
+}
+/* 60 stars via CSS - scattered with nth-child positioning */
+#star-bg span{
+  position:absolute;
+  border-radius:50%;
+  pointer-events:none;
+  background:rgba(140,195,255,.4);
+}
+/* Snowfall animation */
+@keyframes snowfall{
+  0%{transform:translateY(-5vh);opacity:0;}
+  5%{opacity:1;}
+  90%{opacity:.7;}
+  100%{transform:translateY(105vh);opacity:0;}
+}
+</style>
 </head>
 <body>
-<!-- Stars + snowfall layer — outside #app, no stacking context issues -->
-<div id="star-layer" style="position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;"></div>
-<canvas id="elf-canvas" style="position:fixed;inset:0;z-index:0;pointer-events:none;width:100%;height:100%;display:none;"></canvas>
+<div id="star-bg"></div>
 <div id="lightbox" onclick="if(event.target===this)closeLightbox()">
   <button class="lb-x" onclick="closeLightbox()">✕</button>
   <img id="lb-img" src="" alt="">
@@ -254,6 +276,9 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 <div id="app">
 
 <!-- HOME -->
+<!-- ELF lightstick starfield + confetti -->
+<canvas id="elf-canvas" style="position:fixed;inset:0;z-index:1;pointer-events:none;width:100%;height:100%;"></canvas>
+
 <div class="screen on" id="home">
   <div class="home-wrap">
     <div class="home-top">
@@ -1922,68 +1947,179 @@ function saveConvFeedback(){
 
 <script>
 (function(){
-  var layer = document.getElementById('star-layer');
-  if(!layer) return;
-  var W = window.innerWidth, H = window.innerHeight;
+  var canvas=document.getElementById('elf-canvas');
+  if(!canvas)return;
+  var ctx=canvas.getContext('2d');
 
-  // ── 200 static ELF stars ──
-  var types = [
-    {cls:'', count:110, minR:0.15, maxR:0.85, minA:0.06, maxA:0.3,  color:'rgba(140,195,255,'},
-    {cls:'', count:60,  minR:0.4,  maxR:1.5,  minA:0.15, maxA:0.55, color:'rgba(100,170,255,'},
-    {cls:'', count:30,  minR:0.5,  maxR:1.4,  minA:0.25, maxA:0.75, color:'rgba(230,242,255,'}
+  function resize(){
+    canvas.width=window.innerWidth;
+    canvas.height=window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize',resize);
+
+  // ── Static ELF lightstick stars — dense, majestic ──
+  var stars=[];
+  var STAR_COUNT=200;
+  function initStars(){
+    stars=[];
+    for(var i=0;i<STAR_COUNT;i++){
+      var rnd=Math.random();
+      // 3 types: tiny dim, medium blue, small bright white
+      var type=rnd<0.55?0:rnd<0.82?1:2;
+      stars.push({
+        x:Math.random()*canvas.width,
+        y:Math.random()*canvas.height,
+        r: type===0 ? Math.random()*0.7+0.15
+           : type===1 ? Math.random()*1.1+0.4
+           : Math.random()*0.9+0.5,
+        a: type===0 ? Math.random()*0.25+0.06
+           : type===1 ? Math.random()*0.5+0.15
+           : Math.random()*0.65+0.25,
+        type:type
+      });
+    }
+  }
+  initStars();
+
+  function drawStars(){
+    for(var i=0;i<stars.length;i++){
+      var s=stars[i];
+      ctx.beginPath();
+      ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+      if(s.type===0){
+        ctx.fillStyle='rgba(140,195,255,'+s.a.toFixed(2)+')'; // dim blue
+      } else if(s.type===1){
+        ctx.fillStyle='rgba(100,170,255,'+s.a.toFixed(2)+')'; // vivid blue ELF
+      } else {
+        ctx.fillStyle='rgba(230,242,255,'+s.a.toFixed(2)+')'; // bright white
+      }
+      ctx.fill();
+      // add soft glow to brighter stars
+      if(s.type===2 && s.a>0.5){
+        var g=ctx.createRadialGradient(s.x,s.y,0,s.x,s.y,s.r*3.5);
+        g.addColorStop(0,'rgba(180,220,255,'+(s.a*0.3).toFixed(2)+')');
+        g.addColorStop(1,'rgba(80,140,255,0)');
+        ctx.beginPath();ctx.arc(s.x,s.y,s.r*3.5,0,Math.PI*2);
+        ctx.fillStyle=g;ctx.fill();
+      }
+    }
+  }
+
+  // ── One-time pearl starlight snowfall on load ──
+  var confetti=[];
+  var confettiDone=false;
+  var CONF_COUNT=160;
+
+  function initConfetti(){
+    confetti=[];
+    for(var i=0;i<CONF_COUNT;i++){
+      var rnd=Math.random();
+      // all pearl/white/elf-blue, no warm colors
+      var color= rnd<0.5
+        ? 'rgba(210,232,255,'       // pearl white-blue
+        : rnd<0.78
+          ? 'rgba(130,190,255,'     // ELF blue
+          : 'rgba(240,248,255,';    // pure white pearl
+      var sz=Math.random()*2.2+0.6; // small dots, like snowflakes
+      confetti.push({
+        x:Math.random()*canvas.width,
+        y:-20-Math.random()*canvas.height*0.8,
+        vx:(Math.random()-0.5)*0.6,
+        vy:0.4+Math.random()*1.0,   // slow drift down
+        r:sz,
+        color:color,
+        a:0.5+Math.random()*0.45,
+        life:1.0,
+        decay:0.0025+Math.random()*0.002  // slower fade
+      });
+    }
+  }
+  initConfetti();
+
+  function drawConfetti(){
+    var alive=false;
+    for(var i=0;i<confetti.length;i++){
+      var c=confetti[i];
+      if(c.life<=0)continue;
+      alive=true;
+      c.x+=c.vx;
+      c.y+=c.vy;
+      c.vx+=( Math.random()-0.5)*0.04; // gentle sway
+      c.life-=c.decay;
+      if(c.y>canvas.height+20){c.life=0;continue;}
+      var alpha=(c.a*c.life).toFixed(2);
+      // draw as soft glowing dot
+      var g=ctx.createRadialGradient(c.x,c.y,0,c.x,c.y,c.r*2.5);
+      g.addColorStop(0,c.color+alpha+')');
+      g.addColorStop(1,c.color+'0)');
+      ctx.beginPath();ctx.arc(c.x,c.y,c.r*2.5,0,Math.PI*2);
+      ctx.fillStyle=g;ctx.fill();
+      // bright center
+      ctx.beginPath();ctx.arc(c.x,c.y,c.r*0.6,0,Math.PI*2);
+      ctx.fillStyle=c.color+alpha+')';ctx.fill();
+    }
+    if(!alive) confettiDone=true;
+  }
+
+  function loop(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    drawStars();
+    if(!confettiDone) drawConfetti();
+    requestAnimationFrame(loop);
+  }
+  loop();
+})();
+</script>
+
+<script>
+(function(){
+  var bg = document.getElementById('star-bg');
+  if(!bg) return;
+  // 180 stars
+  var starDefs = [
+    {n:100, rMin:.15, rMax:.8,  aMin:.06, aMax:.28, col:'rgba(140,195,255,'},
+    {n:55,  rMin:.4,  rMax:1.4, aMin:.15, aMax:.5,  col:'rgba(100,170,255,'},
+    {n:25,  rMin:.5,  rMax:1.3, aMin:.25, aMax:.7,  col:'rgba(230,242,255,'}
   ];
-  types.forEach(function(t){
-    for(var i=0;i<t.count;i++){
-      var el=document.createElement('div');
-      var r=t.minR+Math.random()*(t.maxR-t.minR);
-      var a=(t.minA+Math.random()*(t.maxA-t.minA)).toFixed(2);
-      var glow = (t.count===30 && parseFloat(a)>0.5)
-        ? ';box-shadow:0 0 '+(r*3)+'px '+(r*1.5)+'px rgba(180,220,255,0.2)' : '';
-      el.style.cssText=
-        'position:absolute;border-radius:50%;pointer-events:none;'+
+  starDefs.forEach(function(d){
+    for(var i=0;i<d.n;i++){
+      var s=document.createElement('span');
+      var r=d.rMin+Math.random()*(d.rMax-d.rMin);
+      var a=(d.aMin+Math.random()*(d.aMax-d.aMin)).toFixed(2);
+      s.style.cssText=
         'width:'+(r*2)+'px;height:'+(r*2)+'px;'+
-        'left:'+(Math.random()*100)+'%;top:'+(Math.random()*100)+'%;'+
-        'background:'+t.color+a+')'+glow+';';
-      layer.appendChild(el);
+        'left:'+(Math.random()*100).toFixed(2)+'%;'+
+        'top:'+(Math.random()*100).toFixed(2)+'%;'+
+        'background:'+d.col+a+');'+
+        'pointer-events:none;';
+      bg.appendChild(s);
     }
   });
 
-  // ── One-time pearl snowfall ──
-  var total=140, done=0;
-  for(var i=0;i<total;i++){
+  // Snowfall - 120 flakes, one-time
+  var flakeColors=['rgba(210,232,255,','rgba(160,205,255,','rgba(240,248,255,'];
+  for(var i=0;i<120;i++){
     (function(){
-      var el=document.createElement('div');
-      var colors=['rgba(210,232,255,','rgba(130,190,255,','rgba(240,248,255,'];
-      var col=colors[Math.floor(Math.random()*colors.length)];
-      var r=0.6+Math.random()*2.2;
-      var a=(0.45+Math.random()*0.5).toFixed(2);
-      var dur=5000+Math.random()*8000;
-      var delay=Math.random()*6000;
-      var sx=((Math.random()-0.5)*60).toFixed(0)+'px';
-      var startX=(Math.random()*100).toFixed(1);
-      var startY=-(Math.random()*80).toFixed(0);
-      el.style.cssText=
-        'position:absolute;border-radius:50%;pointer-events:none;'+
+      var f=document.createElement('span');
+      var r=0.7+Math.random()*1.8;
+      var col=flakeColors[Math.floor(Math.random()*flakeColors.length)];
+      var a=(0.5+Math.random()*.45).toFixed(2);
+      var dur=(6+Math.random()*9)*1000;
+      var delay=Math.random()*8000;
+      f.style.cssText=
         'width:'+(r*2)+'px;height:'+(r*2)+'px;'+
-        'left:'+startX+'%;top:'+startY+'vh;'+
+        'left:'+(Math.random()*100).toFixed(2)+'%;'+
+        'top:'+(-5-Math.random()*50).toFixed(0)+'vh;'+
         'background:'+col+a+');'+
-        'box-shadow:0 0 '+(r*2.5)+'px '+r+'px '+col+(parseFloat(a)*0.4).toFixed(2)+');'+
-        'animation:elfsnow '+dur+'ms '+delay+'ms linear forwards;';
-      layer.appendChild(el);
-      setTimeout(function(){
-        if(el.parentNode) el.parentNode.removeChild(el);
-      }, delay+dur+200);
+        'pointer-events:none;'+
+        'animation:snowfall '+dur+'ms '+delay+'ms linear forwards;';
+      bg.appendChild(f);
+      setTimeout(function(){if(f.parentNode)f.parentNode.removeChild(f);},delay+dur+200);
     })();
   }
 })();
 </script>
-<style>
-@keyframes elfsnow{
-  0%{transform:translateY(0) translateX(0);opacity:0;}
-  5%{opacity:1;}
-  95%{opacity:0.8;}
-  100%{transform:translateY(110vh) translateX(var(--sx,0px));opacity:0;}
-}
-</style>
+
 </body>
 </html>
