@@ -730,7 +730,7 @@ document.addEventListener('click',function(ev){
 function goTo(id){document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('on');});document.getElementById(id).classList.add('on');if(id==='home')refreshHome();if(id==='library'){document.getElementById('search-inp').value='';renderLib('');}if(id==='settings'){document.getElementById('syn-code').textContent=getUID();document.getElementById('st-stats').textContent=DB.entries.length+' 条字幕，'+getAllKw().length+' 个词汇';document.getElementById('st-today-cnt').textContent='今日 '+(DB.days[TODAY]||[]).length+' 条';}}
 function toast(msg,dur){var el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(function(){el.classList.remove('show');},dur||2200);}
 function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
-function fpOf(f){return f.name+'|'+f.size+'|'+f.lastModified;}
+function fpOf(f){return f.name+'|'+f.size;}
 function autoR(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,120)+'px';}
 function getAllKw(){
   // Return extracted keyword tags, not full sentences
@@ -785,7 +785,10 @@ function refreshHome(){
 function startStudy(files){
   files=Array.from(files);if(!files.length){toast('没有选到图片');return;}
   shuffle(files);
-  sess={imgs:files.slice(0,25).map(function(f){return{file:f,fp:fpOf(f),src:URL.createObjectURL(f)};}),idx:0,state:'input',res:null,notes:'',hist:[]};
+  var fresh=files.filter(function(f){return DB.fps.indexOf(f.name+'|'+f.size)===-1;});
+  if(!fresh.length){toast('这批图片都处理过了，请选新的截图');return;}
+  var dupes=files.length-fresh.length;if(dupes>0)toast('已过滤 '+dupes+' 张重复');
+  sess={imgs:fresh.slice(0,25).map(function(f){return{file:f,fp:f.name+'|'+f.size,src:URL.createObjectURL(f)};}),idx:0,state:'input',res:null,notes:'',hist:[]};
   goTo('preview');renderPreview();
 }
 function renderPreview(){
