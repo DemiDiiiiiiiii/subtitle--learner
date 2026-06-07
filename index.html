@@ -229,8 +229,27 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
   50%{filter:brightness(1.6) saturate(1.0) opacity(.92) drop-shadow(0 0 8px rgba(140,190,255,.75)) drop-shadow(0 0 18px rgba(80,150,255,.45));}
 }
 </style>
+
+<style id="star-css">
+/* Star layer - pure CSS, no JS needed */
+#star-bg{
+  position:fixed;inset:0;
+  pointer-events:none;
+  z-index:9999;
+  overflow:hidden;
+}
+/* 60 stars via CSS - scattered with nth-child positioning */
+#star-bg span{
+  position:absolute;
+  border-radius:50%;
+  pointer-events:none;
+  background:rgba(140,195,255,.4);
+}
+
+</style>
 </head>
 <body>
+<div id="star-bg"></div>
 <div id="lightbox" onclick="if(event.target===this)closeLightbox()">
   <button class="lb-x" onclick="closeLightbox()">✕</button>
   <img id="lb-img" src="" alt="">
@@ -767,10 +786,7 @@ function refreshHome(){
 function startStudy(files){
   files=Array.from(files);if(!files.length){toast('没有选到图片');return;}
   shuffle(files);
-  var fresh=files.filter(function(f){return DB.fps.indexOf(fpOf(f))===-1;});
-  if(!fresh.length){toast('这批图片都处理过了，请选新的截图');return;}
-  var dupes=files.length-fresh.length;if(dupes>0)toast('已过滤 '+dupes+' 张重复');
-  sess={imgs:fresh.slice(0,25).map(function(f){return{file:f,fp:fpOf(f),src:URL.createObjectURL(f)};}),idx:0,state:'input',res:null,notes:'',hist:[]};
+  sess={imgs:files.slice(0,25).map(function(f){return{file:f,fp:fpOf(f),src:URL.createObjectURL(f)};}),idx:0,state:'input',res:null,notes:'',hist:[]};
   goTo('preview');renderPreview();
 }
 function renderPreview(){
@@ -1919,6 +1935,7 @@ function saveConvFeedback(){
   if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',initMeteor);}
   else{setTimeout(initMeteor,200);}
 })();
+</script>
 
 <script>
 (function(){
@@ -2046,5 +2063,35 @@ function saveConvFeedback(){
   loop();
 })();
 </script>
+
+<script>
+(function(){
+  var bg = document.getElementById('star-bg');
+  if(!bg) return;
+  // 180 stars
+  var starDefs = [
+    {n:100, rMin:.15, rMax:.8,  aMin:.06, aMax:.28, col:'rgba(140,195,255,'},
+    {n:55,  rMin:.4,  rMax:1.4, aMin:.15, aMax:.5,  col:'rgba(100,170,255,'},
+    {n:25,  rMin:.5,  rMax:1.3, aMin:.25, aMax:.7,  col:'rgba(230,242,255,'}
+  ];
+  starDefs.forEach(function(d){
+    for(var i=0;i<d.n;i++){
+      var s=document.createElement('span');
+      var r=d.rMin+Math.random()*(d.rMax-d.rMin);
+      var a=(d.aMin+Math.random()*(d.aMax-d.aMin)).toFixed(2);
+      s.style.cssText=
+        'width:'+(r*2)+'px;height:'+(r*2)+'px;'+
+        'left:'+(Math.random()*100).toFixed(2)+'%;'+
+        'top:'+(Math.random()*100).toFixed(2)+'%;'+
+        'background:'+d.col+a+');'+
+        'pointer-events:none;';
+      bg.appendChild(s);
+    }
+  });
+
+
+})();
+</script>
+
 </body>
 </html>
