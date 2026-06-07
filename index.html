@@ -922,7 +922,7 @@ function submitS(){
   var ta=document.getElementById('s-ta'),txt=ta?ta.value.trim():'';
   if(!txt){toast('请先输入字幕内容');return;}
   sess.state='analyzing';renderStudy();
-  callDS([{role:'user',content:'分析以下影视字幕（英文或韩文），只返回JSON不要markdown：\n"'+txt+'"\n\n{"zh":"整体中文翻译","lang":"en或ko","keywords":[{"word":"词或短语","zh":"含义","note":"地道用法说明，韩文注明반말/존댓말"}]}\n\n提取所有值得学的词和短语，不要限制数量。'}],600)
+  callDS([{role:'user',content:'分析以下影视字幕（英文或韩文），只返回JSON不要markdown：\n"'+txt+'"\n\n{"zh":"整体中文翻译","lang":"en或ko","keywords":[{"word":"词或短语","zh":"含义","note":"地道用法说明，韩文注明반말/존댓말"}]}\n\n提取最值得学的词和短语，最多8个。'}],500)
   .then(function(raw){
     try{
       var parsed=JSON.parse(raw.replace(/```json|```/g,'').trim());
@@ -930,8 +930,9 @@ function submitS(){
       sess.res=parsed;
     }catch(e){sess.res={orig:txt,zh:'',lang:'en',keywords:[]};}
     sess.state='result';sess.notes='';renderStudy();
-  }).catch(function(){
-    sess.res={orig:txt,zh:'（分析失败）',lang:'en',keywords:[]};
+  }).catch(function(e){
+    toast('AI连接失败，请检查网络后重试');
+    sess.res={orig:txt,zh:'（分析失败，可点修改重试）',lang:'en',keywords:[]};
     sess.state='result';sess.notes='';renderStudy();
   });
 }
@@ -1247,7 +1248,7 @@ function toggleCvid(){
     if(!cvid.classList.contains('collapsed'))cvid.classList.add('collapsed');
   },true);
 })();
-function sendMsg(){var ta=document.getElementById('cv-ta'),txt=ta?ta.value.trim():'';if(!txt||!conv||conv.state!=='chatting')return;ta.value='';ta.style.height='auto';addBbl('me',txt);conv.msgs.push({role:'user',content:txt});addLoad();callDS(conv.msgs,250).then(function(r){rmLoad();conv.msgs.push({role:'assistant',content:r});addBbl('ai',r);}).catch(function(){rmLoad();toast('网络错误，请重试');});}
+function sendMsg(){var ta=document.getElementById('cv-ta'),txt=ta?ta.value.trim():'';if(!txt||!conv||conv.state!=='chatting')return;ta.value='';ta.style.height='auto';addBbl('me',txt);conv.msgs.push({role:'user',content:txt});addLoad();var recentMsgs=conv.msgs.length>7?conv.msgs.slice(0,1).concat(conv.msgs.slice(-6)):conv.msgs;callDS(recentMsgs,250).then(function(r){rmLoad();conv.msgs.push({role:'assistant',content:r});addBbl('ai',r);}).catch(function(){rmLoad();toast('网络错误，请重试');});}
 // leaveConv replaced by showConvExit
 function showTopicPicker(){
   var old=document.getElementById('topic-modal');if(old)old.remove();
@@ -1494,7 +1495,7 @@ function saveEditAndAnalyze(id){
   if(!txt){toast('请先输入字幕内容');return;}
   var m=document.getElementById('edit-modal');if(m)m.remove();
   toast('正在重新分析…');
-  callDS([{role:'user',content:'分析以下影视字幕（英文或韩文），只返回JSON不要markdown：\n"'+txt+'"\n\n{"zh":"整体中文翻译","lang":"en或ko","keywords":[{"word":"词或短语","zh":"含义","note":"地道用法说明，韩文注明반말/존댓말"}]}\n\n提取所有值得学的词和短语，不要限制数量。'}],600)
+  callDS([{role:'user',content:'分析以下影视字幕（英文或韩文），只返回JSON不要markdown：\n"'+txt+'"\n\n{"zh":"整体中文翻译","lang":"en或ko","keywords":[{"word":"词或短语","zh":"含义","note":"地道用法说明，韩文注明반말/존댓말"}]}\n\n提取最值得学的词和短语，最多8个。'}],500)
   .then(function(raw){
     try{
       var clean=raw.replace(/```json|```/g,'').trim();
@@ -1583,7 +1584,7 @@ function genStory(){
   var lang=document.querySelector('.chip.on[data-g="lang"]').textContent;
   var lines=list.map(function(e,i){return (i+1)+'. '+e.text+(e.zh?'（'+e.zh+'）':'');}).join('\n');
   document.getElementById('st-cfg').style.display='none';document.getElementById('st-shim').style.display='flex';
-  callDS([{role:'user',content:'今天从影视剧截图里手动输入的字幕：\n'+lines+'\n\n用这些句子编一个短故事。场景：'+scene+'，风格：'+style+'，语言：'+(lang==='中英双语'?'中英双语，每段先英文后中文':lang==='纯英文'?'全程英文':'全程中文')+'。自然融入原句，200-350字，直接开始写，不要标题前言。'}],1200)
+  callDS([{role:'user',content:'今天从影视剧截图里手动输入的字幕：\n'+lines+'\n\n用这些句子编一个短故事。场景：'+scene+'，风格：'+style+'，语言：'+(lang==='中英双语'?'中英双语，每段先英文后中文':lang==='纯英文'?'全程英文':'全程中文')+'。自然融入原句，150-250字，直接开始写，不要标题前言。'}],700)
   .then(function(txt){
     document.getElementById('st-shim').style.display='none';
     document.getElementById('st-txt').textContent=txt;
@@ -1734,7 +1735,7 @@ function clearAll(){
 
 // ── API ───────────────────────────────────────────────────────────
 function callDS(msgs,max){
-  return fetch(WORKER,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+DS_KEY},body:JSON.stringify({model:'deepseek-chat',max_tokens:max||600,messages:msgs})})
+  return fetch(WORKER,{method:'POST',headers:{'Content-Type':'application/json','X-Action':'ds','Authorization':'Bearer '+DS_KEY},body:JSON.stringify({model:'deepseek-chat',max_tokens:max||600,messages:msgs})})
   .then(function(r){return r.json();})
   .then(function(d){if(d.error)throw new Error(d.error.message||JSON.stringify(d.error));return(d.choices&&d.choices[0]&&d.choices[0].message&&d.choices[0].message.content)||'';});
 }
