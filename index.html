@@ -231,8 +231,77 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 </style>
 </head>
 <body>
-<!-- ELF starfield + pearl snowfall — fixed outside #app stacking context -->
-<canvas id="elf-canvas" style="position:fixed;inset:0;z-index:9999;pointer-events:none;width:100%;height:100%;"></canvas>
+
+<!-- Stars + snowfall via DOM (no canvas z-index issues) -->
+<div id="star-layer" style="position:fixed;inset:0;z-index:9999;pointer-events:none;overflow:hidden;"></div>
+<style>
+.star{position:absolute;border-radius:50%;background:rgba(140,195,255,.55);}
+.star.b{background:rgba(100,170,255,.6);}
+.star.w{background:rgba(230,242,255,.7);box-shadow:0 0 4px 1px rgba(180,220,255,.3);}
+@keyframes snowfall{
+  0%{transform:translateY(0) translateX(0);opacity:0;}
+  5%{opacity:1;}
+  95%{opacity:.8;}
+  100%{transform:translateY(110vh) translateX(var(--sx));opacity:0;}
+}
+.flake{position:absolute;border-radius:50%;pointer-events:none;animation:snowfall linear forwards;}
+</style>
+<script>
+(function(){
+  var layer=document.getElementById('star-layer');
+  if(!layer)return;
+  var W=window.innerWidth,H=window.innerHeight;
+
+  // ── Static stars ──
+  var starDefs=[
+    {count:110,minR:.15,maxR:.85,cls:'star'},
+    {count:60,minR:.4,maxR:1.5,cls:'star b'},
+    {count:30,minR:.5,maxR:1.4,cls:'star w'}
+  ];
+  starDefs.forEach(function(d){
+    for(var i=0;i<d.count;i++){
+      var el=document.createElement('div');
+      el.className=d.cls;
+      var r=d.minR+Math.random()*(d.maxR-d.minR);
+      var a=.06+Math.random()*.55;
+      el.style.cssText='width:'+r*2+'px;height:'+r*2+'px;left:'+(Math.random()*100)+'%;top:'+(Math.random()*100)+'%;opacity:'+a+';';
+      layer.appendChild(el);
+    }
+  });
+
+  // ── One-time pearl snowfall ──
+  var colors=['rgba(210,232,255,','rgba(130,190,255,','rgba(240,248,255,'];
+  var total=140;
+  var done=0;
+  for(var i=0;i<total;i++){
+    (function(i){
+      var el=document.createElement('div');
+      el.className='flake';
+      var r=.6+Math.random()*2.2;
+      var color=colors[Math.floor(Math.random()*colors.length)];
+      var a=.45+Math.random()*.5;
+      var dur=5000+Math.random()*8000;
+      var delay=Math.random()*6000;
+      var sx=((Math.random()-.5)*60)+'px';
+      var startX=Math.random()*100;
+      var startY=-(Math.random()*80);
+      el.style.cssText=
+        'width:'+(r*2)+'px;height:'+(r*2)+'px;'+
+        'left:'+startX+'%;top:'+startY+'vh;'+
+        'background:'+color+a+');'+
+        'box-shadow:0 0 '+(r*2.5)+'px '+(r)+'px '+color+(a*.4)+');'+
+        '--sx:'+sx+';'+
+        'animation-duration:'+dur+'ms;'+
+        'animation-delay:'+delay+'ms;';
+      layer.appendChild(el);
+      setTimeout(function(){
+        if(el.parentNode)el.parentNode.removeChild(el);
+        done++;
+      }, delay+dur+100);
+    })(i);
+  }
+})();
+</script>
 <div id="lightbox" onclick="if(event.target===this)closeLightbox()">
   <button class="lb-x" onclick="closeLightbox()">✕</button>
   <img id="lb-img" src="" alt="">
@@ -1919,131 +1988,6 @@ function saveConvFeedback(){
   else{setTimeout(initMeteor,200);}
 })();
 
-<script>
-(function(){
-  var canvas=document.getElementById('elf-canvas');
-  if(!canvas)return;
-  var ctx=canvas.getContext('2d');
 
-  function resize(){
-    canvas.width=window.innerWidth;
-    canvas.height=window.innerHeight;
-  }
-  resize();
-  window.addEventListener('resize',resize);
-
-  // ── Static ELF lightstick stars — dense, majestic ──
-  var stars=[];
-  var STAR_COUNT=200;
-  function initStars(){
-    stars=[];
-    for(var i=0;i<STAR_COUNT;i++){
-      var rnd=Math.random();
-      // 3 types: tiny dim, medium blue, small bright white
-      var type=rnd<0.55?0:rnd<0.82?1:2;
-      stars.push({
-        x:Math.random()*canvas.width,
-        y:Math.random()*canvas.height,
-        r: type===0 ? Math.random()*0.7+0.15
-           : type===1 ? Math.random()*1.1+0.4
-           : Math.random()*0.9+0.5,
-        a: type===0 ? Math.random()*0.25+0.06
-           : type===1 ? Math.random()*0.5+0.15
-           : Math.random()*0.65+0.25,
-        type:type
-      });
-    }
-  }
-  initStars();
-
-  function drawStars(){
-    for(var i=0;i<stars.length;i++){
-      var s=stars[i];
-      ctx.beginPath();
-      ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
-      if(s.type===0){
-        ctx.fillStyle='rgba(140,195,255,'+s.a.toFixed(2)+')'; // dim blue
-      } else if(s.type===1){
-        ctx.fillStyle='rgba(100,170,255,'+s.a.toFixed(2)+')'; // vivid blue ELF
-      } else {
-        ctx.fillStyle='rgba(230,242,255,'+s.a.toFixed(2)+')'; // bright white
-      }
-      ctx.fill();
-      // add soft glow to brighter stars
-      if(s.type===2 && s.a>0.5){
-        var g=ctx.createRadialGradient(s.x,s.y,0,s.x,s.y,s.r*3.5);
-        g.addColorStop(0,'rgba(180,220,255,'+(s.a*0.3).toFixed(2)+')');
-        g.addColorStop(1,'rgba(80,140,255,0)');
-        ctx.beginPath();ctx.arc(s.x,s.y,s.r*3.5,0,Math.PI*2);
-        ctx.fillStyle=g;ctx.fill();
-      }
-    }
-  }
-
-  // ── One-time pearl starlight snowfall on load ──
-  var confetti=[];
-  var confettiDone=false;
-  var CONF_COUNT=160;
-
-  function initConfetti(){
-    confetti=[];
-    for(var i=0;i<CONF_COUNT;i++){
-      var rnd=Math.random();
-      // all pearl/white/elf-blue, no warm colors
-      var color= rnd<0.5
-        ? 'rgba(210,232,255,'       // pearl white-blue
-        : rnd<0.78
-          ? 'rgba(130,190,255,'     // ELF blue
-          : 'rgba(240,248,255,';    // pure white pearl
-      var sz=Math.random()*2.2+0.6; // small dots, like snowflakes
-      confetti.push({
-        x:Math.random()*canvas.width,
-        y:-20-Math.random()*canvas.height*0.8,
-        vx:(Math.random()-0.5)*0.6,
-        vy:0.4+Math.random()*1.0,   // slow drift down
-        r:sz,
-        color:color,
-        a:0.5+Math.random()*0.45,
-        life:1.0,
-        decay:0.0025+Math.random()*0.002  // slower fade
-      });
-    }
-  }
-  initConfetti();
-
-  function drawConfetti(){
-    var alive=false;
-    for(var i=0;i<confetti.length;i++){
-      var c=confetti[i];
-      if(c.life<=0)continue;
-      alive=true;
-      c.x+=c.vx;
-      c.y+=c.vy;
-      c.vx+=( Math.random()-0.5)*0.04; // gentle sway
-      c.life-=c.decay;
-      if(c.y>canvas.height+20){c.life=0;continue;}
-      var alpha=(c.a*c.life).toFixed(2);
-      // draw as soft glowing dot
-      var g=ctx.createRadialGradient(c.x,c.y,0,c.x,c.y,c.r*2.5);
-      g.addColorStop(0,c.color+alpha+')');
-      g.addColorStop(1,c.color+'0)');
-      ctx.beginPath();ctx.arc(c.x,c.y,c.r*2.5,0,Math.PI*2);
-      ctx.fillStyle=g;ctx.fill();
-      // bright center
-      ctx.beginPath();ctx.arc(c.x,c.y,c.r*0.6,0,Math.PI*2);
-      ctx.fillStyle=c.color+alpha+')';ctx.fill();
-    }
-    if(!alive) confettiDone=true;
-  }
-
-  function loop(){
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    drawStars();
-    if(!confettiDone) drawConfetti();
-    requestAnimationFrame(loop);
-  }
-  loop();
-})();
-</script>
 </body>
 </html>
