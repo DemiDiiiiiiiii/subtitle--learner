@@ -333,7 +333,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
     <button id="btn-list" style="display:none" onclick="goTo('list');listTab('today')"></button>
     <div id="card-meta" style="display:none"></div>
     <div id="conv-meta" style="display:none"></div>
-    <div style="flex:0;min-height:0;"></div>
+    <div style="flex:1;min-height:0;"></div>
 
     <!-- Bottom nav links -->
     <div style="display:flex;justify-content:center;align-items:center;flex-wrap:wrap;padding:12px 0 16px;gap:0">
@@ -1419,9 +1419,9 @@ function eRowHTML(e,i,showDate){
     +(e.notes?'<div class="enote">'+e.notes+'</div>':'')
     +kws
     +'</div>'
-    +'<div style="display:flex;flex-direction:column;gap:4px;position:relative;z-index:2">'
-    +'<button class="edel" data-del-id="'+e.id+'">×</button>'
-    +'<button class="edel" style="font-size:11px;opacity:.5" data-edit-id="'+e.id+'">✏️</button>'
+    +'<div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0">'
+    +'<button class="edel" onclick="event.stopPropagation();delEntry(&quot;'+e.id+'&quot;)">×</button>'
+    +'<button class="edel" style="font-size:11px;opacity:.5" onclick="event.stopPropagation();editEntry(&quot;'+e.id+'&quot;)">✏️</button>'
     +'</div>'
     +'</div>';
 }
