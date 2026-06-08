@@ -16,7 +16,7 @@
   --bdr:rgba(255,255,255,.1);--sh:0 4px 24px rgba(0,0,0,.25);
   --r:16px;--rs:10px;
 }
-html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased;cursor:pointer}
 #app::before{content:'';position:absolute;inset:0;z-index:0;pointer-events:none;
   background:
     radial-gradient(ellipse 70% 55% at -8% -5%,rgba(210,165,50,.16) 0%,rgba(180,130,30,.09) 25%,transparent 58%),
@@ -1420,8 +1420,8 @@ function eRowHTML(e,i,showDate){
     +kws
     +'</div>'
     +'<div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0">'
-    +'<button class="edel" onclick="event.stopPropagation();delEntry(&quot;'+e.id+'&quot;)">×</button>'
-    +'<button class="edel" style="font-size:11px;opacity:.5" onclick="event.stopPropagation();editEntry(&quot;'+e.id+'&quot;)">✏️</button>'
+    +'<button class="edel" data-del-id="'+e.id+'">×</button>'
+    +'<button class="edel" style="font-size:11px;opacity:.5" data-edit-id="'+e.id+'">✏️</button>'
     +'</div>'
     +'</div>';
 }
