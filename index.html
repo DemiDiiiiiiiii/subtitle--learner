@@ -687,7 +687,7 @@ document.addEventListener('click',function(ev){
     mm.style.cssText='position:fixed;inset:0;background:rgba(2,8,25,.5);z-index:200;display:flex;align-items:flex-end';
     mm.innerHTML='<div style="background:rgba(6,16,38,.97);border-radius:22px 22px 0 0;padding:24px;width:100%;box-sizing:border-box;border-top:1px solid rgba(255,255,255,.1);">'
       +'<div style="font-size:15px;font-weight:600;margin-bottom:12px">编辑故事笔记</div>'
-      +'<textarea id="edit-note-ta" style="width:100%;background:var(--bg);border:1px solid var(--bdr);border-radius:var(--rs);padding:12px 14px;font-family:inherit;font-size:14px;resize:none;min-height:100px;outline:none;color:var(--text);line-height:1.7;box-sizing:border-box">'+sn.note+'</textarea>'
+      +'<textarea id="edit-note-ta" style="width:100%;background:rgba(2,8,25,.97);border:1px solid rgba(255,255,255,.15);border-radius:var(--rs);padding:12px 14px;font-family:inherit;font-size:14px;resize:none;min-height:100px;outline:none;color:var(--text);line-height:1.7;box-sizing:border-box">'+sn.note+'</textarea>'
       +'<div style="display:flex;gap:10px;margin-top:12px">'
       +'<button class="btn btn-ghost" style="flex:1" id="edit-note-cancel">取消</button>'
       +'<button class="btn btn-gold" style="flex:1" id="edit-note-save">保存</button>'
@@ -885,7 +885,13 @@ function renderStudy(){
       +(kws?'<div class="kwl">'+kws+'</div>':'')
       +'<div class="nlbl">随手记</div>'
       +'<textarea class="nta" id="s-notes" placeholder="碎碎念、用法联想…"></textarea>'
-      +'<div style="display:flex;gap:10px;margin-top:16px">'
+      +'<div class="nlbl" style="margin-top:12px">追问AI</div>'
+      +'<div style="display:flex;gap:8px;margin-bottom:4px">'
+      +'<input id="s-followup" type="text" placeholder="如：帮我拆解语法和单词…" style="flex:1;background:rgba(2,8,25,.97);border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:9px 12px;font-family:inherit;font-size:13px;color:var(--text);outline:none">'
+      +'<button onclick="followupS()" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:9px 14px;color:var(--text);font-size:13px;cursor:pointer;white-space:nowrap">发送</button>'
+      +'</div>'
+      +'<div id="s-followup-loading" style="display:none;font-size:12px;color:var(--t3);padding:4px 0">AI思考中…</div>'
+      +'<div style="display:flex;gap:10px;margin-top:12px">'
       +'<div style="display:flex;gap:8px;margin-bottom:10px">'
       +'<button class="btn btn-white" style="flex:1;padding:9px;font-size:13px" onclick="editInputS()">修改输入</button>'
       +'</div>'
@@ -952,6 +958,33 @@ function submitS(){
     sess.res={orig:txt,zh:'（分析失败，可点修改重试）',lang:'en',keywords:[]};
     sess.state='result';sess.notes='';renderStudy();
   });
+}
+function followupS(){
+  var inp=document.getElementById('s-followup');
+  var q=inp?inp.value.trim():'';
+  if(!q||!sess||!sess.res)return;
+  inp.value='';
+  var loading=document.getElementById('s-followup-loading');
+  if(loading)loading.style.display='block';
+  var orig=sess.res.orig;
+  var cur=JSON.stringify({zh:sess.res.zh,keywords:sess.res.keywords});
+  callDS([{role:'user',content:'以下是一句影视字幕和当前分析结果，用户有追加要求，请按要求修改后只返回JSON不要markdown：
+字幕："'+orig+'"
+当前结果：'+cur+'
+用户要求：'+q+'
+
+返回格式：{"zh":"整体中文翻译","lang":"en或ko","keywords":[{"word":"词或短语","zh":"含义","note":"用法说明"}]}'}],600)
+  .then(function(raw){
+    if(loading)loading.style.display='none';
+    try{
+      var parsed=JSON.parse(raw.replace(/```json|```/g,'').trim());
+      parsed.orig=orig;
+      sess.res=parsed;
+      renderStudy();
+      // restore notes
+      var ni=document.getElementById('s-notes');if(ni)ni.value=sess.notes||'';
+    }catch(e){toast('解析失败，请重试');}
+  }).catch(function(){if(loading)loading.style.display='none';toast('网络错误，请重试');});
 }
 function prevS(){
   if(sess.idx<=0)return;
@@ -1129,7 +1162,7 @@ function startConv(topicOverride){
   document.getElementById('fb-sheet').classList.remove('show');
 
   // Word bank: vocab keywords (up to 4) + phrases extracted from notes (up to 2)
-  var picked=shuffle(enKw.slice()).slice(0,10);
+  var picked=enKw.slice().sort(function(a,b){return (a.lastSeen||0)-(b.lastSeen||0);}).slice(0,10);
   var wb=picked.map(function(w){return '- "'+w.word+'" ('+w.zh+')';}).join('\n');
 
   // Extract English expressions from notes to add as extra practice targets
@@ -1193,7 +1226,8 @@ function startConv(topicOverride){
       +'\n\n如果这些词汇有机会自然融入就用，不必强塞：\n'+wb
       +sjFanCtx+fanCtx
       +(notesCtx||'');
-    conv={setup:setup,msgs:[{role:'system',content:sys},{role:'assistant',content:setup.firstMessage}],state:'chatting'};
+    var now=Date.now();picked.forEach(function(kw){kw.lastSeen=now;});saveDB();
+  conv={setup:setup,msgs:[{role:'system',content:sys},{role:'assistant',content:setup.firstMessage}],state:'chatting'};
     document.getElementById('cv-load').style.display='none';
     var m=document.getElementById('cv-main');m.style.display='flex';m.style.flexDirection='column';m.style.flex='1';m.style.minHeight='0';m.style.overflow='hidden';
     // Fix scroll: give chat an explicit height based on available space
@@ -1390,7 +1424,7 @@ function editConvNote(idx){
   m.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:flex;align-items:flex-end';
   m.innerHTML='<div style="background:var(--card);border-radius:22px 22px 0 0;padding:22px;width:100%;box-sizing:border-box">'
     +'<div style="font-size:15px;font-weight:600;margin-bottom:12px">编辑对话笔记</div>'
-    +'<textarea id="edit-note-ta" style="width:100%;background:var(--bg);border:1px solid var(--bdr);border-radius:var(--rs);padding:12px 14px;font-family:inherit;font-size:14px;resize:none;min-height:120px;outline:none;color:var(--text);line-height:1.7;box-sizing:border-box">'+note.notes+'</textarea>'
+    +'<textarea id="edit-note-ta" style="width:100%;background:rgba(2,8,25,.97);border:1px solid rgba(255,255,255,.15);border-radius:var(--rs);padding:12px 14px;font-family:inherit;font-size:14px;resize:none;min-height:120px;outline:none;color:var(--text);line-height:1.7;box-sizing:border-box">'+note.notes+'</textarea>'
     +'<div style="display:flex;gap:10px;margin-top:12px">'
     +'<button class="btn btn-ghost" style="flex:1" id="edit-note-cancel">取消</button>'
     +'<button class="btn btn-gold" style="flex:1" id="edit-note-save">保存</button>'
@@ -1410,7 +1444,7 @@ function editStoryNote(idx){
   var old=document.getElementById('edit-note-modal');if(old)old.remove();
   var m=document.createElement('div');m.id='edit-note-modal';
   m.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:flex;align-items:flex-end';
-  m.innerHTML='<div style="background:var(--card);border-radius:22px 22px 0 0;padding:22px;width:100%;box-sizing:border-box">'    +'<div style="font-size:15px;font-weight:600;margin-bottom:12px">编辑故事笔记</div>'    +'<textarea id="edit-note-ta" style="width:100%;background:var(--bg);border:1px solid var(--bdr);border-radius:var(--rs);padding:12px 14px;font-family:inherit;font-size:14px;resize:none;min-height:120px;outline:none;color:var(--text);line-height:1.7;box-sizing:border-box">'+sn.note+'</textarea>'    +'<div style="display:flex;gap:10px;margin-top:12px">'    +'<button class="btn btn-ghost" style="flex:1" id="edit-note-cancel">取消</button>'    +'<button class="btn btn-gold" style="flex:1" id="edit-note-save">保存</button>'    +'</div></div>';
+  m.innerHTML='<div style="background:var(--card);border-radius:22px 22px 0 0;padding:22px;width:100%;box-sizing:border-box">'    +'<div style="font-size:15px;font-weight:600;margin-bottom:12px">编辑故事笔记</div>'    +'<textarea id="edit-note-ta" style="width:100%;background:rgba(2,8,25,.97);border:1px solid rgba(255,255,255,.15);border-radius:var(--rs);padding:12px 14px;font-family:inherit;font-size:14px;resize:none;min-height:120px;outline:none;color:var(--text);line-height:1.7;box-sizing:border-box">'+sn.note+'</textarea>'    +'<div style="display:flex;gap:10px;margin-top:12px">'    +'<button class="btn btn-ghost" style="flex:1" id="edit-note-cancel">取消</button>'    +'<button class="btn btn-gold" style="flex:1" id="edit-note-save">保存</button>'    +'</div></div>';
   document.body.appendChild(m);
   document.getElementById('edit-note-cancel').onclick=function(){m.remove();};
   document.getElementById('edit-note-save').onclick=function(){
@@ -1470,28 +1504,46 @@ function renderToday(){
   el.innerHTML='<div class="entries">'+list.map(function(e,i){return eRowHTML(e,i,false);}).join('')+'</div>';
   loadRowImgs(list);bindListBodyEvents();
 }
+var histPage=0;var HIST_PAGE_SIZE=20;
 function renderHistory(){
+  histPage=0;
+  _renderHistoryPage(true);
+}
+function _renderHistoryPage(reset){
   var el=document.getElementById('list-body');
   var dates=Object.keys(DB.days).filter(function(d){return DB.days[d].length>0&&d!==TODAY;}).sort().reverse();
   if(!dates.length){el.innerHTML='<div style="padding:40px 0;text-align:center;color:var(--t3);font-size:14px">还没有历史记录</div>';return;}
+  var pageDates=dates.slice(0,HIST_PAGE_SIZE*(histPage+1));
+  var hasMore=dates.length>pageDates.length;
   var frag=document.createDocumentFragment();
-  dates.forEach(function(d){
-    var cnt=DB.days[d].length;var isOpen=expandedDates[d];
-    var entries=isOpen?DB.days[d].map(function(id){return DB.entries.find(function(e){return e.id===id;});}).filter(Boolean):[];
-    var grp=document.createElement('div');grp.className='dgrp';
-    var hdr=document.createElement('button');hdr.className='dghdr';
-    hdr.innerHTML='<span class="dgdate">'+d+'</span><span class="dgcnt">'+cnt+' 条 '+(isOpen?'▲':'▼')+'</span>';
-    (function(date){hdr.addEventListener('click',function(){toggleDate(date);});})(d);
-    grp.appendChild(hdr);
-    if(isOpen){
-      var eDiv=document.createElement('div');eDiv.className='entries';
-      eDiv.innerHTML=entries.map(function(e,i){return eRowHTML(e,i,false);}).join('');
-      grp.appendChild(eDiv);
+  pageDates.forEach(function(d){
+    if(reset||!document.getElementById('dgrp-'+d)){
+      var cnt=DB.days[d].length;var isOpen=expandedDates[d];
+      var entries=isOpen?DB.days[d].map(function(id){return DB.entries.find(function(e){return e.id===id;});}).filter(Boolean):[];
+      var grp=document.createElement('div');grp.className='dgrp';grp.id='dgrp-'+d;
+      var hdr=document.createElement('button');hdr.className='dghdr';
+      hdr.innerHTML='<span class="dgdate">'+d+'</span><span class="dgcnt">'+cnt+' 条 '+(isOpen?'▲':'▼')+'</span>';
+      (function(date){hdr.addEventListener('click',function(){toggleDate(date);});})(d);
+      grp.appendChild(hdr);
+      if(isOpen){
+        var eDiv=document.createElement('div');eDiv.className='entries';
+        eDiv.innerHTML=entries.map(function(e,i){return eRowHTML(e,i,false);}).join('');
+        grp.appendChild(eDiv);
+      }
+      frag.appendChild(grp);
     }
-    frag.appendChild(grp);
   });
-  el.innerHTML='';el.appendChild(frag);
-  dates.forEach(function(d){if(expandedDates[d]){var entries=DB.days[d].map(function(id){return DB.entries.find(function(e){return e.id===id;});}).filter(Boolean);loadRowImgs(entries);}});
+  if(reset){el.innerHTML='';} else {var ob=document.getElementById('hist-load-more');if(ob)ob.remove();}
+  el.appendChild(frag);
+  if(hasMore){
+    var more=document.createElement('button');more.id='hist-load-more';
+    more.className='btn btn-ghost';
+    more.style.cssText='margin:16px 22px;width:calc(100% - 44px)';
+    more.textContent='加载更多（还有'+(dates.length-pageDates.length)+'天）';
+    more.onclick=function(){histPage++;_renderHistoryPage(false);};
+    el.appendChild(more);
+  }
+  pageDates.forEach(function(d){if(expandedDates[d]){var entries=DB.days[d].map(function(id){return DB.entries.find(function(e){return e.id===id;});}).filter(Boolean);loadRowImgs(entries);}});
   bindListBodyEvents();
 }
 function toggleDate(d){expandedDates[d]=!expandedDates[d];renderHistory();}
@@ -1504,11 +1556,11 @@ function editEntry(id){
   m.innerHTML='<div style="background:var(--card);border-radius:22px 22px 0 0;padding:22px;width:100%;box-sizing:border-box;max-height:80vh;overflow-y:auto">'
     +'<div style="font-size:15px;font-weight:600;margin-bottom:14px">编辑记录</div>'
     +'<div style="font-size:11px;color:var(--t3);margin-bottom:4px">字幕原文</div>'
-    +'<textarea id="edit-text" style="width:100%;background:var(--bg);border:1px solid var(--bdr);border-radius:var(--rs);padding:10px 12px;font-family:inherit;font-size:14px;resize:none;min-height:52px;outline:none;color:var(--text);box-sizing:border-box">'+entry.text+'</textarea>'
+    +'<textarea id="edit-text" style="width:100%;background:rgba(2,8,25,.97);border:1px solid rgba(255,255,255,.15);border-radius:var(--rs);padding:10px 12px;font-family:inherit;font-size:14px;resize:none;min-height:52px;outline:none;color:var(--text);box-sizing:border-box">'+entry.text+'</textarea>'
     +'<div style="font-size:11px;color:var(--t3);margin:10px 0 4px">中文译文</div>'
-    +'<textarea id="edit-zh" style="width:100%;background:var(--bg);border:1px solid var(--bdr);border-radius:var(--rs);padding:10px 12px;font-family:inherit;font-size:14px;resize:none;min-height:52px;outline:none;color:var(--text);box-sizing:border-box">'+(entry.zh||'')+'</textarea>'
+    +'<textarea id="edit-zh" style="width:100%;background:rgba(2,8,25,.97);border:1px solid rgba(255,255,255,.15);border-radius:var(--rs);padding:10px 12px;font-family:inherit;font-size:14px;resize:none;min-height:52px;outline:none;color:var(--text);box-sizing:border-box">'+(entry.zh||'')+'</textarea>'
     +'<div style="font-size:11px;color:var(--t3);margin:10px 0 4px">个人笔记</div>'
-    +'<textarea id="edit-notes" style="width:100%;background:var(--bg);border:1px solid var(--bdr);border-radius:var(--rs);padding:10px 12px;font-family:inherit;font-size:14px;resize:none;min-height:52px;outline:none;color:var(--text);box-sizing:border-box">'+(entry.notes||'')+'</textarea>'
+    +'<textarea id="edit-notes" style="width:100%;background:rgba(2,8,25,.97);border:1px solid rgba(255,255,255,.15);border-radius:var(--rs);padding:10px 12px;font-family:inherit;font-size:14px;resize:none;min-height:52px;outline:none;color:var(--text);box-sizing:border-box">'+(entry.notes||'')+'</textarea>'
     +'<div style="display:flex;gap:10px;margin-top:16px">'
     +'<button class="btn btn-ghost" style="flex:1" id="edit-cancel-btn">取消</button>'
     +'<button class="btn btn-white" style="flex:1" id="edit-save-btn">仅保存</button>'
@@ -1638,6 +1690,7 @@ function genStory(){
   var style=document.querySelector('.chip.on[data-g="style"]').textContent;
   var lang=document.querySelector('.chip.on[data-g="lang"]').textContent;
   var lines=list.map(function(e,i){return (i+1)+'. '+e.text+(e.zh?'（'+e.zh+'）':'');}).join('\n');
+  var stNow=Date.now();list.forEach(function(e){if(e.keywords)e.keywords.forEach(function(k){k.lastSeen=stNow;});});saveDB();
   document.getElementById('st-cfg').style.display='none';document.getElementById('st-shim').style.display='flex';
   callDS([{role:'user',content:'今天从影视剧截图里手动输入的字幕：\n'+lines+'\n\n用这些句子编一个短故事。场景：'+scene+'，风格：'+style+'，语言：'+(lang==='中英双语'?'中英双语，每段先英文后中文':lang==='纯英文'?'全程英文':'全程中文')+'。自然融入原句，150-250字，直接开始写，不要标题前言。'}],700)
   .then(function(txt){
