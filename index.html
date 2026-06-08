@@ -1577,7 +1577,9 @@ function _renderHistoryPage(reset){
     more.className='btn btn-ghost';
     more.style.cssText='margin:16px 22px;width:calc(100% - 44px)';
     more.textContent='加载更多（还有'+(dates.length-pageDates.length)+'天）';
-    more.onclick=function(){histPage++;_renderHistoryPage(false);};
+    var _loadMore=function(e){if(e)e.stopPropagation();histPage++;_renderHistoryPage(false);};
+    more.ontouchend=function(e){e.preventDefault();_loadMore(e);};
+    more.onclick=_loadMore;
     el.appendChild(more);
   }
   pageDates.forEach(function(d){if(expandedDates[d]){var entries=DB.days[d].map(function(id){return DB.entries.find(function(e){return e.id===id;});}).filter(Boolean);loadRowImgs(entries);}});
