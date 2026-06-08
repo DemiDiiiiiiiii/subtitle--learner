@@ -880,7 +880,7 @@ function renderStudy(){
         +'</div>';
     }).join('');
     var nxt=sess.idx>=sess.imgs.length-1?'完成 ✓':'下一张 →';
-    panel='<div class="ren">'+r.orig+'<span class="tag '+(ko?'tag-k':'tag-e')+'">'+(ko?'韩':'英')+'</span></div>'
+    panel='<div class="ren">'+r.orig.replace(/\n/g,'<br>')+'<span class="tag '+(ko?'tag-k':'tag-e')+'">'+(ko?'韩':'英')+'</span></div>'
       +'<div class="rzh">'+r.zh+'</div>'
       +(kws?'<div class="kwl">'+kws+'</div>':'')
       +'<div class="nlbl">随手记</div>'
@@ -1465,7 +1465,7 @@ function eRowHTML(e,i,showDate){
     +'<img class="ethumb" id="et-'+e.id+'" src="" alt="" data-entry-id="'+e.id+'" style="cursor:zoom-in">'
     +'<div class="ebody">'
     +'<div class="enum">'+(showDate?e.date+' ':('0'+(i+1)).slice(-2)+' ')+'<span class="tag '+(ko?'tag-k':'tag-e')+'">'+(ko?'韩':'英')+'</span></div>'
-    +'<div class="een">'+(e.text||'（待输入字幕）')+'</div>'
+    +'<div class="een">'+(e.text||'（待输入字幕）').replace(/\n/g,'<br>')+'</div>'
     +(e.pending&&!e.text?'<div style="display:inline-block;background:#fef3c7;color:#92400e;font-size:11px;padding:2px 8px;border-radius:8px;margin:2px 0 4px">⏳ 点铅笔在此设备输入字幕</div>':'')
     +'<div class="ezh">'+(e.zh||'')+'</div>'
     +(e.notes?'<div class="enote">'+e.notes+'</div>':'')
