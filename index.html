@@ -1402,12 +1402,16 @@ function editConvNote(idx){
     if(ta&&ta.value.trim()){DB.convNotes[idx].notes=ta.value.trim();saveDB();m.remove();renderConvNotes();toast('已保存');}
   };
 }
+function delKw(ki,eid){
+  var ent=DB.entries.find(function(e){return e.id===eid;});
+  if(ent&&ent.keywords){ent.keywords.splice(ki,1);saveDB();if(listTabCurrent==='today')renderToday();else if(listTabCurrent==='history')renderHistory();else renderLib(document.getElementById('search-inp').value||'');}
+}
 function eRowHTML(e,i,showDate){
   var ko=e.lang==='ko';
   var pendingBadge=e.pending?'<div style="display:inline-block;background:#fef3c7;color:#92400e;font-size:11px;padding:2px 8px;border-radius:8px;margin-bottom:6px">⏳ 待输入字幕 — 点击铅笔编辑</div>':'';
   var kws=e.keywords&&e.keywords.length?'<div class="ekws">'+e.keywords.map(function(k,ki){
     return '<span class="ekwtag" style="display:inline-flex;align-items:center;gap:3px">'+k.word+(k.zh?' '+k.zh:'')
-      +'<button data-del-kw="'+ki+'" data-kw-entry="'+e.id+'" style="background:none;border:none;font-size:10px;color:var(--t3);cursor:pointer;padding:0 0 0 2px;line-height:1">×</button></span>';
+      +'<button onclick="event.stopPropagation();delKw('+ki+',\''+e.id+'\')" style="background:none;border:none;font-size:10px;color:var(--t3);cursor:pointer;padding:0 0 0 2px;line-height:1">×</button></span>';
   }).join('')+'</div>':'';
   return '<div class="erow" id="er-'+e.id+'">'
     +'<img class="ethumb" id="et-'+e.id+'" src="" alt="" data-entry-id="'+e.id+'" style="cursor:zoom-in">'
@@ -1419,7 +1423,7 @@ function eRowHTML(e,i,showDate){
     +(e.notes?'<div class="enote">'+e.notes+'</div>':'')
     +kws
     +'</div>'
-    +'<div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0">'
+    +'<div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;min-width:30px">'
     +'<button class="edel" data-del-id="'+e.id+'">×</button>'
     +'<button class="edel" style="font-size:11px;opacity:.5" data-edit-id="'+e.id+'">✏️</button>'
     +'</div>'
@@ -1442,7 +1446,7 @@ function bindListBodyEvents(){
 }
 function renderToday(){
   var el=document.getElementById('list-body');
-  var ids=DB.days[TODAY]||[];var list=ids.map(function(id){return DB.entries.find(function(e){return e.id===id;});}).filter(Boolean);
+  var ids=(DB.days[TODAY]||[]).slice().reverse();var list=ids.map(function(id){return DB.entries.find(function(e){return e.id===id;});}).filter(Boolean);
   if(!list.length){el.innerHTML='<div style="padding:40px 0;text-align:center;color:var(--t3);font-size:14px">今日暂无记录<br><br><button onclick="document.getElementById(\'fp\').click()" class="btn btn-gold" style="width:auto;padding:12px 24px;display:inline-block;margin-top:8px">上传截图</button></div>';return;}
   el.innerHTML='<div class="entries">'+list.map(function(e,i){return eRowHTML(e,i,false);}).join('')+'</div>';
   loadRowImgs(list);bindListBodyEvents();
