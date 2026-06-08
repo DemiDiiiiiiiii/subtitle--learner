@@ -452,6 +452,11 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
     <div class="tab" id="tab-hist" onclick="listTab('history')">历史</div>
     <div class="tab" id="tab-notes" onclick="listTab('notes')">我的魔法书<span id="notes-count" style="font-size:10px;color:var(--t3);margin-left:3px"></span></div>
   </div>
+  <div id="lang-filter" style="display:none;flex-shrink:0;padding:6px 22px 2px;gap:8px;display:flex">
+    <button id="lf-all" onclick="setLangFilter('all')" style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:4px 14px;font-size:12px;color:var(--text);cursor:pointer">全部</button>
+    <button id="lf-en" onclick="setLangFilter('en')" style="background:none;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:4px 14px;font-size:12px;color:var(--t3);cursor:pointer">英</button>
+    <button id="lf-ko" onclick="setLangFilter('ko')" style="background:none;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:4px 14px;font-size:12px;color:var(--t3);cursor:pointer">韩</button>
+  </div>
   <div id="list-body" style="flex:1;overflow-y:auto;padding-bottom:160px"></div>
   <div style="padding:14px 22px max(20px,env(safe-area-inset-bottom));flex-shrink:0;border-top:1px solid rgba(255,255,255,.08)">
     <button class="btn btn-gold" onclick="goTo('story');resetStory()">生成故事</button>
@@ -617,7 +622,7 @@ function loadImgAsync(id,cb){var l=getImgLocal(id);if(l){cb(l);return;}kvGet('im
 
 // ── State ─────────────────────────────────────────────────────────
 var sess=null,conv=null,crList=[],crIdx=0,crFlip=false,pendingWeak='';
-var listTabCurrent='today',expandedDates={};
+var listTabCurrent='today',expandedDates={},langFilter='all';
 
 // ── Boot ──────────────────────────────────────────────────────────
 // Show local data immediately, then sync from cloud
@@ -1381,9 +1386,23 @@ function listTab(tab){
   document.getElementById('tab-today').classList.toggle('on',tab==='today');
   document.getElementById('tab-hist').classList.toggle('on',tab==='history');
   var tn=document.getElementById('tab-notes');if(tn)tn.classList.toggle('on',tab==='notes');
+  var lf=document.getElementById('lang-filter');
+  if(lf)lf.style.display=(tab==='today'||tab==='history')?'flex':'none';
   if(tab==='today')renderToday();
   else if(tab==='history')renderHistory();
   else renderConvNotes();
+}
+function setLangFilter(lang){
+  langFilter=lang;
+  var btns={all:'lf-all',en:'lf-en',ko:'lf-ko'};
+  Object.keys(btns).forEach(function(k){
+    var b=document.getElementById(btns[k]);if(!b)return;
+    b.style.background=k===lang?'rgba(255,255,255,.12)':'none';
+    b.style.color=k===lang?'var(--text)':'var(--t3)';
+    b.style.borderColor=k===lang?'rgba(255,255,255,.2)':'rgba(255,255,255,.1)';
+  });
+  if(listTabCurrent==='today')renderToday();
+  else if(listTabCurrent==='history'){histPage=0;_renderHistoryPage(true);}
 }
 function renderConvNotes(){
   var el=document.getElementById('list-body');
@@ -1494,7 +1513,7 @@ function bindListBodyEvents(){
 }
 function renderToday(){
   var el=document.getElementById('list-body');
-  var ids=(DB.days[TODAY]||[]).slice().reverse();var list=ids.map(function(id){return DB.entries.find(function(e){return e.id===id;});}).filter(Boolean);
+  var ids=(DB.days[TODAY]||[]).slice().reverse();var list=ids.map(function(id){return DB.entries.find(function(e){return e.id===id;});}).filter(Boolean).filter(function(e){return langFilter==='all'||e.lang===langFilter;});
   if(!list.length){el.innerHTML='<div style="padding:40px 0;text-align:center;color:var(--t3);font-size:14px">今日暂无记录<br><br><button onclick="document.getElementById(\'fp\').click()" class="btn btn-gold" style="width:auto;padding:12px 24px;display:inline-block;margin-top:8px">上传截图</button></div>';return;}
   el.innerHTML='<div class="entries">'+list.map(function(e,i){return eRowHTML(e,i,false);}).join('')+'</div>';
   loadRowImgs(list);bindListBodyEvents();
@@ -1506,7 +1525,11 @@ function renderHistory(){
 }
 function _renderHistoryPage(reset){
   var el=document.getElementById('list-body');
-  var dates=Object.keys(DB.days).filter(function(d){return DB.days[d].length>0&&d!==TODAY;}).sort().reverse();
+  var dates=Object.keys(DB.days).filter(function(d){
+    if(d===TODAY)return false;
+    if(langFilter==='all')return DB.days[d].length>0;
+    return DB.days[d].some(function(id){var e=DB.entries.find(function(e){return e.id===id;});return e&&e.lang===langFilter;});
+  }).sort().reverse();
   if(!dates.length){el.innerHTML='<div style="padding:40px 0;text-align:center;color:var(--t3);font-size:14px">还没有历史记录</div>';return;}
   var pageDates=dates.slice(0,HIST_PAGE_SIZE*(histPage+1));
   var hasMore=dates.length>pageDates.length;
@@ -1514,7 +1537,7 @@ function _renderHistoryPage(reset){
   pageDates.forEach(function(d){
     if(reset||!document.getElementById('dgrp-'+d)){
       var cnt=DB.days[d].length;var isOpen=expandedDates[d];
-      var entries=isOpen?DB.days[d].map(function(id){return DB.entries.find(function(e){return e.id===id;});}).filter(Boolean):[];
+      var entries=isOpen?DB.days[d].map(function(id){return DB.entries.find(function(e){return e.id===id;});}).filter(Boolean).filter(function(e){return langFilter==='all'||e.lang===langFilter;}):[];
       var grp=document.createElement('div');grp.className='dgrp';grp.id='dgrp-'+d;
       var hdr=document.createElement('button');hdr.className='dghdr';
       hdr.innerHTML='<span class="dgdate">'+d+'</span><span class="dgcnt">'+cnt+' 条 '+(isOpen?'▲':'▼')+'</span>';
