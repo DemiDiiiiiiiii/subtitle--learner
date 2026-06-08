@@ -968,12 +968,7 @@ function followupS(){
   if(loading)loading.style.display='block';
   var orig=sess.res.orig;
   var cur=JSON.stringify({zh:sess.res.zh,keywords:sess.res.keywords});
-  callDS([{role:'user',content:'以下是一句影视字幕和当前分析结果，用户有追加要求，请按要求修改后只返回JSON不要markdown：
-字幕："'+orig+'"
-当前结果：'+cur+'
-用户要求：'+q+'
-
-返回格式：{"zh":"整体中文翻译","lang":"en或ko","keywords":[{"word":"词或短语","zh":"含义","note":"用法说明"}]}'}],600)
+  callDS([{role:'user',content:'以下是一句影视字幕和当前分析结果，用户有追加要求，请按要求修改后只返回JSON不要markdown：\n字幕："'+orig+'"\n当前结果：'+cur+'\n用户要求：'+q+'\n\n返回格式：{"zh":"整体中文翻译","lang":"en或ko","keywords":[{"word":"词或短语","zh":"含义","note":"用法说明"}]}'}],600)
   .then(function(raw){
     if(loading)loading.style.display='none';
     try{
@@ -1227,7 +1222,7 @@ function startConv(topicOverride){
       +sjFanCtx+fanCtx
       +(notesCtx||'');
     var now=Date.now();picked.forEach(function(kw){kw.lastSeen=now;});saveDB();
-  conv={setup:setup,msgs:[{role:'system',content:sys},{role:'assistant',content:setup.firstMessage}],state:'chatting'};
+    conv={setup:setup,msgs:[{role:'system',content:sys},{role:'assistant',content:setup.firstMessage}],state:'chatting'};
     document.getElementById('cv-load').style.display='none';
     var m=document.getElementById('cv-main');m.style.display='flex';m.style.flexDirection='column';m.style.flex='1';m.style.minHeight='0';m.style.overflow='hidden';
     // Fix scroll: give chat an explicit height based on available space
