@@ -16,7 +16,7 @@
   --bdr:rgba(255,255,255,.1);--sh:0 4px 24px rgba(0,0,0,.25);
   --r:16px;--rs:10px;
 }
-html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased;cursor:pointer}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased}
 #app::before{content:'';position:absolute;inset:0;z-index:0;pointer-events:none;
   background:
     radial-gradient(ellipse 70% 55% at -8% -5%,rgba(210,165,50,.16) 0%,rgba(180,130,30,.09) 25%,transparent 58%),
@@ -1426,12 +1426,26 @@ function eRowHTML(e,i,showDate){
     +'</div>';
 }
 function loadRowImgs(list){list.forEach(function(e){loadImgAsync(e.id,function(b){var el2=document.getElementById('et-'+e.id);if(el2){var src='data:image/jpeg;base64,'+b;el2.src=src;el2.setAttribute('data-full-src',src);el2.onclick=function(){openImg(src);};}});});}
+function _lbHandler(ev){
+  var editBtn=ev.target.closest('[data-edit-id]');
+  if(editBtn){ev.stopPropagation();editEntry(editBtn.getAttribute('data-edit-id'));return;}
+  var delBtn=ev.target.closest('[data-del-id]');
+  if(delBtn){ev.stopPropagation();delEntry(delBtn.getAttribute('data-del-id'));return;}
+}
+function bindListBodyEvents(){
+  ['list-body','lib-body'].forEach(function(bid){
+    var lb=document.getElementById(bid);
+    if(!lb)return;
+    lb.removeEventListener('click',_lbHandler);
+    lb.addEventListener('click',_lbHandler);
+  });
+}
 function renderToday(){
   var el=document.getElementById('list-body');
   var ids=DB.days[TODAY]||[];var list=ids.map(function(id){return DB.entries.find(function(e){return e.id===id;});}).filter(Boolean);
   if(!list.length){el.innerHTML='<div style="padding:40px 0;text-align:center;color:var(--t3);font-size:14px">今日暂无记录<br><br><button onclick="document.getElementById(\'fp\').click()" class="btn btn-gold" style="width:auto;padding:12px 24px;display:inline-block;margin-top:8px">上传截图</button></div>';return;}
   el.innerHTML='<div class="entries">'+list.map(function(e,i){return eRowHTML(e,i,false);}).join('')+'</div>';
-  loadRowImgs(list);
+  loadRowImgs(list);bindListBodyEvents();
 }
 function renderHistory(){
   var el=document.getElementById('list-body');
@@ -1455,6 +1469,7 @@ function renderHistory(){
   });
   el.innerHTML='';el.appendChild(frag);
   dates.forEach(function(d){if(expandedDates[d]){var entries=DB.days[d].map(function(id){return DB.entries.find(function(e){return e.id===id;});}).filter(Boolean);loadRowImgs(entries);}});
+  bindListBodyEvents();
 }
 function toggleDate(d){expandedDates[d]=!expandedDates[d];renderHistory();}
 function editEntry(id){
@@ -1548,7 +1563,7 @@ function renderLib(filter){
   var el=document.getElementById('lib-body');
   if(!all.length){el.innerHTML='<div style="padding:40px 0;text-align:center;color:var(--t3);font-size:14px">'+(filter?'没有找到相关内容':'词库是空的，先上传截图')+'</div>';return;}
   el.innerHTML=all.map(function(e,i){return eRowHTML(e,i,true);}).join('');
-  loadRowImgs(all);
+  loadRowImgs(all);bindListBodyEvents();
 }
 function filterLib(q){renderLib(q);}
 
