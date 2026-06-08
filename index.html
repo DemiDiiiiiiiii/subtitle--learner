@@ -444,13 +444,13 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 <div class="screen" id="list">
   <div class="nav" style="flex-shrink:0">
     <div class="back" onclick="goTo('home')">←</div>
-    <span class="nav-t" style="font-family:'Cinzel',serif;letter-spacing:1px;">Grimoire</span>
+    <span class="nav-t">我的魔法书</span>
     <button onclick="document.getElementById('fp').click()" style="margin-left:auto;background:none;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:8px 14px;font-size:12px;color:rgba(255,255,255,.35);cursor:pointer;font-family:inherit;">上传</button>
   </div>
   <div class="tabs" style="flex-shrink:0">
     <div class="tab on" id="tab-today" onclick="listTab('today')">今日</div>
     <div class="tab" id="tab-hist" onclick="listTab('history')">历史</div>
-    <div class="tab" id="tab-notes" onclick="listTab('notes')" style="font-family:'Cinzel',serif;">Grimoire<span id="notes-count" style="font-size:10px;color:var(--t3);margin-left:3px"></span></div>
+    <div class="tab" id="tab-notes" onclick="listTab('notes')">我的魔法书<span id="notes-count" style="font-size:10px;color:var(--t3);margin-left:3px"></span></div>
   </div>
   <div id="list-body" style="flex:1;overflow-y:auto;padding-bottom:160px"></div>
   <div style="padding:14px 22px max(20px,env(safe-area-inset-bottom));flex-shrink:0;border-top:1px solid rgba(255,255,255,.08)">
@@ -1129,8 +1129,8 @@ function startConv(topicOverride){
   document.getElementById('fb-sheet').classList.remove('show');
 
   // Word bank: vocab keywords (up to 4) + phrases extracted from notes (up to 2)
-  var picked=enKw.slice();
-  var wb=picked.map(function(w){return '- "'+w.word+'" ('+w.zh+(w.note?'，'+w.note:'')+')';}).join('\n');
+  var picked=shuffle(enKw.slice()).slice(0,10);
+  var wb=picked.map(function(w){return '- "'+w.word+'" ('+w.zh+')';}).join('\n');
 
   // Extract English expressions from notes to add as extra practice targets
   var noteKws=[];
@@ -1147,7 +1147,7 @@ function startConv(topicOverride){
   });
   noteKws=shuffle(noteKws);
   if(noteKws.length){
-    wb+='\n'+noteKws.map(function(p){return '- "'+p+'" (用户笔记中记录的表达，自然引入练习)';}).join('\n');
+    wb+='\n'+noteKws.slice(0,3).map(function(p){return '- "'+p+'"';}).join('\n');
   }
   var notesCtx='';
 
@@ -1368,11 +1368,11 @@ function renderConvNotes(){
       ?'<span style="font-size:10px;background:#e0f2fe;color:#0369a1;padding:1px 6px;border-radius:6px;margin-left:6px">故事</span>'
       :'<span style="font-size:10px;background:var(--glt);color:var(--gold);padding:1px 6px;border-radius:6px;margin-left:6px">对话</span>';
     var editBtn=n.type==='conv'
-      ?'<button style="background:none;border:none;font-size:13px;color:var(--gold);cursor:pointer;padding:2px 6px" data-edit-note="'+n.idx+'">✏️</button>'
-      :'<button style="background:none;border:none;font-size:13px;color:var(--gold);cursor:pointer;padding:2px 6px" data-edit-story-note="'+n.idx+'">✏️</button>';
+      ?'<button style="background:none;border:none;font-size:13px;color:var(--gold);cursor:pointer;padding:2px 6px" onclick="event.stopPropagation();editConvNote('+n.idx+')">✏️</button>'
+      :'<button style="background:none;border:none;font-size:13px;color:var(--gold);cursor:pointer;padding:2px 6px" onclick="event.stopPropagation();editStoryNote('+n.idx+')">✏️</button>';
     var delBtn=n.type==='conv'
-      ?'<button style="background:none;border:none;font-size:13px;color:var(--red);cursor:pointer;padding:2px 6px" data-del-note="'+n.idx+'">×</button>'
-      :'<button style="background:none;border:none;font-size:13px;color:var(--red);cursor:pointer;padding:2px 6px" data-del-story-note="'+n.idx+'">×</button>';
+      ?'<button style="background:none;border:none;font-size:13px;color:var(--red);cursor:pointer;padding:2px 6px" onclick="event.stopPropagation();delConvNote('+n.idx+')">×</button>'
+      :'<button style="background:none;border:none;font-size:13px;color:var(--red);cursor:pointer;padding:2px 6px" onclick="event.stopPropagation();delStoryNote('+n.idx+')">×</button>';
     var preview=n.story?'<div style="font-size:11px;color:var(--t3);margin-bottom:4px;font-style:italic">出自故事：'+n.story+'…</div>':'';
     return '<div style="padding:16px 22px;border-bottom:1px solid var(--bdr)">'
       +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
@@ -1401,6 +1401,25 @@ function editConvNote(idx){
     var ta=document.getElementById('edit-note-ta');
     if(ta&&ta.value.trim()){DB.convNotes[idx].notes=ta.value.trim();saveDB();m.remove();renderConvNotes();toast('已保存');}
   };
+}
+function delConvNote(idx){
+  confirmAct('删除这条笔记？','删除后无法恢复','删除',function(){DB.convNotes.splice(idx,1);saveDB();renderConvNotes();});
+}
+function editStoryNote(idx){
+  var sn=DB.storyNotes&&DB.storyNotes[idx];if(!sn)return;
+  var old=document.getElementById('edit-note-modal');if(old)old.remove();
+  var m=document.createElement('div');m.id='edit-note-modal';
+  m.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:flex;align-items:flex-end';
+  m.innerHTML='<div style="background:var(--card);border-radius:22px 22px 0 0;padding:22px;width:100%;box-sizing:border-box">'    +'<div style="font-size:15px;font-weight:600;margin-bottom:12px">编辑故事笔记</div>'    +'<textarea id="edit-note-ta" style="width:100%;background:var(--bg);border:1px solid var(--bdr);border-radius:var(--rs);padding:12px 14px;font-family:inherit;font-size:14px;resize:none;min-height:120px;outline:none;color:var(--text);line-height:1.7;box-sizing:border-box">'+sn.note+'</textarea>'    +'<div style="display:flex;gap:10px;margin-top:12px">'    +'<button class="btn btn-ghost" style="flex:1" id="edit-note-cancel">取消</button>'    +'<button class="btn btn-gold" style="flex:1" id="edit-note-save">保存</button>'    +'</div></div>';
+  document.body.appendChild(m);
+  document.getElementById('edit-note-cancel').onclick=function(){m.remove();};
+  document.getElementById('edit-note-save').onclick=function(){
+    var ta=document.getElementById('edit-note-ta');
+    if(ta&&ta.value.trim()){DB.storyNotes[idx].note=ta.value.trim();saveDB();m.remove();renderConvNotes();toast('已保存');}
+  };
+}
+function delStoryNote(idx){
+  confirmAct('删除这条笔记？','删除后无法恢复','删除',function(){DB.storyNotes.splice(idx,1);saveDB();renderConvNotes();});
 }
 function delKw(ki,eid){
   var ent=DB.entries.find(function(e){return e.id===eid;});
