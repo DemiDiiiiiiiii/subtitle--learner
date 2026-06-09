@@ -500,30 +500,30 @@ mark.hl-phrase{background:rgba(210,165,55,.25);color:rgba(255,220,100,.95);borde
     <div id="st-cfg">
       <div class="clbl">场景</div>
       <div class="chips">
-        <div class="chip on" data-g="scene">日常闲聊</div>
-        <div class="chip" data-g="scene">职场</div>
-        <div class="chip" data-g="scene">K-pop追星</div>
-        <div class="chip" data-g="scene">韩剧现场</div>
-        <div class="chip" data-g="scene">跑步登山</div>
-        <div class="chip" data-g="scene">深夜书房</div>
-        <div class="chip" data-g="scene">悬疑推理</div>
-        <div class="chip" data-g="scene">浪漫相遇</div>
-        <div class="chip" data-g="scene">苏州生活</div>
+        <button class="chip on" data-g="scene" onclick="selectChip(this)">日常闲聊</button>
+        <button class="chip" data-g="scene" onclick="selectChip(this)">职场</button>
+        <button class="chip" data-g="scene" onclick="selectChip(this)">K-pop追星</button>
+        <button class="chip" data-g="scene" onclick="selectChip(this)">韩剧现场</button>
+        <button class="chip" data-g="scene" onclick="selectChip(this)">跑步登山</button>
+        <button class="chip" data-g="scene" onclick="selectChip(this)">深夜书房</button>
+        <button class="chip" data-g="scene" onclick="selectChip(this)">悬疑推理</button>
+        <button class="chip" data-g="scene" onclick="selectChip(this)">浪漫相遇</button>
+        <button class="chip" data-g="scene" onclick="selectChip(this)">苏州生活</button>
       </div>
       <div class="clbl">风格</div>
       <div class="chips">
-        <div class="chip on" data-g="style">轻松幽默</div>
-        <div class="chip" data-g="style">文艺感</div>
-        <div class="chip" data-g="style">温情治愈</div>
-        <div class="chip" data-g="style">犀利毒舌</div>
-        <div class="chip" data-g="style">戏剧化</div>
-        <div class="chip" data-g="style">诗意朦胧</div>
+        <button class="chip on" data-g="style" onclick="selectChip(this)">轻松幽默</button>
+        <button class="chip" data-g="style" onclick="selectChip(this)">文艺感</button>
+        <button class="chip" data-g="style" onclick="selectChip(this)">温情治愈</button>
+        <button class="chip" data-g="style" onclick="selectChip(this)">犀利毒舌</button>
+        <button class="chip" data-g="style" onclick="selectChip(this)">戏剧化</button>
+        <button class="chip" data-g="style" onclick="selectChip(this)">诗意朦胧</button>
       </div>
       <div class="clbl">语言</div>
       <div class="chips">
-        <div class="chip on" data-g="lang">中英双语</div>
-        <div class="chip" data-g="lang">纯英文</div>
-        <div class="chip" data-g="lang">纯中文</div>
+        <button class="chip on" data-g="lang" onclick="selectChip(this)">中英双语</button>
+        <button class="chip" data-g="lang" onclick="selectChip(this)">纯英文</button>
+        <button class="chip" data-g="lang" onclick="selectChip(this)">纯中文</button>
       </div>
       <button class="btn btn-gold" onclick="genStory()">生成故事</button>
     </div>
@@ -677,7 +677,11 @@ kvGet('db').then(function(v){
     refreshHome();
   }catch(e){}
 });
-document.// fp change handled inline on element
+function selectChip(c){
+  if(!c||!c.dataset.g)return;
+  document.querySelectorAll('.chip[data-g="'+c.dataset.g+'"]').forEach(function(x){x.classList.remove('on');});
+  c.classList.add('on');
+}
 document.addEventListener('click',function(e){
   var c=e.target.closest('.chip');if(!c||!c.dataset.g)return;
   var g=c.dataset.g;
