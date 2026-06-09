@@ -500,16 +500,24 @@ mark.hl-phrase{background:rgba(210,165,55,.25);color:rgba(255,220,100,.95);borde
     <div id="st-cfg">
       <div class="clbl">场景</div>
       <div class="chips">
-        <div class="chip on" data-g="scene">日常对话</div>
+        <div class="chip on" data-g="scene">日常闲聊</div>
         <div class="chip" data-g="scene">职场</div>
-        <div class="chip" data-g="scene">悬疑</div>
-        <div class="chip" data-g="scene">浪漫</div>
+        <div class="chip" data-g="scene">K-pop追星</div>
+        <div class="chip" data-g="scene">韩剧现场</div>
+        <div class="chip" data-g="scene">跑步登山</div>
+        <div class="chip" data-g="scene">深夜书房</div>
+        <div class="chip" data-g="scene">悬疑推理</div>
+        <div class="chip" data-g="scene">浪漫相遇</div>
+        <div class="chip" data-g="scene">苏州生活</div>
       </div>
       <div class="clbl">风格</div>
       <div class="chips">
         <div class="chip on" data-g="style">轻松幽默</div>
         <div class="chip" data-g="style">文艺感</div>
         <div class="chip" data-g="style">温情治愈</div>
+        <div class="chip" data-g="style">犀利毒舌</div>
+        <div class="chip" data-g="style">戏剧化</div>
+        <div class="chip" data-g="style">诗意朦胧</div>
       </div>
       <div class="clbl">语言</div>
       <div class="chips">
@@ -1254,7 +1262,7 @@ function startConv(topicOverride){
           +'Sound like someone who has definitely read fic at 2am. Drop 1-2 expressions max, not a glossary dump.';
       }
       var sys='你扮演'+setup.name+'，'+setup.nationality+'人，'+setup.job+'。'+setup.relationship+'。场景：'+setup.scene+'。'
-      +'\n\n你的对话对象是个住在苏州、好奇心很强的中国女生，兴趣广泛，是Super Junior团粉（E.L.F），喜欢整个团。就像真实朋友聊天，全程英文，地道自然。不要用bro/dude/man称呼。'
+      +'\n\n你的对话对象是个住在苏州的中国女生，在外资制造业公司做FP&A财务分析，好奇心强，兴趣广泛（跑步、登山、骑行、读文学），是Super Junior团粉（E.L.F）。就像真实朋友聊天，全程英文，地道自然。不要用bro/dude/man称呼。'
       +'\n\n每隔3-4轮自然地在句尾加一句，要求对方在下一条回复里用上某个具体词汇（从词库里随机选一个或自行选一个地道短语），语气轻松，比如："by the way, try to sneak in \'take it in stride\' somewhere!"'
       +'\n\n如果这些词汇有机会自然融入就用，不必强塞：\n'+wb
       +sjFanCtx+fanCtx
@@ -1822,7 +1830,7 @@ function genStory(){
   var lines=list.map(function(e,i){return (i+1)+'. '+e.text+(e.zh?'（'+e.zh+'）':'');}).join('\n');
   var stNow=Date.now();list.forEach(function(e){if(e.keywords)e.keywords.forEach(function(k){k.lastSeen=stNow;});});saveDB();
   document.getElementById('st-cfg').style.display='none';document.getElementById('st-shim').style.display='flex';
-  callDS([{role:'user',content:'今天从影视剧截图里手动输入的字幕：\n'+lines+'\n\n用这些句子编一个短故事。场景：'+scene+'，风格：'+style+'，语言：'+(lang==='中英双语'?'中英双语，每段先英文后中文':lang==='纯英文'?'全程英文':'全程中文')+'。自然融入原句，150-250字，直接开始写，不要标题前言。'}],700)
+  callDS([{role:'user',content:'用以下影视字幕编一个短故事，自然融入这些原句（不要逐句堆砌）。\n\n字幕素材：\n'+lines+'\n\n要求：场景「'+scene+'」，风格「'+style+'」，语言：'+(lang==='中英双语'?'中英双语，每段先英文后中文':lang==='纯英文'?'全程英文':'全程中文')+'。\n\n背景参考（自然融入，不要生硬提及）：主角是住在苏州的中国女生，在外资制造业公司做FP&A财务分析，喜欢跑步、登山、骑行、读文学，是Super Junior的ELF，喜欢看韩剧美剧，学习英语和韩语。\n\n150-250字，有画面感，直接开始写，不要标题。'}],700)
   .then(function(txt){
     document.getElementById('st-shim').style.display='none';
     document.getElementById('st-txt').textContent=txt;
