@@ -330,7 +330,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
     </div>
 
     <!-- hidden for compat -->
-    <button id="btn-list" style="display:none" onclick="goTo('list');listTab('today')"></button>
     <div id="card-meta" style="display:none"></div>
     <div id="conv-meta" style="display:none"></div>
     <div style="flex:1;min-height:0;"></div>
@@ -789,9 +788,6 @@ function refreshHome(){
   var hd=document.getElementById('h-days');if(hd)hd.textContent=days;
   document.getElementById('card-meta').textContent=allKw.length+'个词汇';
   document.getElementById('conv-meta').textContent=enKw.length>0?'从'+enKw.length+'个词中选':'先积累英语词汇';
-  var bl=document.getElementById('btn-list');
-  bl.style.display=todayE.length>0?'block':'none';
-  bl.textContent='查看今日 '+todayE.length+' 条字幕';
 }
 
 // ── Preview ───────────────────────────────────────────────────────
