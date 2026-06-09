@@ -388,16 +388,13 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
   <div id="cv-main" style="display:none;flex-direction:column;flex:1;min-height:0;position:relative">
     <div class="cvtop">
       <button class="cvback" onclick="showConvExit()">←</button>
-      <div style="font-size:15px;font-weight:600">对话练习</div>
-      <div style="width:32px"></div>
+      <button onclick="getConvFeedback()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:6px 12px;font-size:12px;color:rgba(255,255,255,.6);cursor:pointer;font-family:inherit">结束 · 获取反馈</button>
+      <button id="quill-btn" onclick="toggleQuill()" style="width:34px;height:34px;border-radius:50%;background:rgba(20,15,50,.9);border:1px solid rgba(210,165,55,.4);font-size:18px;cursor:pointer;display:none;align-items:center;justify-content:center">🪶</button>
     </div>
     <div class="cvid" id="cv-id"></div>
     <div class="cvid-toggle" id="cvid-toggle" onclick="toggleCvid()"><div class="cvid-toggle-dot"></div></div>
     <div class="chat" id="chat"></div>
-    <div style="padding:6px 16px 0;flex-shrink:0;position:relative">
-      <button onclick="getConvFeedback()" style="width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:9px;font-size:13px;color:rgba(255,255,255,.6);cursor:pointer;font-family:inherit">结束对话 · 获取反馈</button>
-      <button id="quill-btn" onclick="toggleQuill()" style="position:absolute;right:16px;top:-52px;width:42px;height:42px;border-radius:50%;background:rgba(20,15,50,.9);border:1px solid rgba(210,165,55,.4);font-size:20px;cursor:pointer;display:none;align-items:center;justify-content:center;box-shadow:0 2px 10px rgba(0,0,0,.4)">🪶</button>
-      <div id="quill-pop" style="position:absolute;right:16px;bottom:calc(100% + 58px);width:calc(100% - 32px);background:rgba(12,10,30,.97);border:1px solid rgba(210,165,55,.25);border-radius:16px;padding:14px;z-index:11;display:none;box-shadow:0 4px 24px rgba(0,0,0,.5)">
+    <div id="quill-pop" style="position:absolute;right:16px;top:max(56px,calc(env(safe-area-inset-top) + 56px));width:calc(100% - 32px);background:rgba(12,10,30,.97);border:1px solid rgba(210,165,55,.25);border-radius:16px;padding:14px;z-index:200;display:none;box-shadow:0 4px 24px rgba(0,0,0,.5)">
         <div style="font-size:12px;color:rgba(210,165,55,.7);letter-spacing:1px;margin-bottom:8px">🪶 随手记</div>
         <textarea id="quill-ta" placeholder="记下这个表达、想法、或想复习的词…" style="width:100%;background:rgba(2,8,25,.97);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 12px;font-family:inherit;font-size:14px;resize:none;min-height:80px;outline:none;color:var(--text);line-height:1.7;box-sizing:border-box"></textarea>
         <div style="display:flex;gap:8px;margin-top:10px">
@@ -405,7 +402,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
           <button onclick="saveQuillNote()" style="flex:2;background:rgba(210,165,55,.15);border:1px solid rgba(210,165,55,.3);border-radius:10px;padding:8px;font-size:13px;color:rgba(210,165,55,.9);cursor:pointer;font-family:inherit">保存</button>
         </div>
       </div>
-    </div>
     <div class="cvwrap">
       <button class="mic-btn" id="mic-btn" onclick="toggleMic()" title="语音输入">🎤</button>
       <textarea class="cvta" id="cv-ta" placeholder="用英文回复，或点 🎤 说话…" style="color:rgba(255,255,255,.3)" rows="2" oninput="autoR(this)"></textarea>
