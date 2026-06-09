@@ -394,9 +394,12 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
     <div class="cvid" id="cv-id"></div>
     <div class="cvid-toggle" id="cvid-toggle" onclick="toggleCvid()"><div class="cvid-toggle-dot"></div></div>
     <div class="chat" id="chat"></div>
+    <div style="padding:6px 16px 0;flex-shrink:0">
+      <button onclick="getConvFeedback()" style="width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:9px;font-size:13px;color:rgba(255,255,255,.6);cursor:pointer;font-family:inherit">结束对话 · 获取反馈</button>
+    </div>
     <div class="cvwrap">
       <button class="mic-btn" id="mic-btn" onclick="toggleMic()" title="语音输入">🎤</button>
-      <textarea class="cvta" id="cv-ta" placeholder="用英文回复，或点 🎤 说话…" style="color:rgba(255,255,255,.3)" rows="2" oninput="autoR(this)"></textarea>
+      <textarea class="cvta" id="cv-ta" placeholder="用英文回复，或点 🎤 说话…" style="color:rgba(255,255,255,.3)" rows="3" oninput="autoR(this)"></textarea>
       <button class="cvsend" onclick="sendMsg()">↑</button>
     </div>
   </div>
@@ -409,10 +412,9 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
       <textarea id="exit-note-ta" placeholder="记下刚才学到的表达、想复习的词…" style="width:100%;background:var(--bg);border:1px solid var(--bdr);border-radius:var(--rs);padding:10px 12px;font-family:inherit;font-size:14px;resize:none;min-height:72px;outline:none;color:var(--text);line-height:1.6;box-sizing:border-box"></textarea>
     </div>
     <div style="display:flex;flex-direction:column;gap:10px">
-      <button class="btn btn-gold" onclick="saveExitNoteAndFeedback()">获取对话反馈</button>
-      <button class="btn btn-white" onclick="saveExitNoteAndLeave()">保存笔记，直接离开</button>
-      <button class="btn btn-ghost" onclick="hideExitSheet();closeConv(false)">直接离开</button>
-      <button class="btn btn-white" onclick="hideExitSheet()">继续对话</button>
+      <button class="btn btn-gold" onclick="saveExitNoteAndContinue()">保存笔记并继续聊</button>
+      <button class="btn btn-white" onclick="saveExitNoteAndLeave()">保存笔记并退出</button>
+      <button class="btn btn-ghost" onclick="hideExitSheet();closeConv(false)">直接退出</button>
     </div>
   </div>
   <div class="fbs" id="fb-sheet">
@@ -1163,7 +1165,7 @@ function startConv(topicOverride){
   document.getElementById('fb-sheet').classList.remove('show');
 
   // Word bank: vocab keywords (up to 4) + phrases extracted from notes (up to 2)
-  var picked=enKw.slice().sort(function(a,b){return (a.lastSeen||0)-(b.lastSeen||0);}).slice(0,10);
+  var shuffled=shuffle(enKw.slice());var picked=shuffled.sort(function(a,b){return (a.lastSeen||0)-(b.lastSeen||0);}).slice(0,10);
   var wb=picked.map(function(w){return '- "'+w.word+'" ('+w.zh+')';}).join('\n');
 
   // Extract English expressions from notes to add as extra practice targets
@@ -1914,6 +1916,10 @@ function speakText(txt,lang){
 }
 
 // ── Conversation exit flow ─────────────────────────────────────────
+function getConvFeedback(){
+  if(!conv||conv.msgs.length<=2){toast('对话太短，先多聊几句吧');return;}
+  endConv();
+}
 function showConvExit(){
   if(!conv||conv.msgs.length<=2){closeConv(false);return;}
   var rounds=conv.msgs.filter(function(m){return m.role==='user';}).length;
@@ -1922,6 +1928,7 @@ function showConvExit(){
   document.getElementById('exit-sheet').classList.add('show');
 }
 function hideExitSheet(){document.getElementById('exit-sheet').classList.remove('show');}
+function saveExitNoteAndContinue(){saveExitNote();hideExitSheet();}
 
 // ── Save conv feedback ─────────────────────────────────────────────
 function feedbackChat(){
