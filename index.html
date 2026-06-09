@@ -402,6 +402,16 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
       <textarea class="cvta" id="cv-ta" placeholder="用英文回复，或点 🎤 说话…" style="color:rgba(255,255,255,.3)" rows="3" oninput="autoR(this)"></textarea>
       <button class="cvsend" onclick="sendMsg()">↑</button>
     </div>
+    <!-- Quill floating note -->
+    <button id="quill-btn" onclick="toggleQuill()" style="position:fixed;right:18px;bottom:110px;width:44px;height:44px;border-radius:50%;background:rgba(30,20,60,.85);border:1px solid rgba(210,165,55,.35);font-size:22px;cursor:pointer;display:none;align-items:center;justify-content:center;z-index:50;box-shadow:0 2px 12px rgba(0,0,0,.4);backdrop-filter:blur(8px)">🪶</button>
+    <div id="quill-pop" style="position:fixed;right:12px;bottom:162px;width:calc(100% - 24px);max-width:420px;background:rgba(12,10,30,.96);border:1px solid rgba(210,165,55,.25);border-radius:16px;padding:14px;z-index:51;display:none;box-shadow:0 4px 24px rgba(0,0,0,.5);backdrop-filter:blur(12px)">
+      <div style="font-size:12px;color:rgba(210,165,55,.7);letter-spacing:1px;margin-bottom:8px">🪶 随手记</div>
+      <textarea id="quill-ta" placeholder="记下这个表达、想法、或想复习的词…" style="width:100%;background:rgba(2,8,25,.97);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 12px;font-family:inherit;font-size:14px;resize:none;min-height:80px;outline:none;color:var(--text);line-height:1.7;box-sizing:border-box"></textarea>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button onclick="toggleQuill()" style="flex:1;background:none;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:8px;font-size:13px;color:var(--t3);cursor:pointer;font-family:inherit">收起</button>
+        <button onclick="saveQuillNote()" style="flex:2;background:rgba(210,165,55,.15);border:1px solid rgba(210,165,55,.3);border-radius:10px;padding:8px;font-size:13px;color:rgba(210,165,55,.9);cursor:pointer;font-family:inherit">保存</button>
+      </div>
+    </div>
   </div>
   <div class="fbs" id="exit-sheet">
     <div class="fbh"></div>
@@ -433,9 +443,8 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
     </div>
     <div style="margin-top:16px;display:flex;flex-direction:column;gap:10px">
       <button class="btn btn-gold" onclick="saveConvFeedback()">保存笔记，回主页</button>
-      <button class="btn btn-white" onclick="document.getElementById('fb-sheet').classList.remove('show');if(conv)conv.state='chatting';">← 返回继续对话</button>
+      <button class="btn btn-white" onclick="saveConvNoteAndContinue()">保存笔记，继续对话</button>
       <button class="btn btn-white" onclick="document.getElementById('fb-sheet').classList.remove('show');startConv()">再来一轮</button>
-      <button class="btn btn-white" onclick="feedbackChat()">💬 追问 AI</button>
       <button class="btn btn-ghost" onclick="closeConv(false)">直接离开</button>
     </div>
   </div>
@@ -1232,6 +1241,7 @@ function startConv(topicOverride){
     var now=Date.now();picked.forEach(function(kw){kw.lastSeen=now;});saveDB();
     conv={setup:setup,msgs:[{role:'system',content:sys},{role:'assistant',content:setup.firstMessage}],state:'chatting'};
     document.getElementById('cv-load').style.display='none';
+    showQuillBtn();
     var m=document.getElementById('cv-main');m.style.display='flex';m.style.flexDirection='column';m.style.flex='1';m.style.minHeight='0';m.style.overflow='hidden';
     // Fix scroll: give chat an explicit height based on available space
     setTimeout(function(){
@@ -1376,9 +1386,10 @@ function endConv(){
       wkRow.style.display='none';
     }
     document.getElementById('fb-sheet').classList.add('show');
+  if(window._quillNotes&&window._quillNotes.length){var fbn=document.getElementById('conv-notes');if(fbn){fbn.value=(fbn.value?fbn.value+'\n':'')+window._quillNotes.join('\n');}window._quillNotes=[];}
   }).catch(function(){toast('获取反馈失败');});
 }
-function closeConv(doSave){
+function closeConv(doSave){hideQuillBtn();
   if(doSave&&pendingWeak){var lines=(DB.weakness||'').split('\n').filter(Boolean);lines.push(new Date().toLocaleDateString('zh-CN')+': '+pendingWeak);DB.weakness=lines.slice(-5).join('\n');saveDB();}
   pendingWeak='';document.getElementById('fb-sheet').classList.remove('show');goTo('home');
 }
@@ -1916,6 +1927,29 @@ function speakText(txt,lang){
 }
 
 // ── Conversation exit flow ─────────────────────────────────────────
+function toggleQuill(){
+  var btn=document.getElementById('quill-btn');
+  var pop=document.getElementById('quill-pop');
+  if(!pop)return;
+  var isOpen=pop.style.display==='block';
+  pop.style.display=isOpen?'none':'block';
+  if(!isOpen){var ta=document.getElementById('quill-ta');if(ta)ta.focus();}
+}
+function saveQuillNote(){
+  var ta=document.getElementById('quill-ta');
+  if(!ta||!ta.value.trim()){toggleQuill();return;}
+  // Append to conv-notes (feedback page textarea) so it's there when feedback opens
+  var fb=document.getElementById('conv-notes');
+  if(fb){fb.value=(fb.value?fb.value+'\n':'')+ta.value.trim();}
+  // Also store in a temp var in case feedback page hasn't opened yet
+  if(!window._quillNotes)window._quillNotes=[];
+  window._quillNotes.push(ta.value.trim());
+  ta.value='';
+  toggleQuill();
+  toast('已记下 🪶');
+}
+function showQuillBtn(){var b=document.getElementById('quill-btn');if(b)b.style.display='flex';}
+function hideQuillBtn(){var b=document.getElementById('quill-btn');if(b){b.style.display='none';}var p=document.getElementById('quill-pop');if(p)p.style.display='none';}
 function getConvFeedback(){
   if(!conv||conv.msgs.length<=2){toast('对话太短，先多聊几句吧');return;}
   endConv();
@@ -1963,6 +1997,16 @@ function feedbackChat(){
       chat.style.flex='none';chat.style.overflowY='auto';chat.style.webkitOverflowScrolling='touch';
     }
   },100);
+}
+function saveConvNoteAndContinue(){
+  var ta=document.getElementById('conv-notes');
+  if(ta&&ta.value.trim()){
+    if(!DB.convNotes)DB.convNotes=[];
+    DB.convNotes.push({date:TODAY,ts:Date.now(),notes:ta.value.trim()});
+    saveDB();ta.value='';
+  }
+  document.getElementById('fb-sheet').classList.remove('show');
+  if(conv)conv.state='chatting';
 }
 function saveConvFeedback(){
   var notes=(document.getElementById('conv-notes').value||'').trim();
