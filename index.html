@@ -878,9 +878,9 @@ function renderStudy(){
     panel='<p class="ihint">照着图片，输入字幕内容</p>'
       +'<div class="irow"><textarea class="ita" id="s-ta" placeholder="输入这张截图里的字幕…" rows="2"></textarea>'
       +'<button class="ibtn" onclick="submitS()">→</button></div>'
-      +'<div style="display:flex;gap:8px;margin-top:8px">'
+      +'<div style="display:flex;gap:8px;margin-top:10px">'
       +(sess.idx>0?'<button class="btn btn-ghost" style="flex:1;font-size:13px" onclick="prevS()">← 上一张</button>':'')
-      +(sess.hist[sess.idx]?'<button class="btn btn-white" style="flex:1;font-size:13px" onclick="restoreS()">恢复分析 →</button>':'<div class="iskip" style="flex:1;text-align:center" onclick="skipS()">跳过这张</div>')
+      +(sess.hist[sess.idx]?'<button class="btn btn-ghost" style="flex:1;font-size:13px" onclick="restoreS()">恢复分析 →</button>':'<button class="btn btn-ghost" style="flex:1;font-size:13px" onclick="skipS()">跳过这张</button>')
       +'</div>';
   }else if(sess.state==='analyzing'){
     panel='<div class="spin"><div class="sp"></div><div class="sp"></div><div class="sp"></div></div>'
@@ -899,20 +899,22 @@ function renderStudy(){
     panel='<div class="ren">'+r.orig.replace(/\n/g,'<br>')+'<span class="tag '+(ko?'tag-k':'tag-e')+'">'+(ko?'韩':'英')+'</span></div>'
       +'<div class="rzh">'+r.zh+'</div>'
       +(kws?'<div class="kwl">'+kws+'</div>':'')
-      +'<div class="nlbl">随手记</div>'
-      +'<textarea class="nta" id="s-notes" placeholder="碎碎念、用法联想…"></textarea>'
-      +'<div class="nlbl" style="margin-top:12px">追问AI</div>'
-      +'<div style="display:flex;gap:8px;margin-bottom:4px">'
-      +'<input id="s-followup" type="text" placeholder="如：帮我拆解语法和单词…" style="flex:1;background:rgba(2,8,25,.97);border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:9px 12px;font-family:inherit;font-size:13px;color:var(--text);outline:none">'
-      +'<button onclick="followupS()" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:9px 14px;color:var(--text);font-size:13px;cursor:pointer;white-space:nowrap">发送</button>'
+      +'<div style="position:relative;margin:10px 0 6px">'
+      +'<textarea class="nta" id="s-notes" placeholder="随手记…"></textarea>'
+      +'<button id="s-quill-btn" onclick="toggleStudyFollowup()" style="position:absolute;right:10px;top:10px;background:none;border:none;font-size:18px;cursor:pointer;opacity:.5">🪶</button>'
+      +'</div>'
+      +'<div id="s-followup-area" style="display:none;margin-bottom:8px">'
+      +'<div style="display:flex;gap:8px">'
+      +'<input id="s-followup" type="text" placeholder="追问AI，如：拆解语法…" style="flex:1;background:rgba(2,8,25,.97);border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:9px 12px;font-family:inherit;font-size:13px;color:var(--text);outline:none">'
+      +'<button onclick="followupS()" style="background:rgba(210,165,55,.15);border:1px solid rgba(210,165,55,.3);border-radius:10px;padding:9px 14px;color:rgba(210,165,55,.9);font-size:13px;cursor:pointer;white-space:nowrap;font-family:inherit">发送</button>'
       +'</div>'
       +'<div id="s-followup-loading" style="display:none;font-size:12px;color:var(--t3);padding:4px 0">AI思考中…</div>'
-      +'<div style="display:flex;gap:10px;margin-top:12px">'
-      +'<div style="display:flex;gap:8px;margin-bottom:10px">'
-      +'<button class="btn btn-white" style="flex:1;padding:9px;font-size:13px" onclick="editInputS()">修改输入</button>'
       +'</div>'
-      +(sess.idx>0?'<button class="btn btn-ghost" style="flex:1" onclick="prevS()">← 上一张</button>':'')
-      +'<button class="btn btn-gold" style="flex:2" onclick="saveNext()">'+nxt+'</button>'
+      +'<button class="btn btn-gold" style="margin-bottom:8px" onclick="saveNext()">'+nxt+'</button>'
+      +'<div style="display:flex;gap:8px">'
+      +(sess.idx>0?'<button class="btn btn-ghost" style="flex:1;font-size:13px" onclick="prevS()">← 上一张</button>':'')
+      +'<button class="btn btn-ghost" style="flex:1;font-size:13px" onclick="editInputS()">修改输入</button>'
+      +'<button class="btn btn-ghost" style="flex:1;font-size:13px;color:rgba(220,80,80,.7);border-color:rgba(220,80,80,.2)" onclick="discardS()">丢弃</button>'
       +'</div>';
   }
   el.innerHTML='<div class="sim"><img src="'+img.src+'" alt="" class="sim-img" data-full-src="'+img.src+'" onclick="openImg(this.getAttribute(\"data-full-src\"))" style="cursor:zoom-in">'
@@ -973,6 +975,18 @@ function submitS(){
     toast('AI连接失败，请检查网络后重试');
     sess.res={orig:txt,zh:'（分析失败，可点修改重试）',lang:'en',keywords:[]};
     sess.state='result';sess.notes='';renderStudy();
+  });
+}
+function toggleStudyFollowup(){
+  var area=document.getElementById('s-followup-area');
+  if(area){area.style.display=area.style.display==='none'?'block':'none';}
+  var btn=document.getElementById('s-quill-btn');
+  if(btn)btn.style.opacity=area&&area.style.display==='block'?'1':'.5';
+}
+function discardS(){
+  confirmAct('丢弃这张？','分析结果不会保存','丢弃',function(){
+    sess.hist[sess.idx]={res:null,notes:'',discarded:true};
+    advS();
   });
 }
 function followupS(){
