@@ -132,13 +132,13 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 .chat{flex:1;overflow-y:auto;min-height:0;padding:10px 14px 6px;display:flex;flex-direction:column;gap:8px;-webkit-overflow-scrolling:touch;background:transparent}
 .bbl{width:100%;line-height:1.6;font-size:15px;box-sizing:border-box}
 .bai{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:11px 14px;color:rgba(255,255,255,.88);}
-.bme{background:rgba(40,80,200,.45);border:1px solid rgba(80,130,255,.2);color:rgba(255,255,255,.95);border-radius:12px;padding:11px 14px;}
+.bme{background:rgba(40,80,200,.45);border:1px solid rgba(80,130,255,.2);color:rgba(255,255,255,.95);border-radius:12px;padding:11px 14px;word-break:break-word;white-space:pre-wrap;}
 .bsys{align-self:center;font-size:12px;color:rgba(255,255,255,.3);background:rgba(255,255,255,.6);border-radius:20px;padding:5px 14px}
 .bload{align-self:flex-start;background:var(--card);border-radius:4px 18px 18px 18px;padding:14px 18px;box-shadow:0 1px 6px rgba(0,0,0,.08);display:flex;gap:5px}
 .bld{width:7px;height:7px;border-radius:50%;background:var(--t3);animation:sp 1.2s ease-in-out infinite}
 .bld:nth-child(2){animation-delay:.2s}.bld:nth-child(3){animation-delay:.4s}
-.cvwrap{padding:10px 14px max(20px,env(safe-area-inset-bottom));background:rgba(8,18,40,.97);border-top:1px solid rgba(255,255,255,.08);align-items:flex-end;display:flex;gap:10px;align-items:flex-end;flex-shrink:0}
-.cvta{flex:1;border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:11px 16px;font-size:15px;resize:none;outline:none;font-family:inherit;line-height:1.6;min-height:46px;max-height:120px;overflow-y:auto;background:rgba(255,255,255,.07);color:rgba(255,255,255,.88);transition:height .1s;}
+.cvwrap{padding:10px 14px max(20px,env(safe-area-inset-bottom));background:rgba(8,18,40,.97);border-top:1px solid rgba(255,255,255,.08);align-items:flex-end;display:flex;gap:8px;flex-shrink:0}
+.cvta{flex:1;border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:11px 16px;font-size:15px;resize:none;outline:none;font-family:inherit;line-height:1.6;min-height:64px;max-height:160px;overflow-y:auto;background:rgba(255,255,255,.07);color:rgba(255,255,255,.88);transition:height .1s;}
 .cvta::placeholder{color:var(--t3)}
 .cvsend{background:rgba(60,120,255,.7);border:none;border-radius:50%;width:36px;height:36px;color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .cvload{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:var(--bg);padding:40px}
@@ -212,6 +212,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 .lb-hint{position:absolute;bottom:max(20px,env(safe-area-inset-bottom));font-size:12px;color:rgba(255,255,255,.35);pointer-events:none}
 /* VOICE */
 .mic-btn{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);border-radius:50%;width:38px;height:38px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+mark.hl-phrase{background:rgba(210,165,55,.25);color:rgba(255,220,100,.95);border-radius:3px;padding:0 2px;cursor:pointer;font-style:normal;}
 .mic-btn.rec{background:rgba(220,38,38,.1);border-color:rgba(220,38,38,.5);animation:rp 1s ease-in-out infinite}
 @keyframes rp{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
 .ai-bbl-wrap{width:100%;display:flex;flex-direction:column;gap:3px}
@@ -403,8 +404,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
         </div>
       </div>
     <div class="cvwrap">
-      <button class="mic-btn" id="mic-btn" onclick="toggleMic()" title="语音输入">🎤</button>
-      <textarea class="cvta" id="cv-ta" placeholder="用英文回复，或点 🎤 说话…" style="color:rgba(255,255,255,.3)" rows="2" oninput="autoR(this)"></textarea>
+      <textarea class="cvta" id="cv-ta" placeholder="用英文回复…" style="color:rgba(255,255,255,.3)" rows="2" oninput="autoR(this)"></textarea>
       <button class="cvsend" onclick="sendMsg()">↑</button>
     </div>
     <!-- Quill floating note -->
@@ -1239,6 +1239,7 @@ function startConv(topicOverride){
       }
       var sys='你扮演'+setup.name+'，'+setup.nationality+'人，'+setup.job+'。'+setup.relationship+'。场景：'+setup.scene+'。'
       +'\n\n你的对话对象是个住在苏州、好奇心很强的中国女生，兴趣广泛，是Super Junior团粉（E.L.F），喜欢整个团。就像真实朋友聊天，全程英文，地道自然。不要用bro/dude/man称呼。'
+      +'\n\n每隔3-4轮自然地在句尾加一句，要求对方在下一条回复里用上某个具体词汇（从词库里随机选一个或自行选一个地道短语），语气轻松，比如："by the way, try to sneak in \'take it in stride\' somewhere!"'
       +'\n\n如果这些词汇有机会自然融入就用，不必强塞：\n'+wb
       +sjFanCtx+fanCtx
       +(notesCtx||'');
@@ -1282,7 +1283,7 @@ function addBbl(type,txt){
   } else {
     var d=document.createElement('div');
     d.className='bbl '+(type==='me'?'bme':'bsys');
-    if(type==='me'){var lbl2=document.createElement('div');lbl2.style.cssText='font-size:10px;color:rgba(255,255,255,.3);padding:0 2px;margin-bottom:1px;text-align:right';lbl2.textContent='你';var wrap2=document.createElement('div');wrap2.style.cssText='width:100%';wrap2.appendChild(lbl2);wrap2.appendChild(d);ca.appendChild(wrap2);ca.scrollTop=ca.scrollHeight;return;}
+    if(type==='me'){var lbl2=document.createElement('div');lbl2.style.cssText='font-size:10px;color:rgba(255,255,255,.3);padding:0 2px;margin-bottom:1px;text-align:right';lbl2.textContent='你';var wrap2=document.createElement('div');wrap2.style.cssText='width:100%;display:flex;flex-direction:column';wrap2.appendChild(lbl2);wrap2.appendChild(d);ca.appendChild(wrap2);ca.scrollTop=ca.scrollHeight;return;}
     d.textContent=txt;ca.appendChild(d);
   }
   ca.scrollTop=ca.scrollHeight;
@@ -1395,15 +1396,76 @@ function saveExitNoteAndLeave(){
   if(document.querySelector('.convnote-saved')){return;}
   toast('笔记已保存');
 }
+function renderFeedback(data){
+  var el=document.getElementById('fb-body');
+  if(!el)return;
+  var html='';
+
+  // My lines section
+  html+='<div style="font-size:11px;color:rgba(255,255,255,.4);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px">你的表达</div>';
+  if(data.my_lines&&data.my_lines.length){
+    data.my_lines.forEach(function(line){
+      html+='<div style="margin-bottom:12px;padding:10px 12px;background:rgba(255,255,255,.04);border-radius:10px;border-left:2px solid rgba(255,255,255,.1)">';
+      html+='<div style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:4px">'+escHtml(line.original)+'</div>';
+      if(line.suggestion&&line.note){
+        html+='<div style="font-size:14px;color:rgba(120,200,120,.9)">→ '+escHtml(line.suggestion)+'</div>';
+        html+='<div style="font-size:12px;color:rgba(255,255,255,.35);margin-top:3px">'+escHtml(line.note)+'</div>';
+      } else {
+        html+='<div style="font-size:13px;color:rgba(255,255,255,.3)">✓ 挺自然的</div>';
+      }
+      html+='</div>';
+    });
+  }
+
+  // AI highlights section - full sentences with inline highlights
+  html+='<div style="font-size:11px;color:rgba(255,255,255,.4);letter-spacing:2px;text-transform:uppercase;margin:16px 0 10px">对话回顾</div>';
+  if(data.ai_highlights&&data.ai_highlights.length){
+    data.ai_highlights.forEach(function(item){
+      var sentence=escHtml(item.sentence);
+      // highlight each phrase in the sentence
+      if(item.highlights){
+        item.highlights.forEach(function(h,i){
+          var escaped=escHtml(h.phrase);
+          sentence=sentence.replace(escaped,'<mark class="hl-phrase" data-exp="'+escAttr(h.explanation)+'" data-idx="'+i+'">'+escaped+'</mark>');
+        });
+      }
+      html+='<div style="margin-bottom:12px;padding:10px 12px;background:rgba(255,255,255,.04);border-radius:10px;font-size:14px;line-height:1.7;color:rgba(255,255,255,.75)">'+sentence+'</div>';
+    });
+  }
+
+  el.innerHTML=html;
+
+  // Tap handler for highlights
+  el.addEventListener('click',function(ev){
+    var hl=ev.target.closest('.hl-phrase');
+    if(!hl)return;
+    var existing=el.querySelector('.hl-tooltip');
+    if(existing&&existing.dataset.for===hl.dataset.idx){existing.remove();return;}
+    if(existing)existing.remove();
+    var tip=document.createElement('div');
+    tip.className='hl-tooltip';
+    tip.dataset.for=hl.dataset.idx;
+    tip.style.cssText='background:rgba(12,10,30,.97);border:1px solid rgba(210,165,55,.3);border-radius:10px;padding:8px 12px;font-size:13px;color:rgba(255,255,255,.85);margin-top:4px;line-height:1.5';
+    tip.textContent=hl.dataset.exp;
+    hl.parentNode.insertBefore(tip,hl.nextSibling);
+  });
+}
+function escHtml(s){return s?s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'):''}
+function escAttr(s){return s?s.replace(/"/g,'&quot;').replace(/'/g,'&#39;'):''}
 function endConv(){
   if(!conv)return;conv.state='ending';addBbl('sys','对话结束，正在生成反馈…');
   var history=conv.msgs.filter(function(m){return m.role!=='system';}).map(function(m){return(m.role==='user'?'你':conv.setup.name)+': '+m.content;}).join('\n');
   var words=conv.setup.words.map(function(w){return w.word;}).join('、');
   // clear notes field
   var notesEl=document.getElementById('conv-notes');if(notesEl)notesEl.value='';
-  callDS([{role:'user',content:'以下是对话记录，「你」是用户，另一方是AI角色。\n\n'+history+'\n\n请用中文做两件事，简洁：\n\n1.【更地道的说法】：「你」说的话里有没有可以更native的地方？有就列出来，格式：原句 → 更好的说法。没有就写"挺自然的"。\n\n2.【AI说的值得学的表达】：把AI说的话里所有地道短语、口语表达、俚语全部列出来，一条一条，格式：表达 — 含义和用法（一句话）。宁多勿少，不要筛选。'}],900)
+  callDS([{role:'user',content:'以下是对话记录，「你」是用户，另一方是AI角色。只返回JSON不要markdown。\n\n'+history+'\n\n返回格式：{"my_lines":[{"original":"你说的原句","suggestion":"更地道的说法","note":"简短说明，如果已经很自然就填null"}],"ai_highlights":[{"sentence":"AI说的完整句子（原文）","highlights":[{"phrase":"值得学的短语","explanation":"中文解释一句话"}]}]}\n\n规则：my_lines覆盖你说的每一句；ai_highlights只选AI说的有地道表达的句子，highlights标出所有值得学的短语。'}],1200)
   .then(function(fb){
-    document.getElementById('fb-body').textContent=fb.trim();
+    try{
+      var fbData=JSON.parse(fb.replace(/```json|```/g,'').trim());
+      renderFeedback(fbData);
+    }catch(e){
+      document.getElementById('fb-body').textContent=fb.trim();
+    }
     var wkRow=document.getElementById('wk-save-row');
     var wkLbl=document.getElementById('wk-label');
     var wkCb=document.getElementById('wk-cb');
