@@ -786,7 +786,7 @@ function refreshHome(){
   if(timeEl)timeEl.textContent=formatTime(ts.total||0);
   document.getElementById('h-total').textContent=DB.entries.length;
   document.getElementById('h-today').textContent=todayE.length;
-  document.getElementById('h-days').textContent=days;
+  var hd=document.getElementById('h-days');if(hd)hd.textContent=days;
   document.getElementById('card-meta').textContent=allKw.length+'个词汇';
   document.getElementById('conv-meta').textContent=enKw.length>0?'从'+enKw.length+'个词中选':'先积累英语词汇';
   var bl=document.getElementById('btn-list');
