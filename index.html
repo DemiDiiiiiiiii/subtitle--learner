@@ -449,7 +449,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
   </div>
   <div class="tabs" style="flex-shrink:0">
     <div class="tab on" id="tab-today" onclick="listTab('today')">今日</div>
-    <div class="tab" id="tab-hist" onclick="listTab('history')">历史</div>
     <div class="tab" id="tab-notes" onclick="listTab('notes')">我的魔法书<span id="notes-count" style="font-size:10px;color:var(--t3);margin-left:3px"></span></div>
   </div>
   <div id="lang-filter" style="display:none;flex-shrink:0;padding:6px 22px 2px;gap:8px;display:flex">
@@ -560,7 +559,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 
 <script>
 var WORKER = 'https://silent-star-8a3f.demi89612.workers.dev/';
-var DS_KEY  = 'sk-4e126a125433427c97678d423a2f53e2';
+
 var DB_KEY  = 'jc-v1';
 var TIME_KEY = 'jc-time';   // {total: minutes, lastDate: 'yyyy/m/d', streak: n, lastStreakDate: 'yyyy/m/d'}
 var _sessionStart = Date.now();
@@ -627,7 +626,7 @@ function loadImgAsync(id,cb){var l=getImgLocal(id);if(l){cb(l);return;}kvGet('im
 
 // ── State ─────────────────────────────────────────────────────────
 var sess=null,conv=null,crList=[],crIdx=0,crFlip=false,pendingWeak='';
-var listTabCurrent='today',expandedDates={},langFilter='all';
+var listTabCurrent='today',langFilter='all';
 
 // ── Boot ──────────────────────────────────────────────────────────
 // Show local data immediately, then sync from cloud
@@ -684,7 +683,7 @@ document.addEventListener('click',function(ev){
     var ki=parseInt(delKwBtn.getAttribute('data-del-kw'));
     var eid=delKwBtn.getAttribute('data-kw-entry');
     var ent=DB.entries.find(function(e){return e.id===eid;});
-    if(ent&&ent.keywords){ent.keywords.splice(ki,1);saveDB();if(listTabCurrent==='today')renderToday();else if(listTabCurrent==='history')renderHistory();}
+    if(ent&&ent.keywords){ent.keywords.splice(ki,1);saveDB();if(listTabCurrent==='today')renderToday();}
     return;
   }
   var editStoryBtn=ev.target.closest('[data-edit-story-note]');
@@ -1389,12 +1388,10 @@ function closeConv(doSave){
 function listTab(tab){
   listTabCurrent=tab;
   document.getElementById('tab-today').classList.toggle('on',tab==='today');
-  document.getElementById('tab-hist').classList.toggle('on',tab==='history');
   var tn=document.getElementById('tab-notes');if(tn)tn.classList.toggle('on',tab==='notes');
   var lf=document.getElementById('lang-filter');
-  if(lf)lf.style.display=(tab==='today'||tab==='history')?'flex':'none';
+  if(lf)lf.style.display=tab==='today'?'flex':'none';
   if(tab==='today')renderToday();
-  else if(tab==='history')renderHistory();
   else renderConvNotes();
 }
 var libLangFilter='all';
@@ -1419,7 +1416,6 @@ function setLangFilter(lang){
     b.style.borderColor=k===lang?'rgba(255,255,255,.2)':'rgba(255,255,255,.1)';
   });
   if(listTabCurrent==='today')renderToday();
-  else if(listTabCurrent==='history'){histPage=0;_renderHistoryPage(true);}
 }
 function renderConvNotes(){
   var el=document.getElementById('list-body');
@@ -1488,7 +1484,7 @@ function delStoryNote(idx){
 }
 function delKw(ki,eid){
   var ent=DB.entries.find(function(e){return e.id===eid;});
-  if(ent&&ent.keywords){ent.keywords.splice(ki,1);saveDB();if(listTabCurrent==='today')renderToday();else if(listTabCurrent==='history')renderHistory();else renderLib(document.getElementById('search-inp').value||'');}
+  if(ent&&ent.keywords){ent.keywords.splice(ki,1);saveDB();if(listTabCurrent==='today')renderToday();else renderLib(document.getElementById('search-inp').value||'');}
 }
 function eRowHTML(e,i,showDate){
   var ko=e.lang==='ko';
@@ -1535,57 +1531,7 @@ function renderToday(){
   el.innerHTML='<div class="entries">'+list.map(function(e,i){return eRowHTML(e,i,false);}).join('')+'</div>';
   loadRowImgs(list);bindListBodyEvents();
 }
-var histPage=0;var HIST_PAGE_SIZE=20;
-function renderHistory(){
-  histPage=0;
-  _renderHistoryPage(true);
-}
-function _renderHistoryPage(reset){
-  var el=document.getElementById('list-body');
-  var dates=Object.keys(DB.days).filter(function(d){
-    if(d===TODAY)return false;
-    if(langFilter==='all')return DB.days[d].length>0;
-    return DB.days[d].some(function(id){var e=DB.entries.find(function(e){return e.id===id;});return e&&e.lang===langFilter;});
-  }).sort().reverse();
-  if(!dates.length){el.innerHTML='<div style="padding:40px 0;text-align:center;color:var(--t3);font-size:14px">还没有历史记录</div>';return;}
-  var start=reset?0:HIST_PAGE_SIZE*histPage;
-  var pageDates=dates.slice(0,HIST_PAGE_SIZE*(histPage+1));
-  var newDates=dates.slice(start,HIST_PAGE_SIZE*(histPage+1));
-  var hasMore=dates.length>pageDates.length;
-  var frag=document.createDocumentFragment();
-  newDates.forEach(function(d){
-    if(true){
-      var cnt=DB.days[d].length;var isOpen=expandedDates[d];
-      var entries=isOpen?DB.days[d].map(function(id){return DB.entries.find(function(e){return e.id===id;});}).filter(Boolean).filter(function(e){return langFilter==='all'||e.lang===langFilter;}):[];
-      var grp=document.createElement('div');grp.className='dgrp';grp.id='dgrp-'+d;
-      var hdr=document.createElement('button');hdr.className='dghdr';
-      hdr.innerHTML='<span class="dgdate">'+d+'</span><span class="dgcnt">'+cnt+' 条 '+(isOpen?'▲':'▼')+'</span>';
-      (function(date){hdr.addEventListener('click',function(){toggleDate(date);});})(d);
-      grp.appendChild(hdr);
-      if(isOpen){
-        var eDiv=document.createElement('div');eDiv.className='entries';
-        eDiv.innerHTML=entries.map(function(e,i){return eRowHTML(e,i,false);}).join('');
-        grp.appendChild(eDiv);
-      }
-      frag.appendChild(grp);
-    }
-  });
-  if(reset){el.innerHTML='';} else {var ob=document.getElementById('hist-load-more');if(ob)ob.remove();}
-  el.appendChild(frag);
-  if(hasMore){
-    var more=document.createElement('button');more.id='hist-load-more';
-    more.className='btn btn-ghost';
-    more.style.cssText='margin:16px 22px;width:calc(100% - 44px)';
-    more.textContent='加载更多（还有'+(dates.length-pageDates.length)+'天）';
-    var _loadMore=function(e){if(e)e.stopPropagation();histPage++;_renderHistoryPage(false);};
-    more.ontouchend=function(e){e.preventDefault();_loadMore(e);};
-    more.onclick=_loadMore;
-    el.appendChild(more);
-  }
-  pageDates.forEach(function(d){if(expandedDates[d]){var entries=DB.days[d].map(function(id){return DB.entries.find(function(e){return e.id===id;});}).filter(Boolean);loadRowImgs(entries);}});
-  bindListBodyEvents();
-}
-function toggleDate(d){expandedDates[d]=!expandedDates[d];renderHistory();}
+
 function editEntry(id){
   var entry=DB.entries.find(function(e){return e.id===id;});
   if(!entry)return;
@@ -1626,7 +1572,7 @@ function saveEdit(id){
   kvSet('db',JSON.stringify(DB)).then(function(r){
     if(r&&r.ok)toast('已保存并同步到云端 ✓');
   }).catch(function(){toast('已保存（云端同步失败，请手动上传）');});
-  if(listTabCurrent==='today')renderToday();else if(listTabCurrent==='history')renderHistory();else renderConvNotes();
+  if(listTabCurrent==='today')renderToday();else renderConvNotes();
 }
 function saveEditAndAnalyze(id){
   var entry=DB.entries.find(function(e){return e.id===id;});if(!entry)return;
@@ -1653,11 +1599,11 @@ function saveEditAndAnalyze(id){
       entry.ts=Date.now();
       saveDB();
       kvSet('db',JSON.stringify(DB)).catch(function(){});
-      if(listTabCurrent==='today')renderToday();else if(listTabCurrent==='history')renderHistory();
+      if(listTabCurrent==='today')renderToday();
       toast('重新分析完成，已同步云端 ✓');
-    }catch(e){saveDB();if(listTabCurrent==='today')renderToday();else if(listTabCurrent==='history')renderHistory();toast('分析结果解析失败，已保存原文');}
+    }catch(e){saveDB();if(listTabCurrent==='today')renderToday();toast('分析结果解析失败，已保存原文');}
   })
-  .catch(function(){saveDB();if(listTabCurrent==='today')renderToday();else if(listTabCurrent==='history')renderHistory();toast('分析失败，请重试');});
+  .catch(function(){saveDB();if(listTabCurrent==='today')renderToday();toast('分析失败，请重试');});
 }
 function delEntry(id){
   confirmAct('删除这条字幕？','删除后不可恢复','删除',function(){
@@ -1883,7 +1829,7 @@ function clearAll(){
 
 // ── API ───────────────────────────────────────────────────────────
 function callDS(msgs,max){
-  return fetch(WORKER,{method:'POST',headers:{'Content-Type':'application/json','X-Action':'ds','Authorization':'Bearer '+DS_KEY},body:JSON.stringify({model:'deepseek-chat',max_tokens:max||600,messages:msgs})})
+  return fetch(WORKER,{method:'POST',headers:{'Content-Type':'application/json','X-Action':'ds'},body:JSON.stringify({model:'deepseek-chat',max_tokens:max||600,messages:msgs})})
   .then(function(r){return r.json();})
   .then(function(d){if(d.error)throw new Error(d.error.message||JSON.stringify(d.error));return(d.choices&&d.choices[0]&&d.choices[0].message&&d.choices[0].message.content)||'';});
 }
