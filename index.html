@@ -559,6 +559,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 
 <script>
 var WORKER = 'https://silent-star-8a3f.demi89612.workers.dev/';
+var APP_SECRET = 'Renshengdeyixujinhuan';
 
 var DB_KEY  = 'jc-v1';
 var TIME_KEY = 'jc-time';   // {total: minutes, lastDate: 'yyyy/m/d', streak: n, lastStreakDate: 'yyyy/m/d'}
@@ -604,12 +605,12 @@ function kvSet(k,v){
   try{
     var c=new AbortController();
     var t=setTimeout(function(){c.abort();},8000);
-    return fetch(WORKER,{method:'POST',headers:{'Content-Type':'application/json','X-Action':'kv-set'},body:JSON.stringify({key:getUID()+'-'+k,value:v}),signal:c.signal})
+    return fetch(WORKER,{method:'POST',headers:{'Content-Type':'application/json','X-Action':'kv-set','X-App-Secret':APP_SECRET},body:JSON.stringify({key:getUID()+'-'+k,value:v}),signal:c.signal})
       .then(function(r){clearTimeout(t);return r.json();})
       .catch(function(e){clearTimeout(t);throw e;});
   }catch(e){return Promise.reject(e);}
 }
-function kvGet(k){var c=new AbortController();setTimeout(function(){c.abort();},6000);return fetch(WORKER,{method:'POST',headers:{'Content-Type':'application/json','X-Action':'kv-get','X-Key':getUID()+'-'+k},signal:c.signal}).then(function(r){return r.json();}).then(function(d){return d.value||null;}).catch(function(){return null;});}
+function kvGet(k){var c=new AbortController();setTimeout(function(){c.abort();},6000);return fetch(WORKER,{method:'POST',headers:{'Content-Type':'application/json','X-Action':'kv-get','X-Key':getUID()+'-'+k,'X-App-Secret':APP_SECRET},signal:c.signal}).then(function(r){return r.json();}).then(function(d){return d.value||null;}).catch(function(){return null;});}
 
 // ── DB ────────────────────────────────────────────────────────────
 var DB={entries:[],fps:[],days:{},weakness:''};
@@ -1829,7 +1830,7 @@ function clearAll(){
 
 // ── API ───────────────────────────────────────────────────────────
 function callDS(msgs,max){
-  return fetch(WORKER,{method:'POST',headers:{'Content-Type':'application/json','X-Action':'ds'},body:JSON.stringify({model:'deepseek-chat',max_tokens:max||600,messages:msgs})})
+  return fetch(WORKER,{method:'POST',headers:{'Content-Type':'application/json','X-Action':'ds','X-App-Secret':APP_SECRET},body:JSON.stringify({model:'deepseek-chat',max_tokens:max||600,messages:msgs})})
   .then(function(r){return r.json();})
   .then(function(d){if(d.error)throw new Error(d.error.message||JSON.stringify(d.error));return(d.choices&&d.choices[0]&&d.choices[0].message&&d.choices[0].message.content)||'';});
 }
