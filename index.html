@@ -437,7 +437,11 @@ mark.hl-phrase{background:rgba(210,165,55,.25);color:rgba(255,220,100,.95);borde
       <div style="font-size:11px;color:var(--t3);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px">个人笔记</div>
       <textarea class="fb-notes" id="conv-notes" placeholder="记下今天学到的表达、想再用的词、或者任何感想…"></textarea>
     </div>
-    <div style="margin-top:16px;display:flex;flex-direction:column;gap:10px">
+    <div style="margin-top:12px;display:flex;align-items:center;gap:8px;padding:10px 0">
+      <input type="checkbox" id="save-chat-log-cb" style="width:16px;height:16px;cursor:pointer;accent-color:rgba(80,130,255,.8)">
+      <label for="save-chat-log-cb" style="font-size:13px;color:rgba(255,255,255,.5);cursor:pointer">同时保存完整聊天记录</label>
+    </div>
+    <div style="margin-top:4px;display:flex;flex-direction:column;gap:10px">
       <button class="btn btn-gold" onclick="saveConvFeedback()">保存笔记，回主页</button>
       <button class="btn btn-white" onclick="saveConvNoteAndContinue()">保存笔记，继续对话</button>
       <button class="btn btn-white" onclick="document.getElementById('fb-sheet').classList.remove('show');startConv()">再来一轮</button>
@@ -622,7 +626,7 @@ function kvGet(k){var c=new AbortController();setTimeout(function(){c.abort();},
 var DB={entries:[],fps:[],days:{},weakness:''};
 var TODAY=new Date().toLocaleDateString('zh-CN');
 try{var _s=localStorage.getItem(DB_KEY);if(_s)DB=JSON.parse(_s);}catch(e){}
-if(!DB.entries)DB.entries=[];if(!DB.fps)DB.fps=[];if(!DB.days)DB.days={};if(!DB.weakness)DB.weakness='';
+if(!DB.entries)DB.entries=[];if(!DB.fps)DB.fps=[];if(!DB.days)DB.days={};if(!DB.weakness)DB.weakness='';if(!DB.chatLogs)DB.chatLogs=[];
 // Rebuild fps index from all existing entries to ensure global dedup
 DB.entries.forEach(function(e){if(e.fp&&DB.fps.indexOf(e.fp)===-1)DB.fps.push(e.fp);});
 if(!DB.days[TODAY])DB.days[TODAY]=[];
@@ -1388,6 +1392,12 @@ function showTopicPicker(){
   document.getElementById('topic-cancel').onclick=function(){m.remove();};
 }
 function saveExitNote(){
+  // Merge quill notes into exit note textarea first
+  if(window._quillNotes&&window._quillNotes.length){
+    var ta2=document.getElementById('exit-note-ta');
+    if(ta2)ta2.value=(ta2.value?ta2.value+'\n':'')+window._quillNotes.join('\n');
+    window._quillNotes=[];
+  }
   var ta=document.getElementById('exit-note-ta');
   if(ta&&ta.value.trim()){
     if(!DB.convNotes)DB.convNotes=[];
@@ -1495,6 +1505,11 @@ function endConv(){
   }).catch(function(){toast('获取反馈失败');});
 }
 function closeConv(doSave){hideQuillBtn();
+  if(window._quillNotes&&window._quillNotes.length){
+    if(!DB.convNotes)DB.convNotes=[];
+    DB.convNotes.push({date:TODAY,ts:Date.now(),notes:window._quillNotes.join('\n')});
+    saveDB();window._quillNotes=[];
+  }
   if(doSave&&pendingWeak){var lines=(DB.weakness||'').split('\n').filter(Boolean);lines.push(new Date().toLocaleDateString('zh-CN')+': '+pendingWeak);DB.weakness=lines.slice(-5).join('\n');saveDB();}
   pendingWeak='';document.getElementById('fb-sheet').classList.remove('show');goTo('home');
 }
@@ -1536,28 +1551,42 @@ function renderConvNotes(){
   var el=document.getElementById('list-body');
   var convNotes=(DB.convNotes||[]).map(function(n,i){return {type:'conv',idx:i,date:n.date,ts:n.ts||0,text:n.notes};});
   var storyNotes=(DB.storyNotes||[]).map(function(n,i){return {type:'story',idx:i,date:n.date,ts:n.ts||0,text:n.note,story:n.story};});
-  var all=convNotes.concat(storyNotes).sort(function(a,b){return (b.ts||0)-(a.ts||0);});
+  var chatLogs=(DB.chatLogs||[]).map(function(n,i){return {type:'chatlog',idx:i,date:n.date,ts:n.ts||0,text:n.log,name:n.name};});
+  var all=convNotes.concat(storyNotes).concat(chatLogs).sort(function(a,b){return (b.ts||0)-(a.ts||0);});
   var nc=document.getElementById('notes-count');if(nc)nc.textContent=all.length?all.length+'':'';
   if(!all.length){el.innerHTML='<div style="padding:40px 0;text-align:center;color:var(--t3);font-size:14px">还没有学习笔记<br>对话结束或生成故事后可以记笔记</div>';return;}
   el.innerHTML=all.map(function(n){
-    var badge=n.type==='story'
+    var badge=n.type==='chatlog'
+      ?'<span style="font-size:10px;background:rgba(60,100,200,.25);color:rgba(120,160,255,.9);padding:1px 6px;border-radius:6px;margin-left:6px">记录</span>'
+      :n.type==='story'
       ?'<span style="font-size:10px;background:#e0f2fe;color:#0369a1;padding:1px 6px;border-radius:6px;margin-left:6px">故事</span>'
       :'<span style="font-size:10px;background:var(--glt);color:var(--gold);padding:1px 6px;border-radius:6px;margin-left:6px">对话</span>';
     var editBtn=n.type==='conv'
       ?'<button style="background:none;border:none;font-size:13px;color:var(--gold);cursor:pointer;padding:2px 6px" onclick="event.stopPropagation();editConvNote('+n.idx+')">✏️</button>'
+      :n.type==='chatlog'?''
       :'<button style="background:none;border:none;font-size:13px;color:var(--gold);cursor:pointer;padding:2px 6px" onclick="event.stopPropagation();editStoryNote('+n.idx+')">✏️</button>';
     var delBtn=n.type==='conv'
       ?'<button style="background:none;border:none;font-size:13px;color:var(--red);cursor:pointer;padding:2px 6px" onclick="event.stopPropagation();delConvNote('+n.idx+')">×</button>'
+      :n.type==='chatlog'
+      ?'<button style="background:none;border:none;font-size:13px;color:var(--red);cursor:pointer;padding:2px 6px" onclick="event.stopPropagation();delChatLog('+n.idx+')">×</button>'
       :'<button style="background:none;border:none;font-size:13px;color:var(--red);cursor:pointer;padding:2px 6px" onclick="event.stopPropagation();delStoryNote('+n.idx+')">×</button>';
     var preview=n.story?'<div style="font-size:11px;color:var(--t3);margin-bottom:4px;font-style:italic">出自故事：'+n.story+'…</div>':'';
+    var bodyHtml=n.type==='chatlog'
+      ?'<div id="chatlog-'+n.idx+'" style="display:none;font-size:13px;line-height:1.8;white-space:pre-wrap;color:rgba(255,255,255,.65);margin-top:8px;max-height:320px;overflow-y:auto">'+n.text+'</div>'
+       +'<button onclick="var el=document.getElementById(\'chatlog-'+n.idx+'\');el.style.display=el.style.display===\'none\'?\'block\':\'none\';this.textContent=el.style.display===\'block\'?\'收起 ▲\':\'展开对话 ▼\'" style="margin-top:6px;background:none;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:4px 12px;font-size:12px;color:var(--t3);cursor:pointer;font-family:inherit">展开对话 ▼</button>'
+       +'<div style="font-size:12px;color:rgba(255,255,255,.3);margin-top:4px">与 '+n.name+' 的对话</div>'
+      :'<div style="font-size:14px;line-height:1.7;white-space:pre-wrap">'+n.text+'</div>';
     return '<div style="padding:16px 22px;border-bottom:1px solid var(--bdr)">'
       +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
       +'<div style="font-size:11px;color:var(--t3)">'+n.date+badge+'</div>'
       +'<div style="display:flex;gap:4px">'+editBtn+delBtn+'</div></div>'
       +preview
-      +'<div style="font-size:14px;line-height:1.7;white-space:pre-wrap">'+n.text+'</div>'
+      +bodyHtml
       +'</div>';
   }).join('');
+}
+function delChatLog(idx){
+  confirmAct('删除这条记录？','删除后无法恢复','删除',function(){DB.chatLogs.splice(idx,1);saveDB();renderConvNotes();});
 }
 function editConvNote(idx){
   var note=DB.convNotes[idx];if(!note)return;
@@ -2116,18 +2145,27 @@ function saveConvNoteAndContinue(){
 function saveConvFeedback(){
   var notes=(document.getElementById('conv-notes').value||'').trim();
   var saveWk=document.getElementById('wk-cb')&&document.getElementById('wk-cb').checked;
+  var saveChatLog=document.getElementById('save-chat-log-cb')&&document.getElementById('save-chat-log-cb').checked;
   if(saveWk&&pendingWeak){
     var lines=(DB.weakness||'').split('\n').filter(Boolean);
     lines.push(new Date().toLocaleDateString('zh-CN')+': '+pendingWeak);
     DB.weakness=lines.slice(-5).join('\n');
   }
-  // save notes to today's conv record if anything written
   if(notes){
     if(!DB.convNotes)DB.convNotes=[];
     DB.convNotes.push({date:TODAY,ts:Date.now(),notes:notes});
   }
+  if(saveChatLog&&conv&&conv.msgs){
+    if(!DB.chatLogs)DB.chatLogs=[];
+    var name=conv.setup?conv.setup.name:'AI';
+    var log=conv.msgs.filter(function(m){return m.role!=='system';}).map(function(m){
+      return (m.role==='user'?'你':name)+': '+m.content;
+    }).join('\n');
+    DB.chatLogs.push({date:TODAY,ts:Date.now(),name:name,log:log});
+  }
   saveDB();
   pendingWeak='';
+  var cb=document.getElementById('save-chat-log-cb');if(cb)cb.checked=false;
   document.getElementById('fb-sheet').classList.remove('show');
   goTo('home');
 }
