@@ -25,7 +25,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
     radial-gradient(ellipse 80% 65% at 115% 115%,rgba(28,85,245,.32) 0%,transparent 62%),
     radial-gradient(ellipse 45% 35% at 108% 108%,rgba(60,120,255,.22) 0%,transparent 48%);}
 #app{height:100vh;position:relative}
-.screen{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity .22s;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;background:transparent;z-index:2;}#conv{height:100dvh;max-height:100dvh;overflow:hidden;}
+.screen{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity .22s;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;background:transparent;z-index:2;}#conv{overflow:hidden;display:flex;flex-direction:column;height:100svh;top:0;bottom:auto;}
 .screen.on{opacity:1;pointer-events:all}
 .btn{width:100%;padding:15px;border:none;border-radius:var(--rs);font-size:15px;cursor:pointer;transition:opacity .15s,transform .1s;font-family:inherit;text-align:center;display:block}
 .btn:active{opacity:.7;transform:scale(.98)}
@@ -882,7 +882,10 @@ function renderStudy(){
     panel='<p class="ihint">照着图片，输入字幕内容</p>'
       +'<div class="irow"><textarea class="ita" id="s-ta" placeholder="输入这张截图里的字幕…" rows="2"></textarea>'
       +'<button class="ibtn" onclick="submitS()">→</button></div>'
-      +'<div class="iskip" onclick="skipS()">跳过这张</div>';
+      +'<div style="display:flex;gap:8px;margin-top:8px">'
+      +(sess.idx>0?'<button class="btn btn-ghost" style="flex:1;font-size:13px" onclick="prevS()">← 上一张</button>':'')
+      +(sess.hist[sess.idx]?'<button class="btn btn-white" style="flex:1;font-size:13px" onclick="restoreS()">恢复分析 →</button>':'<div class="iskip" style="flex:1;text-align:center" onclick="skipS()">跳过这张</div>')
+      +'</div>';
   }else if(sess.state==='analyzing'){
     panel='<div class="spin"><div class="sp"></div><div class="sp"></div><div class="sp"></div></div>'
       +'<p style="text-align:center;font-size:13px;color:var(--t2)">AI 分析中…</p>';
@@ -998,6 +1001,11 @@ function followupS(){
     }catch(e){toast('解析失败，请重试');}
   }).catch(function(){if(loading)loading.style.display='none';toast('网络错误，请重试');});
 }
+function restoreS(){
+  var h=sess.hist[sess.idx];
+  if(h&&h.res){sess.res=h.res;sess.notes=h.notes||'';sess.state='result';renderStudy();}
+  else{skipS();}
+}
 function prevS(){
   if(sess.idx<=0)return;
   sess.idx--;
@@ -1011,7 +1019,7 @@ function saveNext(){
   var r=sess.res;sess.hist[sess.idx]={res:r,notes:sess.notes};
   if(r){
     var id=Date.now()+'-'+sess.idx;
-    var entry={id:id,text:r.orig,lang:r.lang,zh:r.zh,keywords:r.keywords||[],notes:sess.notes||'',date:TODAY,ts:Date.now()};
+    var entry={id:id,text:r.orig,lang:r.lang,zh:r.zh,keywords:r.keywords||[],notes:sess.notes||'',date:TODAY,ts:Date.now(),fp:sess.imgs[sess.idx].fp};
     DB.entries.push(entry);DB.fps.push(sess.imgs[sess.idx].fp);
     if(!DB.days[TODAY])DB.days[TODAY]=[];
     DB.days[TODAY].push(id);saveDB();
@@ -1242,7 +1250,7 @@ function startConv(topicOverride){
     conv={setup:setup,msgs:[{role:'system',content:sys},{role:'assistant',content:setup.firstMessage}],state:'chatting'};
     document.getElementById('cv-load').style.display='none';
     showQuillBtn();
-    var m=document.getElementById('cv-main');m.style.display='flex';m.style.flexDirection='column';m.style.flex='1';m.style.minHeight='0';m.style.overflow='hidden';
+    var m=document.getElementById('cv-main');m.style.display='flex';m.style.flexDirection='column';m.style.flex='1';m.style.minHeight='0';m.style.overflow='visible';
     // Fix scroll: give chat an explicit height based on available space
     setTimeout(function(){
       var chat=document.getElementById('chat');
@@ -1686,7 +1694,7 @@ function storyChat(){
   var cid=document.getElementById('cv-id');
   if(cid)cid.innerHTML='<div class="idrow"><div class="idav">📖</div><div><div class="idname">语言老师</div><div class="idsub">故事讨论模式</div></div></div><div class="idscene">针对刚才的小故事，随时提问</div>';
   var ca=document.getElementById('chat');if(ca)ca.innerHTML='';
-  var m=document.getElementById('cv-main');m.style.display='flex';m.style.flexDirection='column';m.style.flex='1';m.style.minHeight='0';m.style.overflow='hidden';
+  var m=document.getElementById('cv-main');m.style.display='flex';m.style.flexDirection='column';m.style.flex='1';m.style.minHeight='0';m.style.overflow='visible';
   document.getElementById('cv-load').style.display='none';
   addBbl('ai',setup.firstMessage);
   setTimeout(function(){
@@ -2006,7 +2014,7 @@ function feedbackChat(){
   if(cid)cid.innerHTML='<div class="idrow"><div class="idav">🎯</div><div><div class="idname">对话教练</div><div class="idsub">反馈追问模式</div></div></div><div class="idscene">针对刚才的反馈继续追问</div>';
   var ca=document.getElementById('chat');if(ca)ca.innerHTML='';
   var m=document.getElementById('cv-main');
-  m.style.display='flex';m.style.flexDirection='column';m.style.flex='1';m.style.minHeight='0';m.style.overflow='hidden';
+  m.style.display='flex';m.style.flexDirection='column';m.style.flex='1';m.style.minHeight='0';m.style.overflow='visible';
   document.getElementById('cv-load').style.display='none';
   addBbl('ai',setup.firstMessage);
   setTimeout(function(){
