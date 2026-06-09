@@ -1283,7 +1283,7 @@ function addBbl(type,txt){
   } else {
     var d=document.createElement('div');
     d.className='bbl '+(type==='me'?'bme':'bsys');
-    if(type==='me'){var lbl2=document.createElement('div');lbl2.style.cssText='font-size:10px;color:rgba(255,255,255,.3);padding:0 2px;margin-bottom:1px;text-align:right';lbl2.textContent='你';var wrap2=document.createElement('div');wrap2.style.cssText='width:100%;display:flex;flex-direction:column';wrap2.appendChild(lbl2);wrap2.appendChild(d);ca.appendChild(wrap2);ca.scrollTop=ca.scrollHeight;return;}
+    if(type==='me'){d.textContent=txt;var lbl2=document.createElement('div');lbl2.style.cssText='font-size:10px;color:rgba(255,255,255,.3);padding:0 2px;margin-bottom:1px;text-align:right';lbl2.textContent='你';var wrap2=document.createElement('div');wrap2.style.cssText='width:100%;display:flex;flex-direction:column';wrap2.appendChild(lbl2);wrap2.appendChild(d);ca.appendChild(wrap2);ca.scrollTop=ca.scrollHeight;return;}
     d.textContent=txt;ca.appendChild(d);
   }
   ca.scrollTop=ca.scrollHeight;
@@ -1426,7 +1426,7 @@ function renderFeedback(data){
       if(item.highlights){
         item.highlights.forEach(function(h,i){
           var escaped=escHtml(h.phrase);
-          sentence=sentence.replace(escaped,'<mark class="hl-phrase" data-exp="'+escAttr(h.explanation)+'" data-idx="'+i+'">'+escaped+'</mark>');
+          sentence=sentence.replace(escaped,'<mark class="hl-phrase" data-exp="'+escAttr(h.explanation)+'" data-ety="'+escAttr(h.etymology||'')+'" data-idx="'+i+'">'+escaped+'</mark>');
         });
       }
       html+='<div style="margin-bottom:12px;padding:10px 12px;background:rgba(255,255,255,.04);border-radius:10px;font-size:14px;line-height:1.7;color:rgba(255,255,255,.75)">'+sentence+'</div>';
@@ -1446,7 +1446,9 @@ function renderFeedback(data){
     tip.className='hl-tooltip';
     tip.dataset.for=hl.dataset.idx;
     tip.style.cssText='background:rgba(12,10,30,.97);border:1px solid rgba(210,165,55,.3);border-radius:10px;padding:8px 12px;font-size:13px;color:rgba(255,255,255,.85);margin-top:4px;line-height:1.5';
-    tip.textContent=hl.dataset.exp;
+    var expText=hl.dataset.exp||'';
+    var etyText=hl.dataset.ety&&hl.dataset.ety!=='null'?hl.dataset.ety:'';
+    tip.innerHTML='<div>'+escHtml(expText)+'</div>'+(etyText?'<div style="margin-top:4px;font-size:12px;color:rgba(210,165,55,.7);border-top:1px solid rgba(255,255,255,.08);padding-top:4px">'+escHtml(etyText)+'</div>':'');
     hl.parentNode.insertBefore(tip,hl.nextSibling);
   });
 }
@@ -1458,7 +1460,7 @@ function endConv(){
   var words=conv.setup.words.map(function(w){return w.word;}).join('、');
   // clear notes field
   var notesEl=document.getElementById('conv-notes');if(notesEl)notesEl.value='';
-  callDS([{role:'user',content:'以下是对话记录，「你」是用户，另一方是AI角色。只返回JSON不要markdown。\n\n'+history+'\n\n返回格式：{"my_lines":[{"original":"你说的原句","suggestion":"更地道的说法","note":"简短说明，如果已经很自然就填null"}],"ai_highlights":[{"sentence":"AI说的完整句子（原文）","highlights":[{"phrase":"值得学的短语","explanation":"中文解释一句话"}]}]}\n\n规则：my_lines覆盖你说的每一句；ai_highlights只选AI说的有地道表达的句子，highlights标出所有值得学的短语。'}],1200)
+  callDS([{role:'user',content:'以下是对话记录，「你」是用户，另一方是AI角色。只返回JSON不要markdown。\n\n'+history+'\n\n返回格式：{"my_lines":[{"original":"你说的原句","suggestion":"更地道的说法","note":"简短说明，如果已经很自然就填null"}],"ai_highlights":[{"sentence":"AI说的完整句子（原文）","highlights":[{"phrase":"值得学的短语","explanation":"中文解释","etymology":"词源或典故，如有请说明，没有就填null"}]}]}\n\n规则：my_lines覆盖你说的每一句；ai_highlights只选AI说的有地道表达的句子，highlights标出所有值得学的短语。'}],1200)
   .then(function(fb){
     try{
       var fbData=JSON.parse(fb.replace(/```json|```/g,'').trim());
