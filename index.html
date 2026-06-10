@@ -1301,7 +1301,8 @@ function startConv(topicOverride){
           +'Sound like someone who has definitely read fic at 2am. Drop 1-2 expressions max, not a glossary dump.';
       }
       var sys='你扮演'+setup.name+'，'+setup.nationality+'人，'+setup.job+'。'+setup.relationship+'。场景：'+setup.scene+'。'
-      +'\n\n你的对话对象是个住在苏州的中国女生，在外资制造业公司做FP&A财务分析，好奇心强，兴趣广泛（跑步、登山、骑行、读文学），是Super Junior团粉（E.L.F）。就像真实朋友聊天，全程英文，地道自然。不要用bro/dude/man称呼。'
+      +'\n\n你的对话对象是个住在苏州的中国女生，在外资制造业公司做FP&A财务分析，好奇心强，兴趣广泛（跑步、登山、骑行、读文学），是Super Junior团粉（E.L.F）。你是她的好朋友，就像真实朋友聊天，全程英文，地道自然。不要用bro/dude/man称呼。'
+      +'\n\n你的人格特质：女性视角鲜明，思维进步开放，对性别议题、职场不平等、社会规训有自己的立场，敢于表达观点不只是附和。偶尔犀利，有时温柔，有幽默感。如果对方说了什么刻板印象或老旧观念，可以自然地反怼或提出不同看法。'
       +'\n\n每隔3-4轮自然地在句尾加一句，要求对方在下一条回复里用上某个具体词汇（从词库里随机选一个或自行选一个地道短语），语气轻松，比如："by the way, try to sneak in \'take it in stride\' somewhere!"'
       +'\n\n如果这些词汇有机会自然融入就用，不必强塞：\n'+wb
       +sjFanCtx+fanCtx
@@ -1411,27 +1412,33 @@ function showTopicPicker(){
   var old=document.getElementById('topic-modal');if(old)old.remove();
   var topics=[
     {label:'随机来一场',value:'随机，任何话题都行，越出其不意越好'},
-    {label:'职场 & 职业',value:'职场、工作、职业发展、职场人际'},
-    {label:'运动 & 健康',value:'跑步、徒步、骑车、游泳、健身、运动'},
-    {label:'旅行 & 生活',value:'旅行、城市生活、美食、日常闲聊'},
-    {label:'娱乐 & 流行',value:'Kpop、音乐剧、美剧、电影、pop culture'},
-    {label:'文学 & 文化',value:'书、文学、艺术、历史、有深度的话题'},
-    {label:'八卦 & 闲聊',value:'朋友间的八卦、日常抱怨、轻松闲聊'},
+    {label:'职场 & 职业',value:'职场压力、职业发展、工作与生活的边界、外资公司文化'},
+    {label:'职场心理学',value:'职场权力关系、PUA识别、如何不被拿捏、边界感、情绪劳动'},
+    {label:'运动 & 健康',value:'跑步、登山、骑行、游泳、健身，以及运动带来的心理状态'},
+    {label:'旅行 & 生活',value:'旅行、城市生活、美食、居家日常'},
+    {label:'穿搭 & 买买买',value:'时尚、穿搭、好物推荐、美妆、消费决策'},
+    {label:'追星（Kpop/SJ）',value:'Super Junior、ELF文化、Kpop圈、idol、饭圈生态'},
+    {label:'美剧 & 韩剧',value:'剧情讨论、角色分析、编剧吐槽、最近在追什么'},
+    {label:'文学 & 哲学',value:'书、文学、艺术、存在主义、人生意义、历史、思想'},
+    {label:'社会观察局',value:'社会现象、代际差异、消费主义、女性处境、性别议题、进步主义'},
+    {label:'身体 & 自主',value:'女性与身体、beauty standard、健康焦虑、身材与自我认知'},
+    {label:'八卦 & 闲聊',value:'娱乐圈八卦、朋友圈观察、社会新鲜事、轻松扯淡'},
   ];
   var m=document.createElement('div');m.id='topic-modal';
   m.style.cssText='position:fixed;inset:0;background:rgba(2,8,25,.75);z-index:200;display:flex;align-items:flex-end;backdrop-filter:blur(8px);';
-  m.innerHTML='<div style="background:var(--card);border-radius:22px 22px 0 0;padding:22px;width:100%;box-sizing:border-box">'
+  m.innerHTML='<div style="background:rgba(6,14,36,.99);border-top:1px solid rgba(255,255,255,.1);border-radius:22px 22px 0 0;padding:22px;width:100%;box-sizing:border-box">'
     +'<div style="font-size:16px;font-weight:400;margin-bottom:6px;color:rgba(255,255,255,.88);letter-spacing:1px;font-family:serif;">今天想聊什么？</div>'
     +'<div style="font-size:12px;color:rgba(255,255,255,.3);margin-bottom:18px;letter-spacing:0.5px;">选个话题方向，AI 会生成相关场景</div>'
-    +'<div id="topic-list" style="display:flex;flex-direction:column;gap:8px"></div>'
+    +'<div id="topic-list" style="display:grid;grid-template-columns:1fr 1fr;gap:8px"></div>'
     +'<button id="topic-cancel" style="margin-top:12px;padding:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;color:rgba(255,255,255,.3);font-size:14px;cursor:pointer;width:100%;font-family:inherit;">取消</button>'
     +'</div>';
   document.body.appendChild(m);
   var list=document.getElementById('topic-list');
-  topics.forEach(function(t){
+  topics.forEach(function(t,i){
     var btn=document.createElement('button');
     btn.className='';
-    btn.style.cssText='text-align:left;padding:14px 18px;font-size:14px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:14px;color:rgba(255,255,255,.75);cursor:pointer;width:100%;font-family:inherit;letter-spacing:0.5px;';
+    var fullWidth=i===0?';grid-column:span 2':'';
+    btn.style.cssText='text-align:center;padding:11px 10px;font-size:13px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:12px;color:rgba(255,255,255,.75);cursor:pointer;width:100%;font-family:inherit;line-height:1.4'+fullWidth+';';
     btn.textContent=t.label;
     btn.onclick=function(){m.remove();startConv(t.value);};
     list.appendChild(btn);
