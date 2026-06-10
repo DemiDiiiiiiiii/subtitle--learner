@@ -1264,7 +1264,11 @@ function startConv(topicOverride){
   var notesCtx='';
 
   var wk=DB.weakness?'【用户英语弱点，对话中注意引导】\n'+DB.weakness:'';
-  callDS([{role:'user',content:'你是英语口语练习助手。生成一个真实的日常对话场景，角色女性或性别中立。话题方向：'+topicOverride+'。\n\n场景要具体有画面感，第一句话像真人发消息，不要套话。\n\n目标词汇（自然融入，绝不点破）：\n'+wb+'\n\n'+wk+'\n\n返回JSON（所有字段英文，firstMessage必须是英文）：{"name":"English name","nationality":"nationality in English","job":"job in English","relationship":"one sentence in English","scene":"2 sentences in English","firstMessage":"opening message in natural English"}'}],400)
+  var isRoleplay=topicOverride==='__roleplay__';
+  var dsPrompt=isRoleplay
+    ?'为英语对话练习随机生成一个剧本杀场景。从以下类型随机选一个：职场冲突、追星现场偶遇、旅途偶遇、深夜书店、韩剧式偶遇、面试现场、向老板谈加薪、与前任重逢、租房谈判。\n\n返回格式（中文）：\n场景名：\n你的身份：（一句话）\n我的身份：（一句话）\n冲突起点：（一句具体触发事件，50字内）\n我的开场白：（英文，直接进入角色，10-20词）'
+    :'你是英语口语练习助手。生成一个真实的日常对话场景，角色女性或性别中立。话题方向：'+topicOverride+'。\n\n场景要具体有画面感，第一句话像真人发消息，不要套话。\n\n目标词汇（自然融入，绝不点破）：\n'+wb+'\n\n'+wk+'\n\n返回JSON（所有字段英文，firstMessage必须是英文）：{"name":"English name","nationality":"nationality in English","job":"job in English","relationship":"one sentence in English","scene":"2 sentences in English","firstMessage":"opening message in natural English"}';
+  callDS([{role:'user',content:dsPrompt}],400)
   .then(function(raw){
     if(isRoleplay){
       var sceneName=(raw.match(/场景名[：:](.*)/)||[])[1]||'剧本杀';
