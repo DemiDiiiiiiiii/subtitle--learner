@@ -916,8 +916,8 @@ function renderStudy(){
       +'<div class="rzh">'+r.zh+'</div>'
       +(kws?'<div class="kwl">'+kws+'</div>':'')
       +'<div style="display:flex;gap:8px;margin:10px 0 8px;align-items:center">'
-      +'<input id="s-followup" type="text" placeholder="追问AI，如：拆解语法…" style="flex:1;background:rgba(2,8,25,.97);border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:9px 12px;font-family:inherit;font-size:13px;color:var(--text);outline:none">'
-      +'<button onclick="followupS()" style="background:rgba(210,165,55,.15);border:1px solid rgba(210,165,55,.3);border-radius:10px;padding:9px 14px;color:rgba(210,165,55,.9);font-size:13px;cursor:pointer;white-space:nowrap;font-family:inherit">发送</button>'
+      +'<input id="s-followup" type="text" placeholder="向水晶球叩问，如：拆解语法…" style="flex:1;background:rgba(2,8,25,.97);border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:9px 12px;font-family:inherit;font-size:13px;color:var(--text);outline:none">'
+      +'<button onclick="followupS()" style="background:rgba(210,165,55,.15);border:1px solid rgba(210,165,55,.3);border-radius:10px;padding:9px 14px;color:rgba(210,165,55,.9);font-size:13px;cursor:pointer;white-space:nowrap;font-family:inherit">叩问 ✦</button>'
       +'<button onclick="toggleStudyNotes()" style="background:none;border:none;font-size:20px;cursor:pointer;padding:0 2px;opacity:.6">🪶</button>'
       +'</div>'
       +'<div id="s-followup-loading" style="display:none;font-size:12px;color:var(--t3);padding:0 0 4px">🔮 水晶球凝视中…</div>'
@@ -1267,7 +1267,7 @@ function startConv(topicOverride){
   var wk=DB.weakness?'【用户英语弱点，对话中注意引导】\n'+DB.weakness:'';
 
   if(isRoleplay){
-    callDS([{role:'user',content:'你是英语口语角色扮演练习助手。生成一个冲突感强、有戏剧张力的场景（如：职场谈判、误解争论、求职面试、家庭矛盾等）。\n\n目标词汇（对话中自然用到1-2个）：\n'+wb+'\n\n严格按以下格式返回，每行一个字段，不要多余内容：\n场景名：[2-4字场景名]\n你的身份：[用户扮演的角色，中文]\n我的身份：[AI扮演的角色，中文]\n冲突起点：[一句话背景，中文]\n我的开场白：[AI第一句英文对话，自然口语]'}],400)
+    callDS([{role:'user',content:'你是英语口语角色扮演练习助手。从以下场景类型中随机挑一个来生成剧本，每次都要不一样，禁止反复生成上司施压、被指责、考核类场景：\n① 旅行途中突发状况（航班取消、迷路、与陌生人临时搭伙）\n② 朋友之间关于电影/旅行/餐厅的品味争论\n③ 恋人或老友之间的小误会（语气误读、惊喜被撞破）\n④ 二手市集或街边讨价还价\n⑤ 深夜与久未联系的朋友重逢，互相吐槽近况\n⑥ 轻松悬疑：两人玩推理游戏，互相试探\n⑦ 异国他乡被困奇特处境（暴风雪、大停电、末班车误点），两个陌生人一起想办法\n⑧ 一方要说服另一方做一件对方完全不感兴趣的事（跑马拉松、学做饭、去野营）\n\n目标词汇（对话中自然用到1-2个）：\n'+wb+'\n\n严格按以下格式返回，每行一个字段，不要多余内容：\n场景名：[2-4字场景名]\n你的身份：[用户扮演的角色，中文]\n我的身份：[AI扮演的角色，中文]\n冲突起点：[一句话描述当前处境，中文，语气可以轻松]\n我的开场白：[AI第一句英文对话，自然口语]'}],400)
     .then(function(raw){
       var sceneName=(raw.match(/场景名[：:\s:]\s*(.*)/)||[])[1]||'剧本杀';
       var myRole=(raw.match(/你的身份[：:\s:]\s*(.*)/)||[])[1]||'你';
