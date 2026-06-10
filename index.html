@@ -1263,29 +1263,44 @@ function startConv(topicOverride){
   }
   var notesCtx='';
 
+  var isRoleplay=(topicOverride==='__roleplay__');
   var wk=DB.weakness?'【用户英语弱点，对话中注意引导】\n'+DB.weakness:'';
-  var isRoleplay=topicOverride==='__roleplay__';
-  var dsPrompt=isRoleplay
-    ?'为英语对话练习随机生成一个剧本杀场景。从以下类型随机选一个：职场冲突、追星现场偶遇、旅途偶遇、深夜书店、韩剧式偶遇、面试现场、向老板谈加薪、与前任重逢、租房谈判。\n\n返回格式（中文）：\n场景名：\n你的身份：（一句话）\n我的身份：（一句话）\n冲突起点：（一句具体触发事件，50字内）\n我的开场白：（英文，直接进入角色，10-20词）'
-    :'你是英语口语练习助手。生成一个真实的日常对话场景，角色女性或性别中立。话题方向：'+topicOverride+'。\n\n场景要具体有画面感，第一句话像真人发消息，不要套话。\n\n目标词汇（自然融入，绝不点破）：\n'+wb+'\n\n'+wk+'\n\n返回JSON（所有字段英文，firstMessage必须是英文）：{"name":"English name","nationality":"nationality in English","job":"job in English","relationship":"one sentence in English","scene":"2 sentences in English","firstMessage":"opening message in natural English"}';
-  callDS([{role:'user',content:dsPrompt}],400)
-  .then(function(raw){
-    if(isRoleplay){
-      var sceneName=(raw.match(/场景名[：:](.*)/)||[])[1]||'剧本杀';
-      var myRole=(raw.match(/你的身份[：:](.*)/)||[])[1]||'你';
-      var aiRole=(raw.match(/我的身份[：:](.*)/)||[])[1]||'对手';
-      var trigger=(raw.match(/冲突起点[：:](.*)/)||[])[1]||'';
-      var opener=(raw.match(/我的开场白[：:](.*)/)||[])[1]||'Let\'s begin.';
+
+  if(isRoleplay){
+    callDS([{role:'user',content:'你是英语口语角色扮演练习助手。生成一个冲突感强、有戏剧张力的场景（如：职场谈判、误解争论、求职面试、家庭矛盾等）。\n\n目标词汇（对话中自然用到1-2个）：\n'+wb+'\n\n严格按以下格式返回，每行一个字段，不要多余内容：\n场景名：[2-4字场景名]\n你的身份：[用户扮演的角色，中文]\n我的身份：[AI扮演的角色，中文]\n冲突起点：[一句话背景，中文]\n我的开场白：[AI第一句英文对话，自然口语]'}],400)
+    .then(function(raw){
+      var sceneName=(raw.match(/场景名[：:\s:]\s*(.*)/)||[])[1]||'剧本杀';
+      var myRole=(raw.match(/你的身份[：:\s:]\s*(.*)/)||[])[1]||'你';
+      var aiRole=(raw.match(/我的身份[：:\s:]\s*(.*)/)||[])[1]||'对手';
+      var trigger=(raw.match(/冲突起点[：:\s:]\s*(.*)/)||[])[1]||'';
+      var opener=(raw.match(/我的开场白[：:\s:]\s*(.*)/)||[])[1]||"Let's begin.";
       sceneName=sceneName.trim();myRole=myRole.trim();aiRole=aiRole.trim();trigger=trigger.trim();opener=opener.trim();
       var rpSetup={name:sceneName,role:myRole,scene:'【'+sceneName+'】 '+trigger,firstMessage:opener};
-      var rpSys='你正在进行角色扮演对话练习。你扮演：'+aiRole+'。用户扮演：'+myRole+'。背景：'+trigger+'。全程英文，完全入戏，有情绪有立场，不破坏角色。每轮1-3句，推动剧情发展。';
+      var rpSys='你正在进行角色扮演练习。你扮演：'+aiRole+'。用户扮演：'+myRole+'。背景：'+trigger+'。全程英文，完全入戏，每轮1-3句，推动剧情发展。';
       conv={setup:rpSetup,msgs:[{role:'system',content:rpSys},{role:'assistant',content:opener}],state:'chatting'};
       document.getElementById('cv-load').style.display='none';
       showQuillBtn();
-      var rpM=document.getElementById('cv-main');rpM.style.display='flex';rpM.style.flexDirection='column';rpM.style.flex='1';rpM.style.minHeight='0';
-      setTimeout(function(){var chat=document.getElementById('chat');if(chat){chat.innerHTML='';addBbl('ai',opener);}},100);
-      return;
-    }
+      var rpM=document.getElementById('cv-main');rpM.style.display='flex';rpM.style.flexDirection='column';rpM.style.flex='1';rpM.style.minHeight='0';rpM.style.overflow='visible';
+      document.getElementById('cv-id').innerHTML='<div class="idrow"><div class="idav">🎭</div><div><div class="idname">'+sceneName+'</div><div class="idsub">你：'+myRole+' · AI：'+aiRole+'</div></div></div><div class="idscene">'+trigger+'</div>';
+      setTimeout(function(){
+        var chat=document.getElementById('chat');
+        var top=document.querySelector('.cvtop');
+        var cvid=document.getElementById('cv-id');
+        var cvwrap=document.querySelector('.cvwrap');
+        if(chat&&top&&cvwrap){
+          var used=(top.offsetHeight||0)+(cvid?cvid.offsetHeight||0:0)+(cvwrap.offsetHeight||0);
+          chat.style.height=(window.innerHeight-used-8)+'px';
+          chat.style.flex='none';chat.style.overflowY='auto';chat.style.webkitOverflowScrolling='touch';
+        }
+        chat.innerHTML='';addBbl('ai',opener);
+      },100);
+    }).catch(function(){toast('生成场景失败，请重试');goTo('home');});
+    return;
+  }
+
+  callDS([{role:'user',content:'你是英语口语练习助手。生成一个真实的日常对话场景，角色女性或性别中立。话题方向：'+topicOverride+'。\n\n场景要具体有画面感，第一句话像真人发消息，不要套话。\n\n目标词汇（自然融入，绝不点破）：\n'+wb+'\n\n'+wk+'\n\n返回JSON（所有字段英文，firstMessage必须是英文）：{"name":"English name","nationality":"nationality in English","job":"job in English","relationship":"one sentence in English","scene":"2 sentences in English","firstMessage":"opening message in natural English"}'}],400)
+  .then(function(raw){
+
     var setup;try{setup=JSON.parse(raw.replace(/```json|```/g,'').trim());}catch(e){toast('生成场景失败，请重试');goTo('home');return;}
     setup.words=picked;
     var isEntTopic=topicOverride&&topicOverride.indexOf('Kpop')!==-1;
@@ -1412,10 +1427,33 @@ if(window.visualViewport){
       var toggleH=toggle?toggle.offsetHeight:0;
       chat.style.height=(vvHeight-topH-cvidH-toggleH-fbH-wrapH-8)+'px';
       chat.style.flex='none';
+      // Fix iOS: 阻止键盘弹出时页面被滚上去
+      window.scrollTo(0,0);
+      document.documentElement.scrollTop=0;
+      chat.scrollTop=chat.scrollHeight;
+    }
+  });
+  // Fix iOS: 输入框获焦时把页面拉回顶部
+  document.addEventListener('focusin',function(e){
+    if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA'){
+      var cvmain=document.getElementById('cv-main');
+      if(!cvmain||cvmain.style.display==='none')return;
+      setTimeout(function(){window.scrollTo(0,0);document.documentElement.scrollTop=0;},50);
+      setTimeout(function(){window.scrollTo(0,0);document.documentElement.scrollTop=0;},300);
     }
   });
 }
-// Auto-collapse removed
+// Auto-collapse cv-id when user starts scrolling chat
+(function(){
+  var lastScrollTop=0;var timer=null;
+  document.addEventListener('scroll',function(e){
+    var chat=document.getElementById('chat');
+    if(!chat||!e.target===chat)return;
+    var cvid=document.getElementById('cv-id');
+    if(!cvid)return;
+    if(!cvid.classList.contains('collapsed'))cvid.classList.add('collapsed');
+  },true);
+})();
 function sendMsg(){var ta=document.getElementById('cv-ta'),txt=ta?ta.value.trim():'';if(!txt||!conv||conv.state!=='chatting')return;ta.value='';ta.style.height='auto';addBbl('me',txt);conv.msgs.push({role:'user',content:txt});addLoad();var recentMsgs=conv.msgs.length>7?conv.msgs.slice(0,1).concat(conv.msgs.slice(-6)):conv.msgs;callDS(recentMsgs,250).then(function(r){rmLoad();conv.msgs.push({role:'assistant',content:r});addBbl('ai',r);}).catch(function(){rmLoad();toast('网络错误，请重试');});}
 // leaveConv replaced by showConvExit
 function showTopicPicker(){
@@ -1542,21 +1580,13 @@ function renderFeedback(data){
 function escHtml(s){return s?s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'):''}
 function escAttr(s){return s?s.replace(/"/g,'&quot;').replace(/'/g,'&#39;'):''}
 function endConv(){
-  if(!conv)return;
-  if(conv.state==='ending'||conv.state==='done')return;
-  conv.state='ending';addBbl('sys','对话结束，正在生成反馈…');
+  if(!conv)return;conv.state='ending';addBbl('sys','对话结束，正在生成反馈…');
   var history=conv.msgs.filter(function(m){return m.role!=='system';}).map(function(m){return(m.role==='user'?'你':conv.setup.name)+': '+m.content;}).join('\n');
   var words=conv.setup.words.map(function(w){return w.word;}).join('、');
   // clear notes field
   var notesEl=document.getElementById('conv-notes');if(notesEl)notesEl.value='';
-  // Timeout: if no response in 35s, allow retry
-  var fbTimeout=setTimeout(function(){
-    conv.state='chatting';
-    toast('反馈生成超时，请再试一次');
-  },35000);
   callDS([{role:'user',content:'以下是对话记录，「你」是用户，另一方是AI角色。只返回JSON不要markdown。\n\n'+history+'\n\n返回格式：{"my_lines":[{"original":"你说的原句","suggestion":"更地道的说法","note":"简短说明，如果已经很自然就填null"}],"ai_highlights":[{"sentence":"AI说的完整句子（原文）","highlights":[{"phrase":"值得学的短语","explanation":"中文解释","etymology":"词源或典故，如有请说明，没有就填null"}]}]}\n\n规则：my_lines覆盖你说的每一句；ai_highlights只选AI说的有地道表达的句子，highlights标出所有值得学的短语。'}],1200)
   .then(function(fb){
-    clearTimeout(fbTimeout);
     try{
       var fbData=JSON.parse(fb.replace(/```json|```/g,'').trim());
       renderFeedback(fbData);
@@ -1575,18 +1605,7 @@ function endConv(){
     }
     document.getElementById('fb-sheet').classList.add('show');
   if(window._quillNotes&&window._quillNotes.length){var fbn=document.getElementById('conv-notes');if(fbn){fbn.value=(fbn.value?fbn.value+'\n':'')+window._quillNotes.join('\n');}window._quillNotes=[];}
-  }).catch(function(e){
-    clearTimeout(fbTimeout);conv.state='chatting';
-    confirmAct('反馈获取失败','是否保存这次对话记录？','保存对话',function(){
-      if(!DB.chatLogs)DB.chatLogs=[];
-      var name=conv&&conv.setup?conv.setup.name:'AI';
-      var log=conv.msgs.filter(function(m){return m.role!=='system';}).map(function(m){
-        return(m.role==='user'?'你':name)+': '+m.content;
-      }).join('\n');
-      DB.chatLogs.push({date:TODAY,ts:Date.now(),name:name,log:log});
-      saveDB();toast('对话已保存到魔法书');
-    });
-  });
+  }).catch(function(){toast('获取反馈失败');});
 }
 function closeConv(doSave){hideQuillBtn();
   if(window._quillNotes&&window._quillNotes.length){
@@ -1660,53 +1679,14 @@ function renderConvNotes(){
        +'<button onclick="var el=document.getElementById(\'chatlog-'+n.idx+'\');el.style.display=el.style.display===\'none\'?\'block\':\'none\';this.textContent=el.style.display===\'block\'?\'收起 ▲\':\'展开对话 ▼\'" style="margin-top:6px;background:none;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:4px 12px;font-size:12px;color:var(--t3);cursor:pointer;font-family:inherit">展开对话 ▼</button>'
        +'<div style="font-size:12px;color:rgba(255,255,255,.3);margin-top:4px">与 '+n.name+' 的对话</div>'
       :'<div style="font-size:14px;line-height:1.7;white-space:pre-wrap">'+n.text+'</div>';
-    var askId='note-ask-'+n.type+'-'+n.idx;
-    var askArea=n.type!=='chatlog'
-      ?'<div style="margin-top:8px">'
-       +'<button onclick="toggleNoteAsk(\''+askId+'\')" data-note-text="'+escAttr(n.text)+'" id="'+askId+'-btn" style="background:rgba(210,165,55,.06);border:1px solid rgba(210,165,55,.18);border-radius:10px;padding:5px 12px;font-size:12px;color:rgba(210,165,55,.5);cursor:pointer;font-family:inherit;letter-spacing:1px">✦ 问AI</button>'
-       +'<div id="'+askId+'" style="display:none;margin-top:8px">'
-       +'<div style="display:flex;gap:8px">'
-       +'<input type="text" id="'+askId+'-inp" placeholder="问关于这条笔记的任何问题…" style="flex:1;background:rgba(2,8,25,.97);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:8px 12px;font-family:inherit;font-size:13px;color:var(--text);outline:none">'
-       +'<button onclick="sendNoteAsk(\''+askId+'\')" style="background:rgba(210,165,55,.12);border:1px solid rgba(210,165,55,.25);border-radius:10px;padding:8px 12px;color:rgba(210,165,55,.8);font-size:13px;cursor:pointer;font-family:inherit">→</button>'
-       +'</div>'
-       +'<div id="'+askId+'-loading" style="display:none;font-size:12px;color:var(--t3);padding:4px 2px">✦ 思考中…</div>'
-       +'<div id="'+askId+'-result" style="display:none;margin-top:8px;font-size:14px;line-height:1.7;color:rgba(255,255,255,.8);background:rgba(255,255,255,.04);border-radius:10px;padding:10px 12px"></div>'
-       +'</div>'
-       +'</div>'
-      :'';
     return '<div style="padding:16px 22px;border-bottom:1px solid var(--bdr)">'
       +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
       +'<div style="font-size:11px;color:var(--t3)">'+n.date+badge+'</div>'
       +'<div style="display:flex;gap:4px">'+editBtn+delBtn+'</div></div>'
       +preview
       +bodyHtml
-      +askArea
       +'</div>';
   }).join('');
-}
-function toggleNoteAsk(id){
-  var area=document.getElementById(id);
-  if(area)area.style.display=area.style.display==='none'?'block':'none';
-}
-function sendNoteAsk(id){
-  var btn=document.getElementById(id+'-btn');
-  var noteText=btn?btn.getAttribute('data-note-text'):'';
-  var inp=document.getElementById(id+'-inp');
-  var q=inp?inp.value.trim():'';
-  if(!q)return;
-  inp.value='';
-  var loading=document.getElementById(id+'-loading');
-  var result=document.getElementById(id+'-result');
-  if(loading)loading.style.display='block';
-  if(result)result.style.display='none';
-  callDS([{role:'user',content:'以下是用户的学习笔记：\n「'+noteText+'」\n\n用户问题：'+q+'\n\n请用中文简洁回答，如涉及表达用法或词源请一并说明。'}],600)
-  .then(function(r){
-    if(loading)loading.style.display='none';
-    if(result){result.textContent=r;result.style.display='block';}
-  }).catch(function(){
-    if(loading)loading.style.display='none';
-    toast('网络错误，请重试');
-  });
 }
 function delChatLog(idx){
   confirmAct('删除这条记录？','删除后无法恢复','删除',function(){DB.chatLogs.splice(idx,1);saveDB();renderConvNotes();});
