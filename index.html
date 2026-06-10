@@ -634,7 +634,7 @@ function kvGet(k){var c=new AbortController();setTimeout(function(){c.abort();},
 var DB={entries:[],fps:[],days:{},weakness:''};
 var TODAY=new Date().toLocaleDateString('zh-CN');
 try{var _s=localStorage.getItem(DB_KEY);if(_s)DB=JSON.parse(_s);}catch(e){}
-if(!DB.entries)DB.entries=[];if(!DB.fps)DB.fps=[];if(!DB.days)DB.days={};if(!DB.weakness)DB.weakness='';if(!DB.chatLogs)DB.chatLogs=[];
+if(!DB.entries)DB.entries=[];if(!DB.fps)DB.fps=[];if(!DB.days)DB.days={};if(!DB.weakness)DB.weakness='';if(!DB.chatLogs)DB.chatLogs=[];if(!DB.grammarBank)DB.grammarBank=[];
 // Rebuild fps index from all existing entries to ensure global dedup
 DB.entries.forEach(function(e){if(e.fp&&DB.fps.indexOf(e.fp)===-1)DB.fps.push(e.fp);});
 if(!DB.days[TODAY])DB.days[TODAY]=[];
@@ -977,7 +977,7 @@ function submitS(){
   var ta=document.getElementById('s-ta'),txt=ta?ta.value.trim():'';
   if(!txt){toast('请先输入字幕内容');return;}
   sess.state='analyzing';renderStudy();
-  callDS([{role:'user',content:'分析以下影视字幕（英文或韩文），只返回JSON不要markdown：\n"'+txt+'"\n\n{"zh":"整体中文翻译","lang":"en或ko","keywords":[{"word":"词或短语","zh":"含义","note":"地道用法说明，韩文注明반말/존댓말"}]}\n\n规则：①只提取短语和搭配（2个以上单词），不提取单个孤立单词；②跳过CET-4及以下常见词（如：go, make, take, like, good, just, really, know, think, feel, want, need, time, people, say, come, look, tell, give, find, work等）；③最多6个，优先选地道表达、固定搭配或高级词汇。'}],500)
+  callDS([{role:'user',content:'分析以下影视字幕（英文或韩文），只返回JSON不要markdown：\n"'+txt+'"\n\n{"zh":"整体中文翻译","lang":"en或ko","keywords":[{"word":"词或短语","zh":"含义","note":"地道用法说明，韩文注明반말/존댓말"}],"grammar":[{"pattern":"语法型如-느라고","meaning":"一句话含义"}]}\n\n规则：①只提取短语和搭配（2个以上单词），不提取单个孤立单词；②跳过CET-4及以下常见词；③最多6个，优先选地道表达；④若为韩语，grammar提取连接语尾/终结语尾/表达型（如-느라고、-기 때문에、-아/어 버리다），不提取助词이/가/을/를，最多4个；英语grammar返回[]。'}],500)
   .then(function(raw){
     try{
       var parsed=JSON.parse(raw.replace(/```json|```/g,'').trim());
@@ -1048,6 +1048,7 @@ function saveNext(){
     if(!DB.days[TODAY])DB.days[TODAY]=[];
     DB.days[TODAY].push(id);saveDB();
     compressImg(id,sess.imgs[sess.idx].file);
+    if(r.lang==='ko'&&r.grammar&&r.grammar.length)processGrammar(r.grammar,id,r.orig);
   }
   advS();
 }
@@ -1642,13 +1643,22 @@ function setLangFilter(lang){
 }
 function renderConvNotes(){
   var el=document.getElementById('list-body');
+  // 语法库子tab
+  var listSubTab=window._listSubTab||'notes';
+  var el2=document.getElementById('list-body');
+  var subNav='<div style="display:flex;gap:0;margin:0 0 12px;border-bottom:1px solid rgba(255,255,255,.08)">'
+    +'<button onclick="window._listSubTab=\'notes\';renderConvNotes()" style="flex:1;background:none;border:none;padding:10px 0;font-size:13px;cursor:pointer;font-family:inherit;color:'+(listSubTab==='notes'?'var(--gold)':'rgba(255,255,255,.35)')+';border-bottom:2px solid '+(listSubTab==='notes'?'var(--gold)':'transparent')+'">笔记</button>'
+    +'<button onclick="window._listSubTab=\'grammar\';renderConvNotes()" style="flex:1;background:none;border:none;padding:10px 0;font-size:13px;cursor:pointer;font-family:inherit;color:'+(listSubTab==='grammar'?'var(--gold)':'rgba(255,255,255,.35)')+';border-bottom:2px solid '+(listSubTab==='grammar'?'var(--gold)':'transparent')+'">语法库<span style="font-size:10px;margin-left:4px;color:var(--t3)">'+(DB.grammarBank&&DB.grammarBank.length?DB.grammarBank.length:'')+'</span></button>'
+    +'</div>';
+  if(listSubTab==='grammar'){if(el2)el2.innerHTML=subNav;renderGrammarBank();return;}
+  if(el2)el2.innerHTML=subNav;
   var convNotes=(DB.convNotes||[]).map(function(n,i){return {type:'conv',idx:i,date:n.date,ts:n.ts||0,text:n.notes};});
   var storyNotes=(DB.storyNotes||[]).map(function(n,i){return {type:'story',idx:i,date:n.date,ts:n.ts||0,text:n.note,story:n.story};});
   var chatLogs=(DB.chatLogs||[]).map(function(n,i){return {type:'chatlog',idx:i,date:n.date,ts:n.ts||0,text:n.log,name:n.name};});
   var all=convNotes.concat(storyNotes).concat(chatLogs).sort(function(a,b){return (b.ts||0)-(a.ts||0);});
   var nc=document.getElementById('notes-count');if(nc)nc.textContent=all.length?all.length+'':'';
-  if(!all.length){el.innerHTML='<div style="padding:40px 0;text-align:center;color:var(--t3);font-size:14px">还没有学习笔记<br>对话结束或生成故事后可以记笔记</div>';return;}
-  el.innerHTML=all.map(function(n){
+  if(!all.length){el.innerHTML=subNav+'<div style="padding:40px 0;text-align:center;color:var(--t3);font-size:14px">还没有学习笔记<br>对话结束或生成故事后可以记笔记</div>';return;}
+  el.innerHTML=subNav+all.map(function(n){
     var badge=n.type==='chatlog'
       ?'<span style="font-size:10px;background:rgba(60,100,200,.25);color:rgba(120,160,255,.9);padding:1px 6px;border-radius:6px;margin-left:6px">记录</span>'
       :n.type==='story'
@@ -1716,6 +1726,127 @@ function submitNoteKowen(type,idx){
     res.innerHTML='<div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px 12px;font-size:13px;color:rgba(255,255,255,.8);line-height:1.7;white-space:pre-wrap">'+escHtml(r)+'</div>'
       +'<div style="font-size:11px;color:var(--t3);margin-top:5px">回答不保存，如需留存请手动复制到笔记 ✏️</div>';
   }).catch(function(){res.innerHTML='<div style="font-size:12px;color:rgba(220,80,80,.6);padding:6px 0">网络错误，请重试</div>';});
+}
+
+// ── Grammar Bank ──────────────────────────────────────────────────
+function normalizePattern(p){
+  if(!p)return '';
+  return p.replace(/[（）()【】\[\]]/g,'').replace(/^[-–—\s]*/,'').replace(/\s+/g,'').toLowerCase().trim();
+}
+function processGrammar(grammarArr,entryId,origText){
+  if(!DB.grammarBank)DB.grammarBank=[];
+  var changed=false;
+  grammarArr.forEach(function(g){
+    if(!g.pattern||!g.meaning)return;
+    var norm=normalizePattern(g.pattern);
+    if(!norm||norm.length<2)return;
+    var existing=DB.grammarBank.find(function(b){return normalizePattern(b.pattern)===norm;});
+    if(existing){
+      if(!existing.examples)existing.examples=[];
+      if(existing.examples.length<15&&!existing.examples.some(function(e){return e.entryId===entryId;})){
+        existing.examples.push({text:origText,entryId:entryId});changed=true;
+      }
+    } else {
+      DB.grammarBank.push({id:'g-'+Date.now()+'-'+Math.random().toString(36).slice(2,5),pattern:g.pattern,meaning:g.meaning,examples:[{text:origText,entryId:entryId}],addedDate:TODAY});
+      changed=true;
+    }
+  });
+  if(changed)saveDB();
+}
+function renderGrammarBank(){
+  var el=document.getElementById('list-body');
+  if(!el)return;
+  var bank=DB.grammarBank||[];
+  var scanBtn='<div style="padding:0 0 16px;display:flex;gap:8px;align-items:center">'
+    +'<span style="font-size:12px;color:var(--t3);flex:1">共 '+bank.length+' 个语法型</span>'
+    +'<button onclick="scanAllKorean()" style="background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.25);border-radius:10px;padding:6px 14px;font-size:12px;color:rgba(167,139,250,.9);cursor:pointer;font-family:inherit">扫描历史韩语句子</button>'
+    +'</div>';
+  if(!bank.length){
+    el.innerHTML+=scanBtn+'<div style="padding:20px 0;text-align:center;color:var(--t3);font-size:14px">暂无语法记录<br><span style="font-size:12px">上传韩语截图后自动提取，或点击扫描历史</span></div>';
+    return;
+  }
+  var sorted=bank.slice().sort(function(a,b){return (b.examples||[]).length-(a.examples||[]).length;});
+  el.innerHTML+=scanBtn+sorted.map(function(g,gi){
+    var exHtml=(g.examples||[]).slice(0,3).map(function(ex){
+      return '<div style="font-size:12px;color:rgba(255,255,255,.45);padding:4px 0;border-top:1px solid rgba(255,255,255,.05);line-height:1.6">'+escHtml(ex.text)+'</div>';
+    }).join('');
+    var moreCount=(g.examples||[]).length>3?(g.examples.length-3)+' 句未显示':'';
+    return '<div style="padding:16px 22px;border-bottom:1px solid var(--bdr)">'
+      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">'
+      +'<div style="flex:1">'
+      +'<div style="font-size:16px;color:rgba(167,139,250,.95);font-weight:500;margin-bottom:4px">'+escHtml(g.pattern)+'</div>'
+      +'<div style="font-size:13px;color:rgba(255,255,255,.65);line-height:1.6;margin-bottom:8px">'+escHtml(g.meaning)+'</div>'
+      +(exHtml?'<div>'+exHtml+(moreCount?'<div style="font-size:11px;color:var(--t3);padding-top:4px">+'+moreCount+'</div>':'')+'</div>':'')
+      +'<div id="gk-'+gi+'" style="display:none"></div>'
+      +'</div>'
+      +'<div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">'
+      +'<span style="font-size:10px;color:var(--t3);text-align:center">'+(g.examples||[]).length+'句</span>'
+      +'<button onclick="toggleGrammarKowen('+gi+')" style="background:none;border:none;font-size:13px;color:rgba(210,165,55,.6);cursor:pointer;padding:2px">✦</button>'
+      +'<button onclick="delGrammar(\''+g.id+'\')" style="background:none;border:none;font-size:13px;color:var(--t3);cursor:pointer;padding:2px">×</button>'
+      +'</div></div></div>';
+  }).join('');
+}
+function toggleGrammarKowen(gi){
+  var el=document.getElementById('gk-'+gi);
+  if(!el)return;
+  if(el.style.display!=='none'){el.style.display='none';el.innerHTML='';return;}
+  document.querySelectorAll('[id^="gk-"]').forEach(function(e){e.style.display='none';e.innerHTML='';});
+  el.style.display='block';
+  var g=((DB.grammarBank||[]).slice().sort(function(a,b){return (b.examples||[]).length-(a.examples||[]).length;}))[gi];
+  var key='gk-'+gi;
+  el.innerHTML='<div style="padding-top:10px">'
+    +'<div style="display:flex;gap:8px;align-items:center">'
+    +'<input id="gki-'+key+'" type="text" placeholder="向水晶球叩问，如：和-아서有什么区别…" style="flex:1;background:rgba(2,8,25,.9);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:8px 12px;font-size:13px;color:rgba(255,255,255,.85);outline:none;font-family:inherit">'
+    +'<button onclick="submitGrammarKowen('+gi+')" style="background:rgba(210,165,55,.13);border:1px solid rgba(210,165,55,.28);border-radius:10px;padding:8px 12px;color:rgba(210,165,55,.9);font-size:12px;cursor:pointer;white-space:nowrap;font-family:inherit">叩问 ✦</button>'
+    +'</div>'
+    +'<div id="gkr-'+key+'" style="margin-top:8px;display:none"></div>'
+    +'</div>';
+  setTimeout(function(){
+    var inp=document.getElementById('gki-'+key);
+    if(inp){inp.focus();inp.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();submitGrammarKowen(gi);}});}
+  },80);
+}
+function submitGrammarKowen(gi){
+  var key='gk-'+gi;
+  var inp=document.getElementById('gki-'+key);
+  var res=document.getElementById('gkr-'+key);
+  if(!inp||!res)return;
+  var q=inp.value.trim();if(!q)return;
+  var g=((DB.grammarBank||[]).slice().sort(function(a,b){return (b.examples||[]).length-(a.examples||[]).length;}))[gi];
+  if(!g)return;
+  var exTxt=(g.examples||[]).slice(0,3).map(function(e){return e.text;}).join(' / ');
+  inp.value='';
+  res.style.display='block';
+  res.innerHTML='<div style="font-size:12px;color:var(--t3);padding:6px 0">🔮 水晶球凝视中…</div>';
+  callDS([{role:'user',content:'你是韩语语法教练，用中文简洁回答，不超过200字。\n\n语法型：'+g.pattern+'\n释义：'+g.meaning+'\n用户的例句：'+exTxt+'\n\n用户问题：'+q}],500)
+  .then(function(r){
+    res.innerHTML='<div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px 12px;font-size:13px;color:rgba(255,255,255,.8);line-height:1.7;white-space:pre-wrap">'+escHtml(r)+'</div>';
+  }).catch(function(){res.innerHTML='<div style="font-size:12px;color:rgba(220,80,80,.6)">网络错误，请重试</div>';});
+}
+function delGrammar(id){
+  confirmAct('删除这个语法型？','已积累的例句也会一并删除','删除',function(){
+    DB.grammarBank=DB.grammarBank.filter(function(g){return g.id!==id;});
+    saveDB();renderConvNotes();
+  });
+}
+function scanAllKorean(){
+  var koEntries=DB.entries.filter(function(e){return e.lang==='ko';});
+  if(!koEntries.length){toast('还没有韩语词条');return;}
+  toast('开始扫描 '+koEntries.length+' 条韩语句子…');
+  var i=0;
+  function next(){
+    if(i>=koEntries.length){toast('扫描完成，语法库已更新 ✓');renderConvNotes();return;}
+    var e=koEntries[i++];
+    callDS([{role:'user',content:'分析以下韩语字幕，只返回JSON不要markdown：\n"'+e.text+'"\n\n{"grammar":[{"pattern":"语法型","meaning":"一句话含义"}]}\n\n只提取连接语尾/终结语尾/表达型，不提取助词이/가/을/를，最多4个。'}],300)
+    .then(function(raw){
+      try{
+        var parsed=JSON.parse(raw.replace(/```json|```/g,'').trim());
+        if(parsed.grammar&&parsed.grammar.length)processGrammar(parsed.grammar,e.id,e.text);
+      }catch(ex){}
+      setTimeout(next,400);
+    }).catch(function(){setTimeout(next,400);});
+  }
+  next();
 }
 function delChatLog(idx){
   confirmAct('删除这条记录？','删除后无法恢复','删除',function(){DB.chatLogs.splice(idx,1);saveDB();renderConvNotes();});
