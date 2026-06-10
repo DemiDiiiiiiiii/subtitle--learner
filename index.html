@@ -1266,6 +1266,22 @@ function startConv(topicOverride){
   var wk=DB.weakness?'【用户英语弱点，对话中注意引导】\n'+DB.weakness:'';
   callDS([{role:'user',content:'你是英语口语练习助手。生成一个真实的日常对话场景，角色女性或性别中立。话题方向：'+topicOverride+'。\n\n场景要具体有画面感，第一句话像真人发消息，不要套话。\n\n目标词汇（自然融入，绝不点破）：\n'+wb+'\n\n'+wk+'\n\n返回JSON（所有字段英文，firstMessage必须是英文）：{"name":"English name","nationality":"nationality in English","job":"job in English","relationship":"one sentence in English","scene":"2 sentences in English","firstMessage":"opening message in natural English"}'}],400)
   .then(function(raw){
+    if(isRoleplay){
+      var sceneName=(raw.match(/场景名[：:](.*)/)||[])[1]||'剧本杀';
+      var myRole=(raw.match(/你的身份[：:](.*)/)||[])[1]||'你';
+      var aiRole=(raw.match(/我的身份[：:](.*)/)||[])[1]||'对手';
+      var trigger=(raw.match(/冲突起点[：:](.*)/)||[])[1]||'';
+      var opener=(raw.match(/我的开场白[：:](.*)/)||[])[1]||'Let\'s begin.';
+      sceneName=sceneName.trim();myRole=myRole.trim();aiRole=aiRole.trim();trigger=trigger.trim();opener=opener.trim();
+      var rpSetup={name:sceneName,role:myRole,scene:'【'+sceneName+'】 '+trigger,firstMessage:opener};
+      var rpSys='你正在进行角色扮演对话练习。你扮演：'+aiRole+'。用户扮演：'+myRole+'。背景：'+trigger+'。全程英文，完全入戏，有情绪有立场，不破坏角色。每轮1-3句，推动剧情发展。';
+      conv={setup:rpSetup,msgs:[{role:'system',content:rpSys},{role:'assistant',content:opener}],state:'chatting'};
+      document.getElementById('cv-load').style.display='none';
+      showQuillBtn();
+      var rpM=document.getElementById('cv-main');rpM.style.display='flex';rpM.style.flexDirection='column';rpM.style.flex='1';rpM.style.minHeight='0';
+      setTimeout(function(){var chat=document.getElementById('chat');if(chat){chat.innerHTML='';addBbl('ai',opener);}},100);
+      return;
+    }
     var setup;try{setup=JSON.parse(raw.replace(/```json|```/g,'').trim());}catch(e){toast('生成场景失败，请重试');goTo('home');return;}
     setup.words=picked;
     var isEntTopic=topicOverride&&topicOverride.indexOf('Kpop')!==-1;
@@ -1423,6 +1439,7 @@ function showTopicPicker(){
     {label:'社会观察局',value:'社会现象、代际差异、消费主义、女性处境、性别议题、进步主义'},
     {label:'身体 & 自主',value:'女性与身体、beauty standard、健康焦虑、身材与自我认知'},
     {label:'八卦 & 闲聊',value:'娱乐圈八卦、朋友圈观察、社会新鲜事、轻松扯淡'},
+    {label:'剧本杀',value:'__roleplay__'},
   ];
   var m=document.createElement('div');m.id='topic-modal';
   m.style.cssText='position:fixed;inset:0;background:rgba(2,8,25,.75);z-index:200;display:flex;align-items:flex-end;backdrop-filter:blur(8px);';
