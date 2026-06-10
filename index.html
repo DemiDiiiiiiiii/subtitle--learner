@@ -920,7 +920,7 @@ function renderStudy(){
       +'<button onclick="followupS()" style="background:rgba(210,165,55,.15);border:1px solid rgba(210,165,55,.3);border-radius:10px;padding:9px 14px;color:rgba(210,165,55,.9);font-size:13px;cursor:pointer;white-space:nowrap;font-family:inherit">发送</button>'
       +'<button onclick="toggleStudyNotes()" style="background:none;border:none;font-size:20px;cursor:pointer;padding:0 2px;opacity:.6">🪶</button>'
       +'</div>'
-      +'<div id="s-followup-loading" style="display:none;font-size:12px;color:var(--t3);padding:0 0 4px">AI思考中…</div>'
+      +'<div id="s-followup-loading" style="display:none;font-size:12px;color:var(--t3);padding:0 0 4px">🔮 水晶球凝视中…</div>'
       +'<div id="s-notes-area" style="display:none;margin-bottom:8px">'
       +'<textarea class="nta" id="s-notes" placeholder="随手记…"></textarea>'
       +'</div>'
@@ -1087,6 +1087,30 @@ function compressImg(id,file){
 }
 
 // ── Card Review ───────────────────────────────────────────────────
+function toggleCrAsk(){
+  var area=document.getElementById('cr-ask-area');
+  if(area)area.style.display=area.style.display==='none'?'block':'none';
+}
+function sendCrAsk(){
+  var inp=document.getElementById('cr-ask-inp');
+  var q=inp?inp.value.trim():'';
+  if(!q)return;
+  var c=crList[crIdx];if(!c)return;
+  inp.value='';
+  var loading=document.getElementById('cr-ask-loading');
+  var result=document.getElementById('cr-ask-result');
+  if(loading)loading.style.display='block';
+  if(result)result.style.display='none';
+  var ctx='当前词条：「'+c.word+'」（'+c.zh+'）'+(c.note?'，用法：'+c.note:'')+(c.lang==='ko'?'，韩语词汇':'，英语词汇');
+  callDS([{role:'user',content:ctx+'\n\n用户问题：'+q+'\n\n请用中文简洁回答，如有词源典故请一并说明。'}],600)
+  .then(function(r){
+    if(loading)loading.style.display='none';
+    if(result){result.textContent=r;result.style.display='block';}
+  }).catch(function(){
+    if(loading)loading.style.display='none';
+    toast('网络错误，请重试');
+  });
+}
 function startCardReview(){
   var all=getAllKw();if(!all.length){toast('词库还没有内容，先上传截图积累词汇');return;}
   crList=shuffle(all.slice()).slice(0,20);crIdx=0;crFlip=false;
@@ -1158,6 +1182,17 @@ function renderCR(){
         +'<button class="rbtn ryes" id="cr-yes" style="flex:1;padding:14px;">记住了 ✓</button>'
         +'</div>'
       :'<div style="font-size:11px;color:rgba(255,255,255,.18);text-align:center;letter-spacing:1px;">← 左滑跳过</div>')
+    +'<div style="padding:0 0 8px">'
+    +'<button onclick="toggleCrAsk()" style="width:100%;background:rgba(80,40,120,.2);border:1px solid rgba(180,120,255,.2);border-radius:12px;padding:10px;font-size:13px;color:rgba(200,160,255,.65);cursor:pointer;font-family:inherit;letter-spacing:1px">🔮 窥探魔典</button>'
+    +'<div id="cr-ask-area" style="display:none;margin-top:8px">'
+    +'<div style="display:flex;gap:8px">'
+    +'<input id="cr-ask-inp" type="text" placeholder="说出你的困惑，水晶球为你解答…" style="flex:1;background:rgba(2,8,25,.97);border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:9px 12px;font-family:inherit;font-size:13px;color:var(--text);outline:none">'
+    +'<button onclick="sendCrAsk()" style="background:rgba(210,165,55,.15);border:1px solid rgba(210,165,55,.3);border-radius:10px;padding:9px 14px;color:rgba(210,165,55,.9);font-size:13px;cursor:pointer;font-family:inherit">发送</button>'
+    +'</div>'
+    +'<div id="cr-ask-loading" style="display:none;font-size:12px;color:var(--t3);padding:4px 2px">🔮 水晶球凝视中…</div>'
+    +'<div id="cr-ask-result" style="margin-top:8px;font-size:14px;line-height:1.7;color:rgba(255,255,255,.8);background:rgba(255,255,255,.04);border-radius:10px;padding:10px 12px;display:none"></div>'
+    +'</div>'
+    +'</div>'
     +'</div>';
 
   var fw=document.getElementById('fw');
