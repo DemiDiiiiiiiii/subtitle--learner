@@ -1415,17 +1415,7 @@ if(window.visualViewport){
     }
   });
 }
-// Auto-collapse cv-id when user starts scrolling chat
-(function(){
-  var lastScrollTop=0;var timer=null;
-  document.addEventListener('scroll',function(e){
-    var chat=document.getElementById('chat');
-    if(!chat||!e.target===chat)return;
-    var cvid=document.getElementById('cv-id');
-    if(!cvid)return;
-    if(!cvid.classList.contains('collapsed'))cvid.classList.add('collapsed');
-  },true);
-})();
+// Auto-collapse removed
 function sendMsg(){var ta=document.getElementById('cv-ta'),txt=ta?ta.value.trim():'';if(!txt||!conv||conv.state!=='chatting')return;ta.value='';ta.style.height='auto';addBbl('me',txt);conv.msgs.push({role:'user',content:txt});addLoad();var recentMsgs=conv.msgs.length>7?conv.msgs.slice(0,1).concat(conv.msgs.slice(-6)):conv.msgs;callDS(recentMsgs,250).then(function(r){rmLoad();conv.msgs.push({role:'assistant',content:r});addBbl('ai',r);}).catch(function(){rmLoad();toast('网络错误，请重试');});}
 // leaveConv replaced by showConvExit
 function showTopicPicker(){
@@ -1673,11 +1663,11 @@ function renderConvNotes(){
     var askId='note-ask-'+n.type+'-'+n.idx;
     var askArea=n.type!=='chatlog'
       ?'<div style="margin-top:8px">'
-       +'<button onclick="toggleNoteAsk(\''+askId+'\')" style="background:rgba(210,165,55,.06);border:1px solid rgba(210,165,55,.18);border-radius:10px;padding:5px 12px;font-size:12px;color:rgba(210,165,55,.5);cursor:pointer;font-family:inherit;letter-spacing:1px">✦ 问AI</button>'
+       +'<button onclick="toggleNoteAsk(\''+askId+'\')" data-note-text="'+escAttr(n.text)+'" id="'+askId+'-btn" style="background:rgba(210,165,55,.06);border:1px solid rgba(210,165,55,.18);border-radius:10px;padding:5px 12px;font-size:12px;color:rgba(210,165,55,.5);cursor:pointer;font-family:inherit;letter-spacing:1px">✦ 问AI</button>'
        +'<div id="'+askId+'" style="display:none;margin-top:8px">'
        +'<div style="display:flex;gap:8px">'
        +'<input type="text" id="'+askId+'-inp" placeholder="问关于这条笔记的任何问题…" style="flex:1;background:rgba(2,8,25,.97);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:8px 12px;font-family:inherit;font-size:13px;color:var(--text);outline:none">'
-       +'<button onclick="sendNoteAsk(\''+askId+'\',\''+escAttr(n.text)+'\')" style="background:rgba(210,165,55,.12);border:1px solid rgba(210,165,55,.25);border-radius:10px;padding:8px 12px;color:rgba(210,165,55,.8);font-size:13px;cursor:pointer;font-family:inherit">→</button>'
+       +'<button onclick="sendNoteAsk(\''+askId+'\')" style="background:rgba(210,165,55,.12);border:1px solid rgba(210,165,55,.25);border-radius:10px;padding:8px 12px;color:rgba(210,165,55,.8);font-size:13px;cursor:pointer;font-family:inherit">→</button>'
        +'</div>'
        +'<div id="'+askId+'-loading" style="display:none;font-size:12px;color:var(--t3);padding:4px 2px">✦ 思考中…</div>'
        +'<div id="'+askId+'-result" style="display:none;margin-top:8px;font-size:14px;line-height:1.7;color:rgba(255,255,255,.8);background:rgba(255,255,255,.04);border-radius:10px;padding:10px 12px"></div>'
@@ -1698,7 +1688,9 @@ function toggleNoteAsk(id){
   var area=document.getElementById(id);
   if(area)area.style.display=area.style.display==='none'?'block':'none';
 }
-function sendNoteAsk(id,noteText){
+function sendNoteAsk(id){
+  var btn=document.getElementById(id+'-btn');
+  var noteText=btn?btn.getAttribute('data-note-text'):'';
   var inp=document.getElementById(id+'-inp');
   var q=inp?inp.value.trim():'';
   if(!q)return;
