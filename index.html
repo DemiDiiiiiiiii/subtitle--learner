@@ -455,10 +455,10 @@ mark.hl-phrase{background:rgba(210,165,55,.25);color:rgba(255,220,100,.95);borde
   <div class="nav" style="flex-shrink:0">
     <div class="back" onclick="goTo('home')">←</div>
     <span class="nav-t">我的魔法书</span>
-    <button onclick="document.getElementById('fp').click()" style="margin-left:auto;background:none;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:8px 14px;font-size:12px;color:rgba(255,255,255,.35);cursor:pointer;font-family:inherit;">上传</button>
+    <button onclick="uploadToCloud()" style="margin-left:auto;background:none;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:8px 14px;font-size:12px;color:rgba(255,255,255,.35);cursor:pointer;font-family:inherit;">同步</button>
   </div>
   <div class="tabs" style="flex-shrink:0">
-    <div class="tab on" id="tab-today" onclick="listTab('today')">今日</div>
+    
     <div class="tab" id="tab-notes" onclick="listTab('notes')">我的魔法书<span id="notes-count" style="font-size:10px;color:var(--t3);margin-left:3px"></span></div>
   </div>
   <div id="lang-filter" style="display:none;flex-shrink:0;padding:6px 22px 2px;gap:8px;display:flex">
@@ -1611,7 +1611,6 @@ function closeConv(doSave){hideQuillBtn();
 // ── List ──────────────────────────────────────────────────────────
 function listTab(tab){
   listTabCurrent=tab;
-  document.getElementById('tab-today').classList.toggle('on',tab==='today');
   var tn=document.getElementById('tab-notes');if(tn)tn.classList.toggle('on',tab==='notes');
   var lf=document.getElementById('lang-filter');
   if(lf)lf.style.display=tab==='today'?'flex':'none';
@@ -1643,7 +1642,7 @@ function setLangFilter(lang){
 }
 function renderConvNotes(){
   var el=document.getElementById('list-body');
-  // 语法库子tab
+  // 韩语语法子tab
   var listSubTab=window._listSubTab||'notes';
   var el2=document.getElementById('list-body');
   var subNav='<div style="display:flex;gap:0;margin:0 0 12px;border-bottom:1px solid rgba(255,255,255,.08)">'
@@ -1757,20 +1756,17 @@ function renderGrammarBank(){
   var el=document.getElementById('list-body');
   if(!el)return;
   var bank=DB.grammarBank||[];
-  var scanBtn='<div style="padding:0 0 16px;display:flex;gap:8px;align-items:center">'
-    +'<span style="font-size:12px;color:var(--t3);flex:1">共 '+bank.length+' 个语法型</span>'
-    +'<button onclick="scanAllKorean()" style="background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.25);border-radius:10px;padding:6px 14px;font-size:12px;color:rgba(167,139,250,.9);cursor:pointer;font-family:inherit">扫描历史韩语句子</button>'
-    +'</div>';
+  var scanBtn='<div style="padding:0 0 12px"><span style="font-size:12px;color:var(--t3)">共 '+bank.length+' 个语法型</span></div>';
   if(!bank.length){
     el.innerHTML+=scanBtn+'<div style="padding:20px 0;text-align:center;color:var(--t3);font-size:14px">暂无语法记录<br><span style="font-size:12px">上传韩语截图后自动提取，或点击扫描历史</span></div>';
     return;
   }
   var sorted=bank.slice().sort(function(a,b){return (b.examples||[]).length-(a.examples||[]).length;});
   el.innerHTML+=scanBtn+sorted.map(function(g,gi){
-    var exHtml=(g.examples||[]).slice(0,3).map(function(ex){
+    var exHtml=(g.examples||[]).map(function(ex){
       return '<div style="font-size:12px;color:rgba(255,255,255,.45);padding:4px 0;border-top:1px solid rgba(255,255,255,.05);line-height:1.6">'+escHtml(ex.text)+'</div>';
     }).join('');
-    var moreCount=(g.examples||[]).length>3?(g.examples.length-3)+' 句未显示':'';
+    var moreCount='';
     return '<div style="padding:16px 22px;border-bottom:1px solid var(--bdr)">'
       +'<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">'
       +'<div style="flex:1">'
@@ -1778,6 +1774,7 @@ function renderGrammarBank(){
       +'<div style="font-size:13px;color:rgba(255,255,255,.65);line-height:1.6;margin-bottom:8px">'+escHtml(g.meaning)+'</div>'
       +(exHtml?'<div>'+exHtml+(moreCount?'<div style="font-size:11px;color:var(--t3);padding-top:4px">+'+moreCount+'</div>':'')+'</div>':'')
       +'<div id="gk-'+gi+'" style="display:none"></div>'
+      +(g.notes?'<div style="margin-top:8px;font-size:12px;color:rgba(255,255,255,.55);background:rgba(255,255,255,.04);border-radius:8px;padding:8px 10px;line-height:1.7;white-space:pre-wrap">'+escHtml(g.notes)+'</div>':'')
       +'</div>'
       +'<div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">'
       +'<span style="font-size:10px;color:var(--t3);text-align:center">'+(g.examples||[]).length+'句</span>'
@@ -1820,11 +1817,24 @@ function submitGrammarKowen(gi){
   res.innerHTML='<div style="font-size:12px;color:var(--t3);padding:6px 0">🔮 水晶球凝视中…</div>';
   callDS([{role:'user',content:'你是韩语语法教练，用中文简洁回答，不超过200字。\n\n语法型：'+g.pattern+'\n释义：'+g.meaning+'\n用户的例句：'+exTxt+'\n\n用户问题：'+q}],500)
   .then(function(r){
-    res.innerHTML='<div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px 12px;font-size:13px;color:rgba(255,255,255,.8);line-height:1.7;white-space:pre-wrap">'+escHtml(r)+'</div>';
+    res.innerHTML='<div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px 12px;font-size:13px;color:rgba(255,255,255,.8);line-height:1.7;white-space:pre-wrap">'+escHtml(r)+'</div>'
+      +'<button onclick="saveGrammarNote('+gi+',this)" style="margin-top:8px;background:rgba(210,165,55,.12);border:1px solid rgba(210,165,55,.25);border-radius:8px;padding:6px 14px;font-size:12px;color:rgba(210,165,55,.85);cursor:pointer;font-family:inherit">保存到语法卡 ✦</button>';
+    res._answer=r;
   }).catch(function(){res.innerHTML='<div style="font-size:12px;color:rgba(220,80,80,.6)">网络错误，请重试</div>';});
 }
+function saveGrammarNote(gi,btn){
+  var sorted=(DB.grammarBank||[]).slice().sort(function(a,b){return (b.examples||[]).length-(a.examples||[]).length;});
+  var g=sorted[gi];if(!g)return;
+  var res=document.getElementById('gkr-gk-'+gi);
+  var answer=res&&res._answer?res._answer:res?res.querySelector('div')?res.querySelector('div').textContent:'':'';
+  if(!answer)return;
+  var ts=new Date().toLocaleDateString('zh-CN',{month:'numeric',day:'numeric'});
+  g.notes=(g.notes?g.notes+'\n\n':'')+'['+ts+'] '+answer;
+  saveDB();
+  btn.textContent='已保存 ✓';btn.disabled=true;btn.style.opacity='0.5';
+}
 function delGrammar(id){
-  confirmAct('删除这个语法型？','已积累的例句也会一并删除','删除',function(){
+  confirmAct('确认删除？','','删除',function(){
     DB.grammarBank=DB.grammarBank.filter(function(g){return g.id!==id;});
     saveDB();renderConvNotes();
   });
