@@ -1668,6 +1668,9 @@ function renderConvNotes(){
       ?'<button style="background:none;border:none;font-size:13px;color:var(--gold);cursor:pointer;padding:2px 6px" onclick="event.stopPropagation();editConvNote('+n.idx+')">✏️</button>'
       :n.type==='chatlog'?''
       :'<button style="background:none;border:none;font-size:13px;color:var(--gold);cursor:pointer;padding:2px 6px" onclick="event.stopPropagation();editStoryNote('+n.idx+')">✏️</button>';
+    var kowenBtn=(n.type==='conv'||n.type==='story')
+      ?'<button style="background:none;border:none;font-size:12px;color:rgba(210,165,55,.6);cursor:pointer;padding:2px 6px" onclick="event.stopPropagation();toggleNoteKowen(\''+n.type+'\','+n.idx+')">✦</button>'
+      :'';
     var delBtn=n.type==='conv'
       ?'<button style="background:none;border:none;font-size:13px;color:var(--red);cursor:pointer;padding:2px 6px" onclick="event.stopPropagation();delConvNote('+n.idx+')">×</button>'
       :n.type==='chatlog'
@@ -1682,11 +1685,47 @@ function renderConvNotes(){
     return '<div style="padding:16px 22px;border-bottom:1px solid var(--bdr)">'
       +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
       +'<div style="font-size:11px;color:var(--t3)">'+n.date+badge+'</div>'
-      +'<div style="display:flex;gap:4px">'+editBtn+delBtn+'</div></div>'
+      +'<div style="display:flex;gap:4px">'+kowenBtn+editBtn+delBtn+'</div></div>'
       +preview
       +bodyHtml
+      +'<div id="nk-'+n.type+'-'+n.idx+'" style="display:none"></div>'
       +'</div>';
   }).join('');
+}
+function toggleNoteKowen(type,idx){
+  var el=document.getElementById('nk-'+type+'-'+idx);
+  if(!el)return;
+  if(el.style.display!=='none'){el.style.display='none';el.innerHTML='';return;}
+  document.querySelectorAll('[id^="nk-"]').forEach(function(e){e.style.display='none';e.innerHTML='';});
+  el.style.display='block';
+  var key=type+'-'+idx;
+  el.innerHTML='<div style="padding:10px 0 4px">'
+    +'<div style="display:flex;gap:8px;align-items:center">'
+    +'<input id="nki-'+key+'" type="text" placeholder="向水晶球叩问…" style="flex:1;background:rgba(2,8,25,.9);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:8px 12px;font-size:13px;color:rgba(255,255,255,.85);outline:none;font-family:inherit">'
+    +'<button onclick="event.stopPropagation();submitNoteKowen(\''+type+'\','+idx+')" style="background:rgba(210,165,55,.13);border:1px solid rgba(210,165,55,.28);border-radius:10px;padding:8px 12px;color:rgba(210,165,55,.9);font-size:12px;cursor:pointer;white-space:nowrap;font-family:inherit">叩问 ✦</button>'
+    +'</div>'
+    +'<div id="nkr-'+key+'" style="margin-top:8px;display:none"></div>'
+    +'</div>';
+  setTimeout(function(){var inp=document.getElementById('nki-'+key);if(inp){inp.focus();inp.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();submitNoteKowen(type,idx);}});}},80);
+}
+function submitNoteKowen(type,idx){
+  var key=type+'-'+idx;
+  var inp=document.getElementById('nki-'+key);
+  var res=document.getElementById('nkr-'+key);
+  if(!inp||!res)return;
+  var q=inp.value.trim();
+  if(!q)return;
+  var noteText='';
+  if(type==='conv'){var n=DB.convNotes&&DB.convNotes[idx];noteText=n?n.notes:'';}
+  else if(type==='story'){var n=DB.storyNotes&&DB.storyNotes[idx];noteText=n?n.note:'';}
+  inp.value='';
+  res.style.display='block';
+  res.innerHTML='<div style="font-size:12px;color:var(--t3);padding:6px 0">🔮 水晶球凝视中…</div>';
+  callDS([{role:'user',content:'你是语言教练，用中文简洁回答，不超过150字。\n\n用户正在复习的笔记：\n'+noteText+'\n\n用户问题：'+q}],400)
+  .then(function(r){
+    res.innerHTML='<div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px 12px;font-size:13px;color:rgba(255,255,255,.8);line-height:1.7;white-space:pre-wrap">'+escHtml(r)+'</div>'
+      +'<div style="font-size:11px;color:var(--t3);margin-top:5px">回答不保存，如需留存请手动复制到笔记 ✏️</div>';
+  }).catch(function(){res.innerHTML='<div style="font-size:12px;color:rgba(220,80,80,.6);padding:6px 0">网络错误，请重试</div>';});
 }
 function delChatLog(idx){
   confirmAct('删除这条记录？','删除后无法恢复','删除',function(){DB.chatLogs.splice(idx,1);saveDB();renderConvNotes();});
@@ -1753,10 +1792,8 @@ function eRowHTML(e,i,showDate){
     +'<div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;min-width:30px">'
     +'<button class="edel" data-del-id="'+e.id+'">×</button>'
     +'<button class="edel" style="font-size:11px;opacity:.5" data-edit-id="'+e.id+'">✏️</button>'
-    +'<button class="edel" style="font-size:11px;opacity:.5" data-kowen-id="'+e.id+'">✦</button>'
     +'</div>'
-    +'</div>'
-    +'<div class="ekowen" id="ek-'+e.id+'" style="display:none"></div>';
+    +'</div>';
 }
 function loadRowImgs(list){list.forEach(function(e){loadImgAsync(e.id,function(b){var el2=document.getElementById('et-'+e.id);if(el2){var src='data:image/jpeg;base64,'+b;el2.src=src;el2.setAttribute('data-full-src',src);el2.onclick=function(){openImg(src);};}});});}
 function _lbHandler(ev){
@@ -1764,49 +1801,6 @@ function _lbHandler(ev){
   if(editBtn){ev.stopPropagation();editEntry(editBtn.getAttribute('data-edit-id'));return;}
   var delBtn=ev.target.closest('[data-del-id]');
   if(delBtn){ev.stopPropagation();delEntry(delBtn.getAttribute('data-del-id'));return;}
-  var kowenBtn=ev.target.closest('[data-kowen-id]');
-  if(kowenBtn){ev.stopPropagation();toggleKowen(kowenBtn.getAttribute('data-kowen-id'));return;}
-  var kowenSend=ev.target.closest('[data-kowen-send]');
-  if(kowenSend){ev.stopPropagation();submitKowen(kowenSend.getAttribute('data-kowen-send'));return;}
-}
-function toggleKowen(id){
-  var el=document.getElementById('ek-'+id);
-  if(!el)return;
-  if(el.style.display!=='none'){el.style.display='none';el.innerHTML='';return;}
-  // 关掉其他已打开的
-  document.querySelectorAll('.ekowen').forEach(function(e){e.style.display='none';e.innerHTML='';});
-  el.style.display='block';
-  el.innerHTML='<div style="padding:10px 14px 12px;border-top:1px solid rgba(255,255,255,.07)">'
-    +'<div style="display:flex;gap:8px;align-items:center">'
-    +'<input id="ki-'+id+'" type="text" placeholder="向水晶球叩问…" style="flex:1;background:rgba(2,8,25,.9);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:8px 12px;font-size:13px;color:rgba(255,255,255,.85);outline:none;font-family:inherit">'
-    +'<button data-kowen-send="'+id+'" style="background:rgba(210,165,55,.13);border:1px solid rgba(210,165,55,.28);border-radius:10px;padding:8px 13px;color:rgba(210,165,55,.9);font-size:12px;cursor:pointer;white-space:nowrap;font-family:inherit">叩问 ✦</button>'
-    +'</div>'
-    +'<div id="kr-'+id+'" style="margin-top:8px;display:none"></div>'
-    +'</div>';
-  setTimeout(function(){var inp=document.getElementById('ki-'+id);if(inp)inp.focus();},80);
-  // 回车发送
-  setTimeout(function(){
-    var inp=document.getElementById('ki-'+id);
-    if(inp)inp.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();submitKowen(id);}});
-  },100);
-}
-function submitKowen(id){
-  var inp=document.getElementById('ki-'+id);
-  var res=document.getElementById('kr-'+id);
-  if(!inp||!res)return;
-  var q=inp.value.trim();
-  if(!q)return;
-  var entry=DB.entries.find(function(e){return e.id===id;});
-  if(!entry)return;
-  inp.value='';
-  res.style.display='block';
-  res.innerHTML='<div style="font-size:12px;color:var(--t3);padding:6px 0">🔮 水晶球凝视中…</div>';
-  var ctx='字幕原文："'+entry.text+'"\n中文译文：'+(entry.zh||'')+'\n关键词：'+((entry.keywords||[]).map(function(k){return k.word+'（'+k.zh+'）';}).join('、'))+(entry.notes?'\n笔记：'+entry.notes:'');
-  callDS([{role:'user',content:'你是一位语言教练，用中文简洁回答。以下是用户正在复习的一条词条：\n'+ctx+'\n\n用户问题：'+q+'\n\n直接回答，不超过150字，不要废话。'}],400)
-  .then(function(r){
-    res.innerHTML='<div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px 12px;font-size:13px;color:rgba(255,255,255,.8);line-height:1.7;white-space:pre-wrap">'+escHtml(r)+'</div>'
-      +'<div style="font-size:11px;color:var(--t3);margin-top:6px;padding-left:2px">↑ 如需保留，手动复制到笔记 ✏️</div>';
-  }).catch(function(){res.innerHTML='<div style="font-size:12px;color:rgba(220,80,80,.6);padding:6px 0">网络错误，请重试</div>';});
 }
 function bindListBodyEvents(){
   ['list-body','lib-body'].forEach(function(bid){
