@@ -113,7 +113,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 .rrow{display:flex;gap:10px}
 .rbtn{flex:1;padding:14px;border:none;border-radius:var(--rs);cursor:pointer;font-family:inherit;font-size:14px;font-weight:500}
 .rbtn:active{opacity:.7}
-.rno{background:var(--rlt);color:var(--red)}.ryes{background:rgba(22,163,74,.1);color:var(--green)}
+.rno{background:rgba(255,255,255,.05);color:rgba(255,255,255,.4);border:1px solid rgba(255,255,255,.1)}.ryes{background:rgba(210,165,55,.12);color:rgba(210,165,55,.85);border:1px solid rgba(210,165,55,.25)}
 /* CONVERSATION */
 #conversation{background:var(--bg)}
 .cvtop{padding:max(52px,env(safe-area-inset-top)) 20px 12px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;background:linear-gradient(180deg,rgba(5,13,30,.98) 70%,transparent);backdrop-filter:blur(12px);}
@@ -1183,7 +1183,7 @@ function renderCR(){
         +'</div>'
       :'<div style="font-size:11px;color:rgba(255,255,255,.18);text-align:center;letter-spacing:1px;">← 左滑跳过</div>')
     +'<div style="padding:0 0 8px">'
-    +'<button onclick="toggleCrAsk()" style="width:100%;background:rgba(80,40,120,.2);border:1px solid rgba(180,120,255,.2);border-radius:12px;padding:10px;font-size:13px;color:rgba(200,160,255,.65);cursor:pointer;font-family:inherit;letter-spacing:1px">🔮 窥探魔典</button>'
+    +'<button onclick="toggleCrAsk()" style="width:100%;background:rgba(210,165,55,.06);border:1px solid rgba(210,165,55,.2);border-radius:12px;padding:10px;font-size:13px;color:rgba(210,165,55,.55);cursor:pointer;font-family:inherit;letter-spacing:2px">✦ 咒语探秘</button>'
     +'<div id="cr-ask-area" style="display:none;margin-top:8px">'
     +'<div style="display:flex;gap:8px">'
     +'<input id="cr-ask-inp" type="text" placeholder="说出你的困惑，水晶球为你解答…" style="flex:1;background:rgba(2,8,25,.97);border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:9px 12px;font-family:inherit;font-size:13px;color:var(--text);outline:none">'
