@@ -129,7 +129,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 .cvid-toggle{height:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
 .cvid-toggle-dot{width:32px;height:3px;border-radius:2px;background:var(--bdr);transition:background .2s}
 .cvid-toggle:hover .cvid-toggle-dot,.cvid-toggle:active .cvid-toggle-dot{background:var(--gold)}
-.chat{flex:1;overflow-y:auto;min-height:0;padding:10px 14px 6px;display:flex;flex-direction:column;gap:8px;-webkit-overflow-scrolling:touch;background:transparent}
+.chat{flex:1;overflow-y:auto;min-height:0;padding:10px 14px 6px;display:flex;flex-direction:column;gap:8px;-webkit-overflow-scrolling:touch;background:transparent;overscroll-behavior:contain;scrollbar-width:none;}
 .bbl{width:100%;line-height:1.6;font-size:15px;box-sizing:border-box}
 .bai{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:11px 14px;color:rgba(255,255,255,.88);}
 .bme{background:rgba(40,80,200,.45);border:1px solid rgba(80,130,255,.2);color:rgba(255,255,255,.95);border-radius:12px;padding:11px 14px;word-break:break-word;white-space:pre-wrap;}
@@ -138,8 +138,8 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 .bld{width:7px;height:7px;border-radius:50%;background:var(--t3);animation:sp 1.2s ease-in-out infinite}
 .bld:nth-child(2){animation-delay:.2s}.bld:nth-child(3){animation-delay:.4s}
 .cvwrap{padding:10px 14px max(20px,env(safe-area-inset-bottom));background:rgba(8,18,40,.97);border-top:1px solid rgba(255,255,255,.08);align-items:flex-end;display:flex;gap:8px;flex-shrink:0}
-.cvta{flex:1;border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:11px 16px;font-size:15px;resize:none;outline:none;font-family:inherit;line-height:1.6;min-height:64px;max-height:160px;overflow-y:auto;background:rgba(255,255,255,.07);color:rgba(255,255,255,.88);transition:height .1s;}
-.cvta::placeholder{color:var(--t3)}
+.cvta{flex:1;border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:11px 16px;font-size:15px;resize:none;outline:none;font-family:inherit;line-height:1.6;min-height:64px;max-height:160px;overflow-y:auto;background:rgba(255,255,255,.07);color:rgba(255,255,255,.88);transition:height .1s;scrollbar-width:none;}
+.cvta::placeholder{color:var(--t3)}.cvta::-webkit-scrollbar{display:none}.chat::-webkit-scrollbar{display:none}
 .cvsend{background:rgba(60,120,255,.7);border:none;border-radius:50%;width:36px;height:36px;color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .cvload{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:var(--bg);padding:40px}
 .fbs{position:absolute;bottom:0;left:0;right:0;background:rgba(6,15,38,.97);border-radius:22px 22px 0 0;border-top:1px solid rgba(255,255,255,.08);box-shadow:0 -4px 32px rgba(0,0,0,.12);transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);z-index:10;max-height:90vh;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:20px 22px max(36px,env(safe-area-inset-bottom))}
@@ -1582,10 +1582,10 @@ function escAttr(s){return s?s.replace(/"/g,'&quot;').replace(/'/g,'&#39;'):''}
 function endConv(){
   if(!conv)return;conv.state='ending';addBbl('sys','对话结束，正在生成反馈…');
   var history=conv.msgs.filter(function(m){return m.role!=='system';}).map(function(m){return(m.role==='user'?'你':conv.setup.name)+': '+m.content;}).join('\n');
-  var words=conv.setup.words.map(function(w){return w.word;}).join('、');
+  var words=conv.setup.words?(conv.setup.words.map(function(w){return w.word;}).join('、')):'';
   // clear notes field
   var notesEl=document.getElementById('conv-notes');if(notesEl)notesEl.value='';
-  callDS([{role:'user',content:'以下是对话记录，「你」是用户，另一方是AI角色。只返回JSON不要markdown。\n\n'+history+'\n\n返回格式：{"my_lines":[{"original":"你说的原句","suggestion":"更地道的说法","note":"简短说明，如果已经很自然就填null"}],"ai_highlights":[{"sentence":"AI说的完整句子（原文）","highlights":[{"phrase":"值得学的短语","explanation":"中文解释","etymology":"词源或典故，如有请说明，没有就填null"}]}]}\n\n规则：my_lines覆盖你说的每一句；ai_highlights只选AI说的有地道表达的句子，highlights标出所有值得学的短语。'}],1200)
+  callDS([{role:'user',content:'以下是对话记录，「你」是用户，另一方是AI角色。只返回JSON不要markdown。\n\n'+history+'\n\n返回格式：{"my_lines":[{"original":"你说的原句","suggestion":"更地道的说法或null","note":"一句话说明或null"}],"ai_highlights":[{"sentence":"AI说的完整句子","highlights":[{"phrase":"值得学的短语","explanation":"中文解释","etymology":null}]}]}\n\n规则：①my_lines只收录你说的有问题或有改进空间的句子，已经很自然的直接跳过；②ai_highlights最多选3句，只挑最地道的。'}],800)
   .then(function(fb){
     try{
       var fbData=JSON.parse(fb.replace(/```json|```/g,'').trim());
