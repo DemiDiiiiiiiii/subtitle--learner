@@ -1552,13 +1552,21 @@ function renderFeedback(data){
 function escHtml(s){return s?s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'):''}
 function escAttr(s){return s?s.replace(/"/g,'&quot;').replace(/'/g,'&#39;'):''}
 function endConv(){
-  if(!conv)return;conv.state='ending';addBbl('sys','对话结束，正在生成反馈…');
+  if(!conv)return;
+  if(conv.state==='ending'||conv.state==='done')return;
+  conv.state='ending';addBbl('sys','对话结束，正在生成反馈…');
   var history=conv.msgs.filter(function(m){return m.role!=='system';}).map(function(m){return(m.role==='user'?'你':conv.setup.name)+': '+m.content;}).join('\n');
   var words=conv.setup.words.map(function(w){return w.word;}).join('、');
   // clear notes field
   var notesEl=document.getElementById('conv-notes');if(notesEl)notesEl.value='';
+  // Timeout: if no response in 35s, allow retry
+  var fbTimeout=setTimeout(function(){
+    conv.state='chatting';
+    toast('反馈生成超时，请再试一次');
+  },35000);
   callDS([{role:'user',content:'以下是对话记录，「你」是用户，另一方是AI角色。只返回JSON不要markdown。\n\n'+history+'\n\n返回格式：{"my_lines":[{"original":"你说的原句","suggestion":"更地道的说法","note":"简短说明，如果已经很自然就填null"}],"ai_highlights":[{"sentence":"AI说的完整句子（原文）","highlights":[{"phrase":"值得学的短语","explanation":"中文解释","etymology":"词源或典故，如有请说明，没有就填null"}]}]}\n\n规则：my_lines覆盖你说的每一句；ai_highlights只选AI说的有地道表达的句子，highlights标出所有值得学的短语。'}],1200)
   .then(function(fb){
+    clearTimeout(fbTimeout);
     try{
       var fbData=JSON.parse(fb.replace(/```json|```/g,'').trim());
       renderFeedback(fbData);
@@ -1577,7 +1585,18 @@ function endConv(){
     }
     document.getElementById('fb-sheet').classList.add('show');
   if(window._quillNotes&&window._quillNotes.length){var fbn=document.getElementById('conv-notes');if(fbn){fbn.value=(fbn.value?fbn.value+'\n':'')+window._quillNotes.join('\n');}window._quillNotes=[];}
-  }).catch(function(){toast('获取反馈失败');});
+  }).catch(function(e){
+    clearTimeout(fbTimeout);conv.state='chatting';
+    confirmAct('反馈获取失败','是否保存这次对话记录？','保存对话',function(){
+      if(!DB.chatLogs)DB.chatLogs=[];
+      var name=conv&&conv.setup?conv.setup.name:'AI';
+      var log=conv.msgs.filter(function(m){return m.role!=='system';}).map(function(m){
+        return(m.role==='user'?'你':name)+': '+m.content;
+      }).join('\n');
+      DB.chatLogs.push({date:TODAY,ts:Date.now(),name:name,log:log});
+      saveDB();toast('对话已保存到魔法书');
+    });
+  });
 }
 function closeConv(doSave){hideQuillBtn();
   if(window._quillNotes&&window._quillNotes.length){
@@ -1651,14 +1670,51 @@ function renderConvNotes(){
        +'<button onclick="var el=document.getElementById(\'chatlog-'+n.idx+'\');el.style.display=el.style.display===\'none\'?\'block\':\'none\';this.textContent=el.style.display===\'block\'?\'收起 ▲\':\'展开对话 ▼\'" style="margin-top:6px;background:none;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:4px 12px;font-size:12px;color:var(--t3);cursor:pointer;font-family:inherit">展开对话 ▼</button>'
        +'<div style="font-size:12px;color:rgba(255,255,255,.3);margin-top:4px">与 '+n.name+' 的对话</div>'
       :'<div style="font-size:14px;line-height:1.7;white-space:pre-wrap">'+n.text+'</div>';
+    var askId='note-ask-'+n.type+'-'+n.idx;
+    var askArea=n.type!=='chatlog'
+      ?'<div style="margin-top:8px">'
+       +'<button onclick="toggleNoteAsk(\''+askId+'\')" style="background:rgba(210,165,55,.06);border:1px solid rgba(210,165,55,.18);border-radius:10px;padding:5px 12px;font-size:12px;color:rgba(210,165,55,.5);cursor:pointer;font-family:inherit;letter-spacing:1px">✦ 问AI</button>'
+       +'<div id="'+askId+'" style="display:none;margin-top:8px">'
+       +'<div style="display:flex;gap:8px">'
+       +'<input type="text" id="'+askId+'-inp" placeholder="问关于这条笔记的任何问题…" style="flex:1;background:rgba(2,8,25,.97);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:8px 12px;font-family:inherit;font-size:13px;color:var(--text);outline:none">'
+       +'<button onclick="sendNoteAsk(\''+askId+'\',\''+escAttr(n.text)+'\')" style="background:rgba(210,165,55,.12);border:1px solid rgba(210,165,55,.25);border-radius:10px;padding:8px 12px;color:rgba(210,165,55,.8);font-size:13px;cursor:pointer;font-family:inherit">→</button>'
+       +'</div>'
+       +'<div id="'+askId+'-loading" style="display:none;font-size:12px;color:var(--t3);padding:4px 2px">✦ 思考中…</div>'
+       +'<div id="'+askId+'-result" style="display:none;margin-top:8px;font-size:14px;line-height:1.7;color:rgba(255,255,255,.8);background:rgba(255,255,255,.04);border-radius:10px;padding:10px 12px"></div>'
+       +'</div>'
+       +'</div>'
+      :'';
     return '<div style="padding:16px 22px;border-bottom:1px solid var(--bdr)">'
       +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
       +'<div style="font-size:11px;color:var(--t3)">'+n.date+badge+'</div>'
       +'<div style="display:flex;gap:4px">'+editBtn+delBtn+'</div></div>'
       +preview
       +bodyHtml
+      +askArea
       +'</div>';
   }).join('');
+}
+function toggleNoteAsk(id){
+  var area=document.getElementById(id);
+  if(area)area.style.display=area.style.display==='none'?'block':'none';
+}
+function sendNoteAsk(id,noteText){
+  var inp=document.getElementById(id+'-inp');
+  var q=inp?inp.value.trim():'';
+  if(!q)return;
+  inp.value='';
+  var loading=document.getElementById(id+'-loading');
+  var result=document.getElementById(id+'-result');
+  if(loading)loading.style.display='block';
+  if(result)result.style.display='none';
+  callDS([{role:'user',content:'以下是用户的学习笔记：\n「'+noteText+'」\n\n用户问题：'+q+'\n\n请用中文简洁回答，如涉及表达用法或词源请一并说明。'}],600)
+  .then(function(r){
+    if(loading)loading.style.display='none';
+    if(result){result.textContent=r;result.style.display='block';}
+  }).catch(function(){
+    if(loading)loading.style.display='none';
+    toast('网络错误，请重试');
+  });
 }
 function delChatLog(idx){
   confirmAct('删除这条记录？','删除后无法恢复','删除',function(){DB.chatLogs.splice(idx,1);saveDB();renderConvNotes();});
