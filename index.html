@@ -57,7 +57,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 .rev-tag{display:inline-block;font-size:10px;padding:2px 7px;border-radius:8px;margin-top:6px}
 .rt-g{background:var(--glt);color:var(--gold)}.rt-b{background:var(--blt);color:var(--blue)}
 /* PREVIEW */
-#preview{background:var(--bg)}
+#preview{background:#0f1d38}
 .img-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:0 22px;flex:1;overflow-y:auto}
 .img-cell{position:relative;border-radius:10px;overflow:hidden;background:var(--bdr);aspect-ratio:4/3}
 .img-cell img{width:100%;height:100%;object-fit:cover;display:block}
@@ -99,7 +99,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 .nta{width:100%;background:var(--card);border:1px solid var(--bdr);border-radius:var(--rs);padding:12px 14px;color:var(--text);font-size:14px;font-family:inherit;resize:none;min-height:68px;outline:none;line-height:1.6}
 .nta::placeholder{color:var(--t3)}
 /* CARD REVIEW */
-#cardreview{background:var(--bg)}
+#cardreview{background:#0f1d38}
 .flip-wrap{perspective:1000px;width:100%;cursor:pointer}
 .flip-inner{position:relative;width:100%;padding-bottom:58%;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.4,0,.2,1)}
 .flip-inner.flipped{transform:rotateY(180deg)}
@@ -119,7 +119,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 .cvtop{padding:max(52px,env(safe-area-inset-top)) 20px 12px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;background:linear-gradient(180deg,rgba(5,13,30,.98) 70%,transparent);backdrop-filter:blur(12px);}
 .cvback{background:none;border:none;color:rgba(255,255,255,.45);font-size:20px;cursor:pointer;padding:4px;width:32px;text-align:left}
 .cvend{background:none;border:1px solid rgba(220,38,38,.3);color:var(--red);border-radius:20px;padding:6px 14px;font-size:13px;font-family:inherit;cursor:pointer}
-.cvid{flex-shrink:0;border-bottom:1px solid rgba(255,255,255,.08);overflow:hidden;transition:max-height .3s ease,padding .3s ease;max-height:200px;padding:0 18px 12px}
+.cvid{flex-shrink:0;border-bottom:1px solid rgba(255,255,255,.08);overflow:hidden;transition:max-height .3s ease,padding .3s ease;max-height:320px;padding:0 18px 12px}
 .cvid.collapsed{max-height:0;padding:0;border-bottom:none}
 .idrow{display:flex;align-items:center;gap:10px;margin-bottom:8px}
 .idav{width:38px;height:38px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;color:#fff;font-weight:600}
@@ -1443,17 +1443,7 @@ if(window.visualViewport){
     }
   });
 }
-// Auto-collapse cv-id when user starts scrolling chat
-(function(){
-  var lastScrollTop=0;var timer=null;
-  document.addEventListener('scroll',function(e){
-    var chat=document.getElementById('chat');
-    if(!chat||!e.target===chat)return;
-    var cvid=document.getElementById('cv-id');
-    if(!cvid)return;
-    if(!cvid.classList.contains('collapsed'))cvid.classList.add('collapsed');
-  },true);
-})();
+// cv-id collapse: manual only via toggleCvid()
 function sendMsg(){var ta=document.getElementById('cv-ta'),txt=ta?ta.value.trim():'';if(!txt||!conv||conv.state!=='chatting')return;ta.value='';ta.style.height='auto';addBbl('me',txt);conv.msgs.push({role:'user',content:txt});addLoad();var recentMsgs=conv.msgs.length>7?conv.msgs.slice(0,1).concat(conv.msgs.slice(-6)):conv.msgs;callDS(recentMsgs,250).then(function(r){rmLoad();conv.msgs.push({role:'assistant',content:r});addBbl('ai',r);}).catch(function(){rmLoad();toast('网络错误，请重试');});}
 // leaveConv replaced by showConvExit
 function showTopicPicker(){
