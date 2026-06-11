@@ -1595,6 +1595,18 @@ function renderFeedback(data){
   });
 }
 function escHtml(s){return s?s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'):''}
+function hlEsc(text,q){
+  var s=escHtml(text||'');
+  if(!q)return s;
+  var esc=q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  return s.replace(new RegExp('('+esc+')','ig'),'<mark style="background:rgba(210,165,55,.35);color:inherit;border-radius:3px;padding:0 1px">$1</mark>');
+}
+function hlRaw(text,q){
+  var s=text||'';
+  if(!q)return s;
+  var esc=q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  return s.replace(new RegExp('('+esc+')','ig'),'<mark style="background:rgba(210,165,55,.35);color:inherit;border-radius:3px;padding:0 1px">$1</mark>');
+}
 function escAttr(s){return s?s.replace(/"/g,'&quot;').replace(/'/g,'&#39;'):''}
 function endConv(){
   if(!conv)return;conv.state='ending';addBbl('sys','对话结束，正在生成反馈…');
@@ -1726,10 +1738,10 @@ function renderConvNotes(){
       :'<button style="background:none;border:none;font-size:13px;color:var(--red);cursor:pointer;padding:2px 6px" onclick="event.stopPropagation();delStoryNote('+n.idx+')">×</button>';
     var preview=n.story?'<div style="font-size:11px;color:var(--t3);margin-bottom:4px;font-style:italic">出自故事：'+n.story+'…</div>':'';
     var bodyHtml=n.type==='chatlog'
-      ?'<div id="chatlog-'+n.idx+'" style="display:none;font-size:13px;line-height:1.8;white-space:pre-wrap;color:rgba(255,255,255,.65);margin-top:8px;max-height:320px;overflow-y:auto">'+n.text+'</div>'
+      ?'<div id="chatlog-'+n.idx+'" style="display:none;font-size:13px;line-height:1.8;white-space:pre-wrap;color:rgba(255,255,255,.65);margin-top:8px;max-height:320px;overflow-y:auto">'+hlRaw(n.text,_q)+'</div>'
        +'<button onclick="var el=document.getElementById(\'chatlog-'+n.idx+'\');el.style.display=el.style.display===\'none\'?\'block\':\'none\';this.textContent=el.style.display===\'block\'?\'收起 ▲\':\'展开对话 ▼\'" style="margin-top:6px;background:none;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:4px 12px;font-size:12px;color:var(--t3);cursor:pointer;font-family:inherit">展开对话 ▼</button>'
        +'<div style="font-size:12px;color:rgba(255,255,255,.3);margin-top:4px">与 '+n.name+' 的对话</div>'
-      :'<div style="font-size:14px;line-height:1.7;white-space:pre-wrap">'+n.text+'</div>';
+      :'<div style="font-size:14px;line-height:1.7;white-space:pre-wrap">'+hlRaw(n.text,_q)+'</div>';
     return '<div style="padding:16px 22px;border-bottom:1px solid var(--bdr)">'
       +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
       +'<div style="font-size:11px;color:var(--t3)">'+n.date+badge+'</div>'
@@ -1822,17 +1834,22 @@ function renderGrammarBank(){
   if(!sorted.length){el.innerHTML+=scanBtn+'<div style="padding:20px 0;text-align:center;color:var(--t3);font-size:14px">没有匹配的语法</div>';bindListSearch();return;}
   el.innerHTML+=scanBtn+sorted.map(function(g,gi){
     var exHtml=(g.examples||[]).map(function(ex){
-      return '<div style="font-size:12px;color:rgba(255,255,255,.45);padding:4px 0;border-top:1px solid rgba(255,255,255,.05);line-height:1.6">'+escHtml(ex.text)+'</div>';
+      return '<div style="font-size:12px;color:rgba(255,255,255,.45);padding:4px 0;border-top:1px solid rgba(255,255,255,.05);line-height:1.6">'+hlEsc(ex.text,_q)+'</div>';
     }).join('');
     var moreCount='';
     return '<div style="padding:16px 22px;border-bottom:1px solid var(--bdr)">'
       +'<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">'
       +'<div style="flex:1">'
-      +'<div style="font-size:16px;color:rgba(167,139,250,.95);font-weight:500;margin-bottom:4px">'+escHtml(g.pattern)+'</div>'
-      +'<div style="font-size:13px;color:rgba(255,255,255,.65);line-height:1.6;margin-bottom:8px">'+escHtml(g.meaning)+'</div>'
+      +'<div style="font-size:16px;color:rgba(167,139,250,.95);font-weight:500;margin-bottom:4px">'+hlEsc(g.pattern,_q)+'</div>'
+      +'<div style="font-size:13px;color:rgba(255,255,255,.65);line-height:1.6;margin-bottom:8px">'+hlEsc(g.meaning,_q)+'</div>'
       +(exHtml?'<div>'+exHtml+(moreCount?'<div style="font-size:11px;color:var(--t3);padding-top:4px">+'+moreCount+'</div>':'')+'</div>':'')
       +'<div id="gk-'+gi+'" style="display:none"></div>'
-      +(g.notes?'<div style="margin-top:8px;font-size:12px;color:rgba(255,255,255,.55);background:rgba(255,255,255,.04);border-radius:8px;padding:8px 10px;line-height:1.7;white-space:pre-wrap">'+escHtml(g.notes)+'</div>':'')
+      +(g.notes?'<div id="gn-view-'+gi+'" style="margin-top:8px;font-size:12px;color:rgba(255,255,255,.55);background:rgba(255,255,255,.04);border-radius:8px;padding:8px 10px;line-height:1.7;white-space:pre-wrap;position:relative">'
+        +hlEsc(g.notes,_q)
+        +'<button onclick="editGrammarNote('+gi+')" style="position:absolute;top:6px;right:6px;background:none;border:none;font-size:12px;color:rgba(210,165,55,.6);cursor:pointer;padding:2px 4px">✏️</button>'
+        +'</div>'
+        +'<div id="gn-edit-'+gi+'" style="display:none;margin-top:8px"></div>'
+      :'')
       +'</div>'
       +'<div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">'
       +'<span style="font-size:10px;color:var(--t3);text-align:center">'+(g.examples||[]).length+'句</span>'
@@ -1908,6 +1925,37 @@ function saveGrammarNote(gi,btn){
   saveDB();
   var wrap=btn.closest('div');
   wrap.innerHTML='<div style="font-size:12px;color:rgba(210,165,55,.7);padding:4px 0">已保存 ✓</div>';
+}
+function editGrammarNote(gi){
+  var sorted=(DB.grammarBank||[]).slice().sort(function(a,b){return (b.examples||[]).length-(a.examples||[]).length;});
+  var g=sorted[gi];if(!g)return;
+  var view=document.getElementById('gn-view-'+gi);
+  var edit=document.getElementById('gn-edit-'+gi);
+  if(!view||!edit)return;
+  view.style.display='none';
+  edit.style.display='block';
+  edit.innerHTML='<textarea id="gn-ta-'+gi+'" style="width:100%;min-height:90px;background:rgba(2,8,25,.97);border:1px solid rgba(210,165,55,.25);border-radius:10px;padding:10px 12px;font-family:inherit;font-size:13px;color:var(--text);outline:none;resize:vertical;line-height:1.6">'+g.notes+'</textarea>'
+    +'<div style="display:flex;gap:8px;margin-top:6px">'
+    +'<button onclick="saveGrammarNoteEdit('+gi+')" style="flex:1;background:rgba(210,165,55,.12);border:1px solid rgba(210,165,55,.25);border-radius:8px;padding:7px;font-size:12px;color:rgba(210,165,55,.9);cursor:pointer;font-family:inherit">保存</button>'
+    +'<button onclick="cancelGrammarNoteEdit('+gi+')" style="background:none;border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:7px 14px;font-size:12px;color:var(--t3);cursor:pointer;font-family:inherit">取消</button>'
+    +'</div>';
+  var ta=document.getElementById('gn-ta-'+gi);
+  if(ta){ta.focus();ta.setSelectionRange(ta.value.length,ta.value.length);}
+}
+function saveGrammarNoteEdit(gi){
+  var sorted=(DB.grammarBank||[]).slice().sort(function(a,b){return (b.examples||[]).length-(a.examples||[]).length;});
+  var g=sorted[gi];if(!g)return;
+  var ta=document.getElementById('gn-ta-'+gi);
+  var text=ta?ta.value.trim():'';
+  g.notes=text;
+  saveDB();
+  renderConvNotes();
+}
+function cancelGrammarNoteEdit(gi){
+  var view=document.getElementById('gn-view-'+gi);
+  var edit=document.getElementById('gn-edit-'+gi);
+  if(view)view.style.display='';
+  if(edit){edit.style.display='none';edit.innerHTML='';}
 }
 function delGrammar(id){
   confirmAct('确认删除？','','删除',function(){
