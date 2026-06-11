@@ -773,11 +773,11 @@ function getAllKw(){
   DB.entries.forEach(function(e){
     if(e.keywords&&e.keywords.length){
       e.keywords.forEach(function(k){
-        kws.push({word:k.word,zh:k.zh||'',note:k.note||'',lang:e.lang||'en',ctx:e.text||''});
+        kws.push({word:k.word,zh:k.zh||'',note:k.note||'',lang:e.lang||'en',ctx:e.text||'',entryId:e.id});
       });
     } else if(e.text){
       // fallback: entry has no keywords, use the sentence itself
-      kws.push({word:e.text,zh:e.zh||'',note:'',lang:e.lang||'en',ctx:''});
+      kws.push({word:e.text,zh:e.zh||'',note:'',lang:e.lang||'en',ctx:'',entryId:e.id});
     }
   });
   return kws;
@@ -1117,6 +1117,12 @@ function startCardReview(){
   crList=shuffle(all.slice()).slice(0,20);crIdx=0;crFlip=false;
   goTo('cardreview');renderCR();
 }
+function toggleCrNote(){
+  window._crNoteOpen=!window._crNoteOpen;
+  var area=document.getElementById('cr-note-area');
+  if(area)area.style.display=window._crNoteOpen?'block':'none';
+  if(window._crNoteOpen){setTimeout(function(){var ta=document.getElementById('cr-note-ta');if(ta)ta.focus();},50);}
+}
 function renderCR(){
   var el=document.getElementById('cr-body');
   if(crIdx>=crList.length){
@@ -1183,8 +1189,13 @@ function renderCR(){
         +'<button class="rbtn ryes" id="cr-yes" style="flex:1;padding:14px;">记住了 ✓</button>'
         +'</div>'
       :'<div style="font-size:11px;color:rgba(255,255,255,.18);text-align:center;letter-spacing:1px;">← 左滑跳过</div>')
-    +'<div style="padding:0 0 8px">'
-    +'<button onclick="toggleCrAsk()" style="width:100%;background:rgba(210,165,55,.06);border:1px solid rgba(210,165,55,.2);border-radius:12px;padding:10px;font-size:13px;color:rgba(210,165,55,.55);cursor:pointer;font-family:inherit;letter-spacing:2px">✦ 咒语探秘</button>'
+    +'<div style="padding:0 0 8px;display:flex;gap:8px">'
+    +'<button onclick="toggleCrAsk()" style="flex:1;background:rgba(210,165,55,.06);border:1px solid rgba(210,165,55,.2);border-radius:12px;padding:10px;font-size:13px;color:rgba(210,165,55,.55);cursor:pointer;font-family:inherit;letter-spacing:2px">✦ 咒语探秘</button>'
+    +'<button onclick="toggleCrNote()" style="background:rgba(210,165,55,.06);border:1px solid rgba(210,165,55,.2);border-radius:12px;padding:10px 14px;font-size:14px;color:rgba(210,165,55,.55);cursor:pointer;font-family:inherit">🪶</button>'
+    +'</div>'
+    +'<div id="cr-note-area" style="display:none;margin:0 0 8px">'
+    +'<textarea id="cr-note-ta" placeholder="写点笔记…" style="width:100%;min-height:70px;background:rgba(2,8,25,.97);border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:10px 12px;font-family:inherit;font-size:13px;color:var(--text);outline:none;resize:vertical"></textarea>'
+    +'</div>'
     +'<div id="cr-ask-area" style="display:none;margin-top:8px">'
     +'<div style="display:flex;gap:8px">'
     +'<input id="cr-ask-inp" type="text" placeholder="说出你的困惑，水晶球为你解答…" style="flex:1;background:rgba(2,8,25,.97);border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:9px 12px;font-family:inherit;font-size:13px;color:var(--text);outline:none">'
@@ -1199,6 +1210,22 @@ function renderCR(){
   var fw=document.getElementById('fw');
   if(!fw)return;
   fw.onclick=function(e){crFlip=!crFlip;renderCR();};
+  // 笔记面板：跟随当前词卡，回写到原词条
+  var noteArea=document.getElementById('cr-note-area');
+  var noteTa=document.getElementById('cr-note-ta');
+  if(noteTa){
+    var srcEntry=DB.entries.find(function(en){return en.id===c.entryId;});
+    noteTa.value=(srcEntry&&srcEntry.notes)?srcEntry.notes:'';
+    if(window._crNoteOpen)noteArea.style.display='block';
+    var saveTimer=null;
+    noteTa.addEventListener('input',function(){
+      clearTimeout(saveTimer);
+      saveTimer=setTimeout(function(){
+        var en=DB.entries.find(function(en){return en.id===c.entryId;});
+        if(en){en.notes=noteTa.value;saveDB();}
+      },500);
+    });
+  }
   if(crFlip){
     var spkBtn=document.createElement('button');
     spkBtn.textContent='🔊';
