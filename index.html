@@ -915,6 +915,13 @@ function renderStudy(){
     panel='<div class="ren">'+r.orig.replace(/\n/g,'<br>')+'<span class="tag '+(ko?'tag-k':'tag-e')+'">'+(ko?'韩':'英')+'</span></div>'
       +'<div class="rzh">'+r.zh+'</div>'
       +(kws?'<div class="kwl">'+kws+'</div>':'')
+      +((r.followups&&r.followups.length)?'<div style="margin-top:8px">'+r.followups.map(function(f,fi){
+        return '<div style="background:rgba(140,170,255,.06);border:1px solid rgba(140,170,255,.18);border-radius:10px;padding:8px 10px;margin-bottom:6px;position:relative">'
+          +'<div style="font-size:11px;color:rgba(170,195,255,.6);margin-bottom:3px;padding-right:18px">Q: '+escHtml(f.q)+'</div>'
+          +'<div style="font-size:13px;color:var(--text);line-height:1.6;white-space:pre-wrap">'+escHtml(f.a)+'</div>'
+          +'<button onclick="sessDelFollowup('+fi+')" style="position:absolute;top:6px;right:6px;background:none;border:none;font-size:12px;color:var(--t3);cursor:pointer;line-height:1">×</button>'
+          +'</div>';
+      }).join('')+'</div>':'')
       +'<div style="display:flex;gap:8px;margin:10px 0 8px;align-items:center">'
       +'<input id="s-followup" type="text" placeholder="写下你的疑惑…" style="flex:1;background:rgba(2,8,25,.97);border:1px solid rgba(140,170,255,.28);border-radius:10px;padding:9px 12px;font-family:inherit;font-size:13px;color:var(--text);outline:none">'
       +'<button onclick="followupS()" style="background:rgba(140,170,255,.13);border:1px solid rgba(140,170,255,.28);border-radius:10px;padding:9px 14px;color:rgba(180,200,255,.9);font-size:13px;cursor:pointer;white-space:nowrap;font-family:inherit">⚗️ 服下</button>'
@@ -977,7 +984,7 @@ function submitS(){
   var ta=document.getElementById('s-ta'),txt=ta?ta.value.trim():'';
   if(!txt){toast('请先输入字幕内容');return;}
   sess.state='analyzing';renderStudy();
-  callDS([{role:'user',content:'分析以下影视字幕（英文或韩文），只返回JSON不要markdown：\n"'+txt+'"\n\n{"zh":"整体中文翻译","lang":"en或ko","keywords":[{"word":"词或短语","zh":"含义","note":"地道用法说明，韩文注明반말/존댓말"}],"grammar":[{"pattern":"语法型如-느라고","meaning":"一句话含义"}]}\n\n规则：①只提取短语和搭配（2个以上单词），不提取单个孤立单词；②跳过CET-4及以下常见词；③最多6个，优先选地道表达；④若为韩语，grammar提取连接语尾/终结语尾/表达型（如-느라고、-기 때문에、-아/어 버리다），不提取助词이/가/을/를，最多4个；英语grammar返回[]。'}],500)
+  callDS([{role:'user',content:'分析以下影视字幕（英文或韩文），只返回JSON不要markdown：\n"'+txt+'"\n\n{"zh":"整体中文翻译","lang":"en或ko","keywords":[{"word":"词或短语","zh":"含义","note":"地道用法说明，韩文注明반말/존댓말"}],"grammar":[{"pattern":"语法型如-느라고","meaning":"一句话含义"}]}\n\n规则：①只提取短语和搭配（2个以上单词），不提取单个孤立单词；②跳过CET-4及以下常见词；③最多6个，优先选地道表达；④若为韩语，grammar提取连接语尾/终结语尾/表达型（如-느라고、-기 때문에、-아/어 버리다），不提取助词이/가/을/를，最多4个；英语grammar返回[]；⑤若为韩语关键词，且该词是汉字词（汉源词），在note开头用「汉字：XX」标注对应汉字，再写用法说明，如「汉字：始作。表示开始做某事...」；不是汉字词则不标注，正常写用法说明。'}],500)
   .then(function(raw){
     try{
       var parsed=JSON.parse(raw.replace(/```json|```/g,'').trim());
@@ -1003,6 +1010,12 @@ function discardS(){
     advS();
   });
 }
+function sessDelFollowup(fi){
+  if(!sess||!sess.res||!sess.res.followups)return;
+  sess.res.followups.splice(fi,1);
+  renderStudy();
+  var ni=document.getElementById('s-notes');if(ni)ni.value=sess.notes||'';
+}
 function followupS(){
   var inp=document.getElementById('s-followup');
   var q=inp?inp.value.trim():'';
@@ -1010,19 +1023,15 @@ function followupS(){
   inp.value='';
   var loading=document.getElementById('s-followup-loading');
   if(loading)loading.style.display='block';
-  var orig=sess.res.orig;
-  var cur=JSON.stringify({zh:sess.res.zh,keywords:sess.res.keywords});
-  callDS([{role:'user',content:'以下是一句影视字幕和当前分析结果，用户有追加要求，请按要求修改后只返回JSON不要markdown：\n字幕："'+orig+'"\n当前结果：'+cur+'\n用户要求：'+q+'\n\n返回格式：{"zh":"整体中文翻译","lang":"en或ko","keywords":[{"word":"词或短语","zh":"含义","note":"用法说明"}]}'}],600)
+  var r=sess.res;
+  var ctx='字幕："'+r.orig+'"\n整体翻译：'+r.zh+(r.keywords&&r.keywords.length?'\n已识别关键词：'+r.keywords.map(function(k){return k.word+'('+k.zh+')';}).join('、'):'');
+  callDS([{role:'user',content:ctx+'\n\n用户问题：'+q+'\n\n请用中文简洁回答，不超过150字。这只是补充说明，不要重复或修改上面已有的翻译和关键词。'}],400)
   .then(function(raw){
     if(loading)loading.style.display='none';
-    try{
-      var parsed=JSON.parse(raw.replace(/```json|```/g,'').trim());
-      parsed.orig=orig;
-      sess.res=parsed;
-      renderStudy();
-      // restore notes
-      var ni=document.getElementById('s-notes');if(ni)ni.value=sess.notes||'';
-    }catch(e){toast('解析失败，请重试');}
+    if(!sess.res.followups)sess.res.followups=[];
+    sess.res.followups.push({q:q,a:raw});
+    renderStudy();
+    var ni=document.getElementById('s-notes');if(ni)ni.value=sess.notes||'';
   }).catch(function(){if(loading)loading.style.display='none';toast('网络错误，请重试');});
 }
 function restoreS(){
@@ -1043,7 +1052,7 @@ function saveNext(){
   var r=sess.res;sess.hist[sess.idx]={res:r,notes:sess.notes};
   if(r){
     var id=Date.now()+'-'+sess.idx;
-    var entry={id:id,text:r.orig,lang:r.lang,zh:r.zh,keywords:r.keywords||[],notes:sess.notes||'',date:TODAY,ts:Date.now(),fp:sess.imgs[sess.idx].fp};
+    var entry={id:id,text:r.orig,lang:r.lang,zh:r.zh,keywords:r.keywords||[],notes:sess.notes||'',followups:r.followups||[],date:TODAY,ts:Date.now(),fp:sess.imgs[sess.idx].fp};
     DB.entries.push(entry);DB.fps.push(sess.imgs[sess.idx].fp);
     if(!DB.days[TODAY])DB.days[TODAY]=[];
     DB.days[TODAY].push(id);saveDB();
@@ -2072,6 +2081,10 @@ function delKw(ki,eid){
   var ent=DB.entries.find(function(e){return e.id===eid;});
   if(ent&&ent.keywords){ent.keywords.splice(ki,1);saveDB();if(listTabCurrent==='today')renderToday();else renderLib(document.getElementById('search-inp').value||'');}
 }
+function delFollowupEntry(eid,fi){
+  var ent=DB.entries.find(function(e){return e.id===eid;});
+  if(ent&&ent.followups){ent.followups.splice(fi,1);saveDB();if(listTabCurrent==='today')renderToday();else renderLib(document.getElementById('search-inp').value||'');}
+}
 function eRowHTML(e,i,showDate){
   var ko=e.lang==='ko';
   var pendingBadge=e.pending?'<div style="display:inline-block;background:#fef3c7;color:#92400e;font-size:11px;padding:2px 8px;border-radius:8px;margin-bottom:6px">⏳ 待输入字幕 — 点击铅笔编辑</div>':'';
@@ -2088,6 +2101,13 @@ function eRowHTML(e,i,showDate){
     +'<div class="ezh">'+(e.zh||'')+'</div>'
     +(e.notes?'<div style="margin-top:2px"><div class="enote" id="enote-'+e.id+'" style="max-height:34px;overflow:hidden;line-height:1.7">'+e.notes.replace(/\n/g,'<br>')+'</div>'
         +'<button onclick="event.stopPropagation();toggleEnote(\''+e.id+'\')" id="enote-tg-'+e.id+'" style="background:none;border:none;font-size:10px;color:var(--t3);cursor:pointer;padding:2px 0;letter-spacing:1px">展开 ▾</button></div>':'')
+    +((e.followups&&e.followups.length)?'<div style="margin-top:4px">'+e.followups.map(function(f,fi){
+        return '<div style="background:rgba(140,170,255,.05);border:1px solid rgba(140,170,255,.15);border-radius:8px;padding:6px 8px;margin-top:4px;font-size:11px;line-height:1.65;position:relative">'
+          +'<div style="color:rgba(170,195,255,.55);margin-bottom:2px;padding-right:16px">Q: '+(f.q||'')+'</div>'
+          +'<div style="color:var(--t2)">'+(f.a||'').replace(/\n/g,'<br>')+'</div>'
+          +'<button onclick="event.stopPropagation();delFollowupEntry(\''+e.id+'\','+fi+')" style="position:absolute;top:5px;right:5px;background:none;border:none;font-size:10px;color:var(--t3);cursor:pointer;line-height:1">×</button>'
+          +'</div>';
+      }).join('')+'</div>':'')
     +kws
     +'</div>'
     +'<div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;min-width:30px">'
