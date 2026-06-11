@@ -1260,7 +1260,8 @@ function renderCR(){
   if(noteTa){
     var srcEntry=DB.entries.find(function(en){return en.id===c.entryId;});
     noteTa.value=(_draft&&_draft.note!==undefined)?_draft.note:((srcEntry&&srcEntry.notes)?srcEntry.notes:'');
-    if(_draft?_draft.noteOpen:window._crNoteOpen)noteArea.style.display='block';
+    var _hasNotes=srcEntry&&srcEntry.notes;
+    if((_draft?_draft.noteOpen:window._crNoteOpen)||_hasNotes)noteArea.style.display='block';
     var saveTimer=null;
     noteTa.addEventListener('input',function(){
       clearTimeout(saveTimer);
