@@ -1204,7 +1204,6 @@ function renderCR(){
     +'<div id="cr-ask-loading" style="display:none;font-size:12px;color:var(--t3);padding:4px 2px">🔮 水晶球凝视中…</div>'
     +'<div id="cr-ask-result" style="margin-top:8px;font-size:14px;line-height:1.7;color:rgba(255,255,255,.8);background:rgba(255,255,255,.04);border-radius:10px;padding:10px 12px;display:none"></div>'
     +'</div>'
-    +'</div>'
     +'</div>';
 
   var fw=document.getElementById('fw');
@@ -1667,23 +1666,46 @@ function setLangFilter(lang){
   });
   if(listTabCurrent==='today')renderToday();
 }
+function bindListSearch(){
+  var inp=document.getElementById('list-search');
+  if(!inp)return;
+  // 保留光标位置
+  var pos=inp.selectionStart;
+  inp.focus();
+  if(pos!=null)inp.setSelectionRange(pos,pos);
+  inp.oninput=function(){
+    window._listSearch=inp.value;
+    clearTimeout(window._listSearchTimer);
+    window._listSearchTimer=setTimeout(function(){renderConvNotes();},250);
+  };
+}
 function renderConvNotes(){
   var el=document.getElementById('list-body');
   // 韩语语法子tab
   var listSubTab=window._listSubTab||'notes';
   var el2=document.getElementById('list-body');
-  var subNav='<div style="display:flex;gap:0;margin:0 0 12px;border-bottom:1px solid rgba(255,255,255,.08)">'
+  var subNav='<div style="display:flex;gap:0;border-bottom:1px solid rgba(255,255,255,.08)">'
     +'<button onclick="window._listSubTab=\'notes\';renderConvNotes()" style="flex:1;background:none;border:none;padding:10px 0;font-size:13px;cursor:pointer;font-family:inherit;color:'+(listSubTab==='notes'?'var(--gold)':'rgba(255,255,255,.35)')+';border-bottom:2px solid '+(listSubTab==='notes'?'var(--gold)':'transparent')+'">笔记</button>'
     +'<button onclick="window._listSubTab=\'grammar\';renderConvNotes()" style="flex:1;background:none;border:none;padding:10px 0;font-size:13px;cursor:pointer;font-family:inherit;color:'+(listSubTab==='grammar'?'var(--gold)':'rgba(255,255,255,.35)')+';border-bottom:2px solid '+(listSubTab==='grammar'?'var(--gold)':'transparent')+'">语法库<span style="font-size:10px;margin-left:4px;color:var(--t3)">'+(DB.grammarBank&&DB.grammarBank.length?DB.grammarBank.length:'')+'</span></button>'
+    +'</div>'
+    +'<div style="padding:10px 0 12px">'
+    +'<input id="list-search" type="text" value="'+escHtml(window._listSearch||'')+'" placeholder="'+(listSubTab==='grammar'?'搜索语法或例句…':'搜索笔记内容…')+'" style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:8px 12px;font-size:13px;color:var(--text);outline:none;font-family:inherit">'
     +'</div>';
-  if(listSubTab==='grammar'){if(el2)el2.innerHTML=subNav;renderGrammarBank();return;}
+  if(listSubTab==='grammar'){if(el2)el2.innerHTML=subNav;renderGrammarBank();bindListSearch();return;}
   if(el2)el2.innerHTML=subNav;
   var convNotes=(DB.convNotes||[]).map(function(n,i){return {type:'conv',idx:i,date:n.date,ts:n.ts||0,text:n.notes};});
   var storyNotes=(DB.storyNotes||[]).map(function(n,i){return {type:'story',idx:i,date:n.date,ts:n.ts||0,text:n.note,story:n.story};});
   var chatLogs=(DB.chatLogs||[]).map(function(n,i){return {type:'chatlog',idx:i,date:n.date,ts:n.ts||0,text:n.log,name:n.name};});
   var all=convNotes.concat(storyNotes).concat(chatLogs).sort(function(a,b){return (b.ts||0)-(a.ts||0);});
+  var _q=(window._listSearch||'').trim().toLowerCase();
+  if(_q)all=all.filter(function(n){return (n.text||'').toLowerCase().indexOf(_q)>-1||(n.name||'').toLowerCase().indexOf(_q)>-1;});
   var nc=document.getElementById('notes-count');if(nc)nc.textContent=all.length?all.length+'':'';
-  if(!all.length){el.innerHTML=subNav+'<div style="padding:40px 0;text-align:center;color:var(--t3);font-size:14px">还没有学习笔记<br>对话结束或生成故事后可以记笔记</div>';return;}
+  if(!all.length){
+    el.innerHTML=subNav+(_q
+      ?'<div style="padding:40px 0;text-align:center;color:var(--t3);font-size:14px">没有匹配的笔记</div>'
+      :'<div style="padding:40px 0;text-align:center;color:var(--t3);font-size:14px">还没有学习笔记<br>对话结束或生成故事后可以记笔记</div>');
+    bindListSearch();return;
+  }
   el.innerHTML=subNav+all.map(function(n){
     var badge=n.type==='chatlog'
       ?'<span style="font-size:10px;background:rgba(60,100,200,.25);color:rgba(120,160,255,.9);padding:1px 6px;border-radius:6px;margin-left:6px">记录</span>'
@@ -1717,6 +1739,7 @@ function renderConvNotes(){
       +'<div id="nk-'+n.type+'-'+n.idx+'" style="display:none"></div>'
       +'</div>';
   }).join('');
+  bindListSearch();
 }
 function toggleNoteKowen(type,idx){
   var el=document.getElementById('nk-'+type+'-'+idx);
@@ -1789,6 +1812,14 @@ function renderGrammarBank(){
     return;
   }
   var sorted=bank.slice().sort(function(a,b){return (b.examples||[]).length-(a.examples||[]).length;});
+  var _q=(window._listSearch||'').trim().toLowerCase();
+  if(_q)sorted=sorted.filter(function(g){
+    return (g.pattern||'').toLowerCase().indexOf(_q)>-1
+      ||(g.meaning||'').toLowerCase().indexOf(_q)>-1
+      ||(g.notes||'').toLowerCase().indexOf(_q)>-1
+      ||(g.examples||[]).some(function(ex){return (ex.text||'').toLowerCase().indexOf(_q)>-1;});
+  });
+  if(!sorted.length){el.innerHTML+=scanBtn+'<div style="padding:20px 0;text-align:center;color:var(--t3);font-size:14px">没有匹配的语法</div>';bindListSearch();return;}
   el.innerHTML+=scanBtn+sorted.map(function(g,gi){
     var exHtml=(g.examples||[]).map(function(ex){
       return '<div style="font-size:12px;color:rgba(255,255,255,.45);padding:4px 0;border-top:1px solid rgba(255,255,255,.05);line-height:1.6">'+escHtml(ex.text)+'</div>';
@@ -1809,6 +1840,7 @@ function renderGrammarBank(){
       +'<button onclick="delGrammar(\''+g.id+'\')" style="background:none;border:none;font-size:13px;color:var(--t3);cursor:pointer;padding:2px">×</button>'
       +'</div></div></div>';
   }).join('');
+  bindListSearch();
 }
 function toggleGrammarKowen(gi){
   var el=document.getElementById('gk-'+gi);
@@ -1845,20 +1877,37 @@ function submitGrammarKowen(gi){
   callDS([{role:'user',content:'你是韩语语法教练，用中文简洁回答，不超过200字。\n\n语法型：'+g.pattern+'\n释义：'+g.meaning+'\n用户的例句：'+exTxt+'\n\n用户问题：'+q}],500)
   .then(function(r){
     res.innerHTML='<div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px 12px;font-size:13px;color:rgba(255,255,255,.8);line-height:1.7;white-space:pre-wrap">'+escHtml(r)+'</div>'
-      +'<button onclick="saveGrammarNote('+gi+',this)" style="margin-top:8px;background:rgba(210,165,55,.12);border:1px solid rgba(210,165,55,.25);border-radius:8px;padding:6px 14px;font-size:12px;color:rgba(210,165,55,.85);cursor:pointer;font-family:inherit">保存到语法卡 ✦</button>';
+      +'<button onclick="openGrammarSave('+gi+',this)" style="margin-top:8px;background:rgba(210,165,55,.12);border:1px solid rgba(210,165,55,.25);border-radius:8px;padding:6px 14px;font-size:12px;color:rgba(210,165,55,.85);cursor:pointer;font-family:inherit">保存到语法卡 ✦</button>';
     res._answer=r;
   }).catch(function(){res.innerHTML='<div style="font-size:12px;color:rgba(220,80,80,.6)">网络错误，请重试</div>';});
+}
+function openGrammarSave(gi,btn){
+  var res=document.getElementById('gkr-gk-'+gi);
+  if(!res)return;
+  var answer=res._answer||'';
+  // 替换按钮为可编辑区域
+  var box=document.createElement('div');
+  box.style.cssText='margin-top:8px';
+  box.innerHTML='<textarea id="gsave-ta-'+gi+'" style="width:100%;min-height:90px;background:rgba(2,8,25,.97);border:1px solid rgba(210,165,55,.25);border-radius:10px;padding:10px 12px;font-family:inherit;font-size:13px;color:var(--text);outline:none;resize:vertical;line-height:1.6">'+answer+'</textarea>'
+    +'<div style="display:flex;gap:8px;margin-top:6px">'
+    +'<button onclick="saveGrammarNote('+gi+',this)" style="flex:1;background:rgba(210,165,55,.12);border:1px solid rgba(210,165,55,.25);border-radius:8px;padding:7px;font-size:12px;color:rgba(210,165,55,.9);cursor:pointer;font-family:inherit">确认保存</button>'
+    +'<button onclick="this.closest(\'div\').remove()" style="background:none;border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:7px 14px;font-size:12px;color:var(--t3);cursor:pointer;font-family:inherit">取消</button>'
+    +'</div>';
+  btn.replaceWith(box);
+  var ta=document.getElementById('gsave-ta-'+gi);
+  if(ta){ta.focus();ta.setSelectionRange(ta.value.length,ta.value.length);}
 }
 function saveGrammarNote(gi,btn){
   var sorted=(DB.grammarBank||[]).slice().sort(function(a,b){return (b.examples||[]).length-(a.examples||[]).length;});
   var g=sorted[gi];if(!g)return;
-  var res=document.getElementById('gkr-gk-'+gi);
-  var answer=res&&res._answer?res._answer:res?res.querySelector('div')?res.querySelector('div').textContent:'':'';
-  if(!answer)return;
+  var ta=document.getElementById('gsave-ta-'+gi);
+  var text=ta?ta.value.trim():'';
+  if(!text)return;
   var ts=new Date().toLocaleDateString('zh-CN',{month:'numeric',day:'numeric'});
-  g.notes=(g.notes?g.notes+'\n\n':'')+'['+ts+'] '+answer;
+  g.notes=(g.notes?g.notes+'\\n\\n':'')+'['+ts+'] '+text;
   saveDB();
-  btn.textContent='已保存 ✓';btn.disabled=true;btn.style.opacity='0.5';
+  var wrap=btn.closest('div');
+  wrap.innerHTML='<div style="font-size:12px;color:rgba(210,165,55,.7);padding:4px 0">已保存 ✓</div>';
 }
 function delGrammar(id){
   confirmAct('确认删除？','','删除',function(){
