@@ -916,11 +916,11 @@ function renderStudy(){
       +'<div class="rzh">'+r.zh+'</div>'
       +(kws?'<div class="kwl">'+kws+'</div>':'')
       +'<div style="display:flex;gap:8px;margin:10px 0 8px;align-items:center">'
-      +'<input id="s-followup" type="text" placeholder="向水晶球叩问，如：拆解语法…" style="flex:1;background:rgba(2,8,25,.97);border:1px solid rgba(140,170,255,.28);border-radius:10px;padding:9px 12px;font-family:inherit;font-size:13px;color:var(--text);outline:none">'
-      +'<button onclick="followupS()" style="background:rgba(140,170,255,.13);border:1px solid rgba(140,170,255,.28);border-radius:10px;padding:9px 14px;color:rgba(180,200,255,.9);font-size:13px;cursor:pointer;white-space:nowrap;font-family:inherit">叩问 🔮</button>'
+      +'<input id="s-followup" type="text" placeholder="写下你的疑惑…" style="flex:1;background:rgba(2,8,25,.97);border:1px solid rgba(140,170,255,.28);border-radius:10px;padding:9px 12px;font-family:inherit;font-size:13px;color:var(--text);outline:none">'
+      +'<button onclick="followupS()" style="background:rgba(140,170,255,.13);border:1px solid rgba(140,170,255,.28);border-radius:10px;padding:9px 14px;color:rgba(180,200,255,.9);font-size:13px;cursor:pointer;white-space:nowrap;font-family:inherit">⚗️ 服下</button>'
       +'<button onclick="toggleStudyNotes()" style="background:none;border:none;font-size:20px;cursor:pointer;padding:0 2px;opacity:.6">🪶</button>'
       +'</div>'
-      +'<div id="s-followup-loading" style="display:none;font-size:12px;color:var(--t3);padding:0 0 4px">🔮 水晶球凝视中…</div>'
+      +'<div id="s-followup-loading" style="display:none;font-size:12px;color:var(--t3);padding:0 0 4px">⚗️ 吐真剂正在起效…</div>'
       +'<div id="s-notes-area" style="display:none;margin-bottom:8px">'
       +'<textarea class="nta" id="s-notes" placeholder="随手记…"></textarea>'
       +'</div>'
@@ -1205,7 +1205,7 @@ function renderCR(){
         +'</div>'
       :'<div style="font-size:11px;color:rgba(255,255,255,.18);text-align:center;letter-spacing:1px;">← 左滑跳过</div>')
     +'<div style="padding:0 0 8px;display:flex;gap:8px">'
-    +'<button onclick="toggleCrAsk()" style="flex:1;background:rgba(140,170,255,.06);border:1px solid rgba(140,170,255,.2);border-radius:12px;padding:10px;font-size:13px;color:rgba(170,195,255,.6);cursor:pointer;font-family:inherit;letter-spacing:2px">🔮 叩问水晶球</button>'
+    +'<button onclick="toggleCrAsk()" style="flex:1;background:rgba(140,170,255,.06);border:1px solid rgba(140,170,255,.2);border-radius:12px;padding:10px;font-size:13px;color:rgba(170,195,255,.6);cursor:pointer;font-family:inherit;letter-spacing:2px">⚗️ 服用吐真剂</button>'
     +'<button onclick="toggleCrNote()" style="background:rgba(210,165,55,.06);border:1px solid rgba(210,165,55,.2);border-radius:12px;padding:10px 14px;font-size:14px;color:rgba(210,165,55,.55);cursor:pointer;font-family:inherit">🪶</button>'
     +'</div>'
     +'<div id="cr-note-area" style="display:none;margin:0 0 8px">'
@@ -1214,12 +1214,12 @@ function renderCR(){
     +'<button id="cr-note-save" onclick="saveCrNote(this)" style="margin-top:6px;width:100%;background:rgba(210,165,55,.12);border:1px solid rgba(210,165,55,.25);border-radius:8px;padding:7px;font-size:12px;color:rgba(210,165,55,.9);cursor:pointer;font-family:inherit">保存</button>'
     +'</div>'
     +'<div id="cr-ask-area" style="display:none;margin-top:8px">'
-    +'<div style="font-size:11px;color:rgba(140,170,255,.65);letter-spacing:2px;margin-bottom:5px">🔮 水晶球</div>'
+    +'<div style="font-size:11px;color:rgba(140,170,255,.65);letter-spacing:2px;margin-bottom:5px">⚗️ 吐真剂</div>'
     +'<div style="display:flex;gap:8px">'
-    +'<input id="cr-ask-inp" type="text" placeholder="说出你的困惑…" style="flex:1;background:rgba(2,8,25,.97);border:1px solid rgba(140,170,255,.25);border-radius:10px;padding:9px 12px;font-family:inherit;font-size:13px;color:var(--text);outline:none">'
-    +'<button onclick="sendCrAsk()" style="background:rgba(140,170,255,.15);border:1px solid rgba(140,170,255,.3);border-radius:10px;padding:9px 14px;color:rgba(180,200,255,.9);font-size:13px;cursor:pointer;font-family:inherit">发送</button>'
+    +'<input id="cr-ask-inp" type="text" placeholder="写下你的疑惑…" style="flex:1;background:rgba(2,8,25,.97);border:1px solid rgba(140,170,255,.25);border-radius:10px;padding:9px 12px;font-family:inherit;font-size:13px;color:var(--text);outline:none">'
+    +'<button onclick="sendCrAsk()" style="background:rgba(140,170,255,.15);border:1px solid rgba(140,170,255,.3);border-radius:10px;padding:9px 14px;color:rgba(180,200,255,.9);font-size:13px;cursor:pointer;font-family:inherit">⚗️ 服下</button>'
     +'</div>'
-    +'<div id="cr-ask-loading" style="display:none;font-size:12px;color:var(--t3);padding:4px 2px">🔮 水晶球凝视中…</div>'
+    +'<div id="cr-ask-loading" style="display:none;font-size:12px;color:var(--t3);padding:4px 2px">⚗️ 吐真剂正在起效…</div>'
     +'<div id="cr-ask-result" style="margin-top:8px;font-size:14px;line-height:1.7;color:rgba(255,255,255,.8);background:rgba(255,255,255,.04);border-radius:10px;padding:10px 12px;display:none"></div>'
     +'</div>'
     +'</div>';
@@ -1774,7 +1774,7 @@ function renderConvNotes(){
       :n.type==='chatlog'?''
       :'<button style="background:none;border:none;font-size:13px;color:var(--gold);cursor:pointer;padding:2px 6px" onclick="event.stopPropagation();editStoryNote('+n.idx+')">✏️</button>';
     var kowenBtn=(n.type==='conv'||n.type==='story')
-      ?'<button style="background:none;border:none;font-size:13px;color:rgba(170,195,255,.6);cursor:pointer;padding:2px 6px" onclick="event.stopPropagation();toggleNoteKowen(\''+n.type+'\','+n.idx+')">🔮</button>'
+      ?'<button style="background:none;border:none;font-size:13px;color:rgba(170,195,255,.6);cursor:pointer;padding:2px 6px" onclick="event.stopPropagation();toggleNoteKowen(\''+n.type+'\','+n.idx+')">⚗️</button>'
       :'';
     var delBtn=n.type==='conv'
       ?'<button style="background:none;border:none;font-size:13px;color:var(--red);cursor:pointer;padding:2px 6px" onclick="event.stopPropagation();delConvNote('+n.idx+')">×</button>'
@@ -1807,8 +1807,8 @@ function toggleNoteKowen(type,idx){
   var key=type+'-'+idx;
   el.innerHTML='<div style="padding:10px 0 4px">'
     +'<div style="display:flex;gap:8px;align-items:center">'
-    +'<input id="nki-'+key+'" type="text" placeholder="向水晶球叩问…" style="flex:1;background:rgba(2,8,25,.9);border:1px solid rgba(140,170,255,.28);border-radius:10px;padding:8px 12px;font-size:13px;color:rgba(255,255,255,.85);outline:none;font-family:inherit">'
-    +'<button onclick="event.stopPropagation();submitNoteKowen(\''+type+'\','+idx+')" style="background:rgba(140,170,255,.13);border:1px solid rgba(140,170,255,.28);border-radius:10px;padding:8px 12px;color:rgba(180,200,255,.9);font-size:12px;cursor:pointer;white-space:nowrap;font-family:inherit">叩问 🔮</button>'
+    +'<input id="nki-'+key+'" type="text" placeholder="写下你的疑惑…" style="flex:1;background:rgba(2,8,25,.9);border:1px solid rgba(140,170,255,.28);border-radius:10px;padding:8px 12px;font-size:13px;color:rgba(255,255,255,.85);outline:none;font-family:inherit">'
+    +'<button onclick="event.stopPropagation();submitNoteKowen(\''+type+'\','+idx+')" style="background:rgba(140,170,255,.13);border:1px solid rgba(140,170,255,.28);border-radius:10px;padding:8px 12px;color:rgba(180,200,255,.9);font-size:12px;cursor:pointer;white-space:nowrap;font-family:inherit">服下 ⚗️</button>'
     +'</div>'
     +'<div id="nkr-'+key+'" style="margin-top:8px;display:none"></div>'
     +'</div>';
@@ -1826,7 +1826,7 @@ function submitNoteKowen(type,idx){
   else if(type==='story'){var n=DB.storyNotes&&DB.storyNotes[idx];noteText=n?n.note:'';}
   inp.value='';
   res.style.display='block';
-  res.innerHTML='<div style="font-size:12px;color:var(--t3);padding:6px 0">🔮 水晶球凝视中…</div>';
+  res.innerHTML='<div style="font-size:12px;color:var(--t3);padding:6px 0">⚗️ 吐真剂正在起效…</div>';
   callDS([{role:'user',content:'你是语言教练，用中文简洁回答，不超过150字。\n\n用户正在复习的笔记：\n'+noteText+'\n\n用户问题：'+q}],400)
   .then(function(r){
     res.innerHTML='<div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px 12px;font-size:13px;color:rgba(255,255,255,.8);line-height:1.7;white-space:pre-wrap">'+escHtml(r)+'</div>'
@@ -1898,7 +1898,7 @@ function renderGrammarBank(){
       +'</div>'
       +'<div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">'
       +'<span style="font-size:10px;color:var(--t3);text-align:center">'+(g.examples||[]).length+'句</span>'
-      +'<button onclick="toggleGrammarKowen('+gi+')" style="background:none;border:none;font-size:13px;color:rgba(170,195,255,.6);cursor:pointer;padding:2px">🔮</button>'
+      +'<button onclick="toggleGrammarKowen('+gi+')" style="background:none;border:none;font-size:13px;color:rgba(170,195,255,.6);cursor:pointer;padding:2px">⚗️</button>'
       +'<button onclick="delGrammar(\''+g.id+'\')" style="background:none;border:none;font-size:13px;color:var(--t3);cursor:pointer;padding:2px">×</button>'
       +'</div></div></div>';
   }).join('');
@@ -1914,8 +1914,8 @@ function toggleGrammarKowen(gi){
   var key='gk-'+gi;
   el.innerHTML='<div style="padding-top:10px">'
     +'<div style="display:flex;gap:8px;align-items:center">'
-    +'<input id="gki-'+key+'" type="text" placeholder="向水晶球叩问，如：和-아서有什么区别…" style="flex:1;background:rgba(2,8,25,.9);border:1px solid rgba(140,170,255,.28);border-radius:10px;padding:8px 12px;font-size:13px;color:rgba(255,255,255,.85);outline:none;font-family:inherit">'
-    +'<button onclick="submitGrammarKowen('+gi+')" style="background:rgba(140,170,255,.13);border:1px solid rgba(140,170,255,.28);border-radius:10px;padding:8px 12px;color:rgba(180,200,255,.9);font-size:12px;cursor:pointer;white-space:nowrap;font-family:inherit">叩问 🔮</button>'
+    +'<input id="gki-'+key+'" type="text" placeholder="写下你的疑惑，如：和-아서有什么区别…" style="flex:1;background:rgba(2,8,25,.9);border:1px solid rgba(140,170,255,.28);border-radius:10px;padding:8px 12px;font-size:13px;color:rgba(255,255,255,.85);outline:none;font-family:inherit">'
+    +'<button onclick="submitGrammarKowen('+gi+')" style="background:rgba(140,170,255,.13);border:1px solid rgba(140,170,255,.28);border-radius:10px;padding:8px 12px;color:rgba(180,200,255,.9);font-size:12px;cursor:pointer;white-space:nowrap;font-family:inherit">服下 ⚗️</button>'
     +'</div>'
     +'<div id="gkr-'+key+'" style="margin-top:8px;display:none"></div>'
     +'</div>';
@@ -1935,7 +1935,7 @@ function submitGrammarKowen(gi){
   var exTxt=(g.examples||[]).slice(0,3).map(function(e){return e.text;}).join(' / ');
   inp.value='';
   res.style.display='block';
-  res.innerHTML='<div style="font-size:12px;color:var(--t3);padding:6px 0">🔮 水晶球凝视中…</div>';
+  res.innerHTML='<div style="font-size:12px;color:var(--t3);padding:6px 0">⚗️ 吐真剂正在起效…</div>';
   callDS([{role:'user',content:'你是韩语语法教练，用中文简洁回答，不超过200字。\n\n语法型：'+g.pattern+'\n释义：'+g.meaning+'\n用户的例句：'+exTxt+'\n\n用户问题：'+q}],500)
   .then(function(r){
     res.innerHTML='<div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px 12px;font-size:13px;color:rgba(255,255,255,.8);line-height:1.7;white-space:pre-wrap">'+escHtml(r)+'</div>'
