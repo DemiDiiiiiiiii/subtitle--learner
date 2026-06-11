@@ -1106,7 +1106,10 @@ function sendCrAsk(){
   callDS([{role:'user',content:ctx+'\n\n用户问题：'+q+'\n\n请用中文简洁回答，如有词源典故请一并说明。'}],600)
   .then(function(r){
     if(loading)loading.style.display='none';
-    if(result){result.textContent=r;result.style.display='block';}
+    if(result){
+      result.innerHTML='<div style="white-space:pre-wrap">'+escHtml(r)+'</div>';
+      result.style.display='block';
+    }
   }).catch(function(){
     if(loading)loading.style.display='none';
     toast('网络错误，请重试');
@@ -1116,6 +1119,18 @@ function startCardReview(){
   var all=getAllKw();if(!all.length){toast('词库还没有内容，先上传截图积累词汇');return;}
   crList=shuffle(all.slice()).slice(0,20);crIdx=0;crFlip=false;
   goTo('cardreview');renderCR();
+}
+function saveCrNote(btn){
+  var c=crList[crIdx];if(!c)return;
+  var ta=document.getElementById('cr-note-ta');
+  if(!ta)return;
+  var en=DB.entries.find(function(e){return e.id===c.entryId;});
+  if(!en)return;
+  en.notes=ta.value;
+  saveDB();
+  var old=btn.textContent;
+  btn.textContent='已保存 ✓';
+  setTimeout(function(){if(btn)btn.textContent=old;},1200);
 }
 function toggleCrNote(){
   window._crNoteOpen=!window._crNoteOpen;
@@ -1195,6 +1210,7 @@ function renderCR(){
     +'</div>'
     +'<div id="cr-note-area" style="display:none;margin:0 0 8px">'
     +'<textarea id="cr-note-ta" placeholder="写点笔记…" style="width:100%;min-height:70px;background:rgba(2,8,25,.97);border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:10px 12px;font-family:inherit;font-size:13px;color:var(--text);outline:none;resize:vertical"></textarea>'
+    +'<button id="cr-note-save" onclick="saveCrNote(this)" style="margin-top:6px;width:100%;background:rgba(210,165,55,.12);border:1px solid rgba(210,165,55,.25);border-radius:8px;padding:7px;font-size:12px;color:rgba(210,165,55,.9);cursor:pointer;font-family:inherit">保存</button>'
     +'</div>'
     +'<div id="cr-ask-area" style="display:none;margin-top:8px">'
     +'<div style="display:flex;gap:8px">'
