@@ -916,8 +916,8 @@ function renderStudy(){
       +'<div class="rzh">'+r.zh+'</div>'
       +(kws?'<div class="kwl">'+kws+'</div>':'')
       +'<div style="display:flex;gap:8px;margin:10px 0 8px;align-items:center">'
-      +'<input id="s-followup" type="text" placeholder="向水晶球叩问，如：拆解语法…" style="flex:1;background:rgba(2,8,25,.97);border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:9px 12px;font-family:inherit;font-size:13px;color:var(--text);outline:none">'
-      +'<button onclick="followupS()" style="background:rgba(210,165,55,.15);border:1px solid rgba(210,165,55,.3);border-radius:10px;padding:9px 14px;color:rgba(210,165,55,.9);font-size:13px;cursor:pointer;white-space:nowrap;font-family:inherit">叩问 ✦</button>'
+      +'<input id="s-followup" type="text" placeholder="向水晶球叩问，如：拆解语法…" style="flex:1;background:rgba(2,8,25,.97);border:1px solid rgba(140,170,255,.28);border-radius:10px;padding:9px 12px;font-family:inherit;font-size:13px;color:var(--text);outline:none">'
+      +'<button onclick="followupS()" style="background:rgba(140,170,255,.13);border:1px solid rgba(140,170,255,.28);border-radius:10px;padding:9px 14px;color:rgba(180,200,255,.9);font-size:13px;cursor:pointer;white-space:nowrap;font-family:inherit">叩问 🔮</button>'
       +'<button onclick="toggleStudyNotes()" style="background:none;border:none;font-size:20px;cursor:pointer;padding:0 2px;opacity:.6">🪶</button>'
       +'</div>'
       +'<div id="s-followup-loading" style="display:none;font-size:12px;color:var(--t3);padding:0 0 4px">🔮 水晶球凝视中…</div>'
@@ -1205,17 +1205,19 @@ function renderCR(){
         +'</div>'
       :'<div style="font-size:11px;color:rgba(255,255,255,.18);text-align:center;letter-spacing:1px;">← 左滑跳过</div>')
     +'<div style="padding:0 0 8px;display:flex;gap:8px">'
-    +'<button onclick="toggleCrAsk()" style="flex:1;background:rgba(210,165,55,.06);border:1px solid rgba(210,165,55,.2);border-radius:12px;padding:10px;font-size:13px;color:rgba(210,165,55,.55);cursor:pointer;font-family:inherit;letter-spacing:2px">✦ 咒语探秘</button>'
+    +'<button onclick="toggleCrAsk()" style="flex:1;background:rgba(140,170,255,.06);border:1px solid rgba(140,170,255,.2);border-radius:12px;padding:10px;font-size:13px;color:rgba(170,195,255,.6);cursor:pointer;font-family:inherit;letter-spacing:2px">🔮 叩问水晶球</button>'
     +'<button onclick="toggleCrNote()" style="background:rgba(210,165,55,.06);border:1px solid rgba(210,165,55,.2);border-radius:12px;padding:10px 14px;font-size:14px;color:rgba(210,165,55,.55);cursor:pointer;font-family:inherit">🪶</button>'
     +'</div>'
     +'<div id="cr-note-area" style="display:none;margin:0 0 8px">'
-    +'<textarea id="cr-note-ta" placeholder="写点笔记…" style="width:100%;min-height:70px;background:rgba(2,8,25,.97);border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:10px 12px;font-family:inherit;font-size:13px;color:var(--text);outline:none;resize:vertical"></textarea>'
+    +'<div style="font-size:11px;color:rgba(210,165,55,.6);letter-spacing:2px;margin-bottom:5px">🪶 笔记</div>'
+    +'<textarea id="cr-note-ta" placeholder="写点笔记…" style="width:100%;min-height:70px;background:rgba(2,8,25,.97);border:1px solid rgba(210,165,55,.22);border-radius:10px;padding:10px 12px;font-family:inherit;font-size:13px;color:var(--text);outline:none;resize:vertical"></textarea>'
     +'<button id="cr-note-save" onclick="saveCrNote(this)" style="margin-top:6px;width:100%;background:rgba(210,165,55,.12);border:1px solid rgba(210,165,55,.25);border-radius:8px;padding:7px;font-size:12px;color:rgba(210,165,55,.9);cursor:pointer;font-family:inherit">保存</button>'
     +'</div>'
     +'<div id="cr-ask-area" style="display:none;margin-top:8px">'
+    +'<div style="font-size:11px;color:rgba(140,170,255,.65);letter-spacing:2px;margin-bottom:5px">🔮 水晶球</div>'
     +'<div style="display:flex;gap:8px">'
-    +'<input id="cr-ask-inp" type="text" placeholder="说出你的困惑，水晶球为你解答…" style="flex:1;background:rgba(2,8,25,.97);border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:9px 12px;font-family:inherit;font-size:13px;color:var(--text);outline:none">'
-    +'<button onclick="sendCrAsk()" style="background:rgba(210,165,55,.15);border:1px solid rgba(210,165,55,.3);border-radius:10px;padding:9px 14px;color:rgba(210,165,55,.9);font-size:13px;cursor:pointer;font-family:inherit">发送</button>'
+    +'<input id="cr-ask-inp" type="text" placeholder="说出你的困惑…" style="flex:1;background:rgba(2,8,25,.97);border:1px solid rgba(140,170,255,.25);border-radius:10px;padding:9px 12px;font-family:inherit;font-size:13px;color:var(--text);outline:none">'
+    +'<button onclick="sendCrAsk()" style="background:rgba(140,170,255,.15);border:1px solid rgba(140,170,255,.3);border-radius:10px;padding:9px 14px;color:rgba(180,200,255,.9);font-size:13px;cursor:pointer;font-family:inherit">发送</button>'
     +'</div>'
     +'<div id="cr-ask-loading" style="display:none;font-size:12px;color:var(--t3);padding:4px 2px">🔮 水晶球凝视中…</div>'
     +'<div id="cr-ask-result" style="margin-top:8px;font-size:14px;line-height:1.7;color:rgba(255,255,255,.8);background:rgba(255,255,255,.04);border-radius:10px;padding:10px 12px;display:none"></div>'
@@ -1224,14 +1226,32 @@ function renderCR(){
 
   var fw=document.getElementById('fw');
   if(!fw)return;
-  fw.onclick=function(e){crFlip=!crFlip;renderCR();};
+  fw.onclick=function(e){
+    // 翻面前保存笔记/探秘草稿，避免翻面后输入内容和展开状态丢失
+    var _nta=document.getElementById('cr-note-ta');
+    var _nar=document.getElementById('cr-note-area');
+    var _aar=document.getElementById('cr-ask-area');
+    var _ainp=document.getElementById('cr-ask-inp');
+    var _ares=document.getElementById('cr-ask-result');
+    window._crDraft={
+      idx:crIdx,
+      note:_nta?_nta.value:undefined,
+      noteOpen:_nar?_nar.style.display!=='none':false,
+      askOpen:_aar?_aar.style.display!=='none':false,
+      askQ:_ainp?_ainp.value:'',
+      askResultHtml:_ares?_ares.innerHTML:'',
+      askResultShown:_ares?_ares.style.display!=='none':false
+    };
+    crFlip=!crFlip;renderCR();
+  };
   // 笔记面板：跟随当前词卡，回写到原词条
   var noteArea=document.getElementById('cr-note-area');
   var noteTa=document.getElementById('cr-note-ta');
+  var _draft=(window._crDraft&&window._crDraft.idx===crIdx)?window._crDraft:null;
   if(noteTa){
     var srcEntry=DB.entries.find(function(en){return en.id===c.entryId;});
-    noteTa.value=(srcEntry&&srcEntry.notes)?srcEntry.notes:'';
-    if(window._crNoteOpen)noteArea.style.display='block';
+    noteTa.value=(_draft&&_draft.note!==undefined)?_draft.note:((srcEntry&&srcEntry.notes)?srcEntry.notes:'');
+    if(_draft?_draft.noteOpen:window._crNoteOpen)noteArea.style.display='block';
     var saveTimer=null;
     noteTa.addEventListener('input',function(){
       clearTimeout(saveTimer);
@@ -1240,6 +1260,15 @@ function renderCR(){
         if(en){en.notes=noteTa.value;saveDB();}
       },500);
     });
+  }
+  // 恢复叩问水晶球的展开状态、问题输入与回答
+  var askArea=document.getElementById('cr-ask-area');
+  var askInp=document.getElementById('cr-ask-inp');
+  var askResult=document.getElementById('cr-ask-result');
+  if(_draft){
+    if(askArea&&_draft.askOpen)askArea.style.display='block';
+    if(askInp)askInp.value=_draft.askQ||'';
+    if(askResult&&_draft.askResultShown){askResult.innerHTML=_draft.askResultHtml;askResult.style.display='block';}
   }
   if(crFlip){
     var spkBtn=document.createElement('button');
@@ -1745,7 +1774,7 @@ function renderConvNotes(){
       :n.type==='chatlog'?''
       :'<button style="background:none;border:none;font-size:13px;color:var(--gold);cursor:pointer;padding:2px 6px" onclick="event.stopPropagation();editStoryNote('+n.idx+')">✏️</button>';
     var kowenBtn=(n.type==='conv'||n.type==='story')
-      ?'<button style="background:none;border:none;font-size:12px;color:rgba(210,165,55,.6);cursor:pointer;padding:2px 6px" onclick="event.stopPropagation();toggleNoteKowen(\''+n.type+'\','+n.idx+')">✦</button>'
+      ?'<button style="background:none;border:none;font-size:13px;color:rgba(170,195,255,.6);cursor:pointer;padding:2px 6px" onclick="event.stopPropagation();toggleNoteKowen(\''+n.type+'\','+n.idx+')">🔮</button>'
       :'';
     var delBtn=n.type==='conv'
       ?'<button style="background:none;border:none;font-size:13px;color:var(--red);cursor:pointer;padding:2px 6px" onclick="event.stopPropagation();delConvNote('+n.idx+')">×</button>'
@@ -1778,8 +1807,8 @@ function toggleNoteKowen(type,idx){
   var key=type+'-'+idx;
   el.innerHTML='<div style="padding:10px 0 4px">'
     +'<div style="display:flex;gap:8px;align-items:center">'
-    +'<input id="nki-'+key+'" type="text" placeholder="向水晶球叩问…" style="flex:1;background:rgba(2,8,25,.9);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:8px 12px;font-size:13px;color:rgba(255,255,255,.85);outline:none;font-family:inherit">'
-    +'<button onclick="event.stopPropagation();submitNoteKowen(\''+type+'\','+idx+')" style="background:rgba(210,165,55,.13);border:1px solid rgba(210,165,55,.28);border-radius:10px;padding:8px 12px;color:rgba(210,165,55,.9);font-size:12px;cursor:pointer;white-space:nowrap;font-family:inherit">叩问 ✦</button>'
+    +'<input id="nki-'+key+'" type="text" placeholder="向水晶球叩问…" style="flex:1;background:rgba(2,8,25,.9);border:1px solid rgba(140,170,255,.28);border-radius:10px;padding:8px 12px;font-size:13px;color:rgba(255,255,255,.85);outline:none;font-family:inherit">'
+    +'<button onclick="event.stopPropagation();submitNoteKowen(\''+type+'\','+idx+')" style="background:rgba(140,170,255,.13);border:1px solid rgba(140,170,255,.28);border-radius:10px;padding:8px 12px;color:rgba(180,200,255,.9);font-size:12px;cursor:pointer;white-space:nowrap;font-family:inherit">叩问 🔮</button>'
     +'</div>'
     +'<div id="nkr-'+key+'" style="margin-top:8px;display:none"></div>'
     +'</div>';
@@ -1869,7 +1898,7 @@ function renderGrammarBank(){
       +'</div>'
       +'<div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">'
       +'<span style="font-size:10px;color:var(--t3);text-align:center">'+(g.examples||[]).length+'句</span>'
-      +'<button onclick="toggleGrammarKowen('+gi+')" style="background:none;border:none;font-size:13px;color:rgba(210,165,55,.6);cursor:pointer;padding:2px">✦</button>'
+      +'<button onclick="toggleGrammarKowen('+gi+')" style="background:none;border:none;font-size:13px;color:rgba(170,195,255,.6);cursor:pointer;padding:2px">🔮</button>'
       +'<button onclick="delGrammar(\''+g.id+'\')" style="background:none;border:none;font-size:13px;color:var(--t3);cursor:pointer;padding:2px">×</button>'
       +'</div></div></div>';
   }).join('');
@@ -1885,8 +1914,8 @@ function toggleGrammarKowen(gi){
   var key='gk-'+gi;
   el.innerHTML='<div style="padding-top:10px">'
     +'<div style="display:flex;gap:8px;align-items:center">'
-    +'<input id="gki-'+key+'" type="text" placeholder="向水晶球叩问，如：和-아서有什么区别…" style="flex:1;background:rgba(2,8,25,.9);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:8px 12px;font-size:13px;color:rgba(255,255,255,.85);outline:none;font-family:inherit">'
-    +'<button onclick="submitGrammarKowen('+gi+')" style="background:rgba(210,165,55,.13);border:1px solid rgba(210,165,55,.28);border-radius:10px;padding:8px 12px;color:rgba(210,165,55,.9);font-size:12px;cursor:pointer;white-space:nowrap;font-family:inherit">叩问 ✦</button>'
+    +'<input id="gki-'+key+'" type="text" placeholder="向水晶球叩问，如：和-아서有什么区别…" style="flex:1;background:rgba(2,8,25,.9);border:1px solid rgba(140,170,255,.28);border-radius:10px;padding:8px 12px;font-size:13px;color:rgba(255,255,255,.85);outline:none;font-family:inherit">'
+    +'<button onclick="submitGrammarKowen('+gi+')" style="background:rgba(140,170,255,.13);border:1px solid rgba(140,170,255,.28);border-radius:10px;padding:8px 12px;color:rgba(180,200,255,.9);font-size:12px;cursor:pointer;white-space:nowrap;font-family:inherit">叩问 🔮</button>'
     +'</div>'
     +'<div id="gkr-'+key+'" style="margin-top:8px;display:none"></div>'
     +'</div>';
@@ -2057,7 +2086,8 @@ function eRowHTML(e,i,showDate){
     +'<div class="een">'+(e.text||'（待输入字幕）').replace(/\n/g,'<br>')+'</div>'
     +(e.pending&&!e.text?'<div style="display:inline-block;background:#fef3c7;color:#92400e;font-size:11px;padding:2px 8px;border-radius:8px;margin:2px 0 4px">⏳ 点铅笔在此设备输入字幕</div>':'')
     +'<div class="ezh">'+(e.zh||'')+'</div>'
-    +(e.notes?'<div class="enote">'+e.notes+'</div>':'')
+    +(e.notes?'<div style="margin-top:2px"><div class="enote" id="enote-'+e.id+'" style="max-height:34px;overflow:hidden;line-height:1.7">'+e.notes.replace(/\n/g,'<br>')+'</div>'
+        +'<button onclick="event.stopPropagation();toggleEnote(\''+e.id+'\')" id="enote-tg-'+e.id+'" style="background:none;border:none;font-size:10px;color:var(--t3);cursor:pointer;padding:2px 0;letter-spacing:1px">展开 ▾</button></div>':'')
     +kws
     +'</div>'
     +'<div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;min-width:30px">'
@@ -2065,6 +2095,14 @@ function eRowHTML(e,i,showDate){
     +'<button class="edel" style="font-size:11px;opacity:.5" data-edit-id="'+e.id+'">✏️</button>'
     +'</div>'
     +'</div>';
+}
+function toggleEnote(id){
+  var el=document.getElementById('enote-'+id);
+  var tg=document.getElementById('enote-tg-'+id);
+  if(!el||!tg)return;
+  var collapsed=el.style.maxHeight==='34px';
+  el.style.maxHeight=collapsed?'none':'34px';
+  tg.textContent=collapsed?'收起 ▴':'展开 ▾';
 }
 function loadRowImgs(list){list.forEach(function(e){loadImgAsync(e.id,function(b){var el2=document.getElementById('et-'+e.id);if(el2){var src='data:image/jpeg;base64,'+b;el2.src=src;el2.setAttribute('data-full-src',src);el2.onclick=function(){openImg(src);};}});});}
 function _lbHandler(ev){
