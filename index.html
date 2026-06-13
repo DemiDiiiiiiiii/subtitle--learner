@@ -1133,7 +1133,21 @@ function sendCrAsk(){
 }
 function startCardReview(){
   var all=getAllKw();if(!all.length){toast('词库还没有内容，先上传截图积累词汇');return;}
-  crList=shuffle(all.slice()).slice(0,20);crIdx=0;crFlip=false;
+  var deck=null;
+  if(DB.crDeck&&DB.crDeck.date===TODAY&&DB.crDeck.items&&DB.crDeck.items.length){
+    deck=DB.crDeck.items.map(function(it){
+      return all.find(function(c){return c.entryId===it.entryId&&c.word===it.word;});
+    }).filter(Boolean);
+    if(!deck.length)deck=null;
+  }
+  if(deck){
+    crList=deck;
+  }else{
+    crList=shuffle(all.slice()).slice(0,20);
+    DB.crDeck={date:TODAY,items:crList.map(function(c){return {entryId:c.entryId,word:c.word};})};
+    saveDB();
+  }
+  crIdx=0;crFlip=false;
   goTo('cardreview');renderCR();
 }
 function saveCrNote(btn){
