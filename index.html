@@ -1119,6 +1119,13 @@ function sendCrAsk(){
       result.innerHTML='<div style="white-space:pre-wrap">'+escHtml(r)+'</div>';
       result.style.display='block';
     }
+    // 自动存入对应词条的追加注释，词库里可见
+    var en=DB.entries.find(function(e){return e.id===c.entryId;});
+    if(en){
+      if(!en.followups)en.followups=[];
+      en.followups.push({q:q,a:r});
+      saveDB();
+    }
   }).catch(function(){
     if(loading)loading.style.display='none';
     toast('网络错误，请重试');
