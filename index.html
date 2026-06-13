@@ -1250,8 +1250,8 @@ function renderCR(){
   var spkStyle='background:none;border:none;font-size:15px;cursor:pointer;opacity:.45;padding:2px;flex-shrink:0;line-height:1';
   var back='<div style="text-align:center;width:100%;">'
     +'<div style="font-size:11px;color:rgba(255,255,255,.3);margin-bottom:20px;letter-spacing:2px;">原文</div>'
-    +'<div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px"><span style="font-size:26px;font-weight:300;color:rgba(180,220,255,.92);letter-spacing:1px;line-height:1.5;">'+c.word+'</span><button onclick="event.stopPropagation();speakText(\''+c.word.replace(/'/g,"\\'")+'\',\''+c.lang+'\')" style="'+spkStyle+'">🔊</button></div>'
-    +(c.ctx&&c.ctx!==c.word?'<div style="font-size:12px;color:rgba(255,255,255,.28);margin-top:14px;font-style:italic;display:flex;align-items:center;justify-content:center;gap:6px"><span>「'+c.ctx+'」</span><button onclick="event.stopPropagation();speakText(\''+c.ctx.replace(/'/g,"\\'")+'\',\''+c.lang+'\')" style="'+spkStyle+'">🔊</button></div>':'')
+    +'<div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px"><span style="font-size:26px;font-weight:300;color:rgba(180,220,255,.92);letter-spacing:1px;line-height:1.5;">'+c.word+'</span><button onclick="event.stopPropagation();speakText(\''+escJS(c.word)+'\',\''+c.lang+'\')" style="'+spkStyle+'">🔊</button></div>'
+    +(c.ctx&&c.ctx!==c.word?'<div style="font-size:12px;color:rgba(255,255,255,.28);margin-top:14px;font-style:italic;display:flex;align-items:center;justify-content:center;gap:6px"><span>「'+c.ctx+'」</span><button onclick="event.stopPropagation();speakText(\''+escJS(c.ctx)+'\',\''+c.lang+'\')" style="'+spkStyle+'">🔊</button></div>':'')
     +'</div>';
 
   el.innerHTML='<div style="padding:0 22px;flex:1;display:flex;flex-direction:column;justify-content:center;gap:20px">'
@@ -1696,6 +1696,9 @@ function renderFeedback(data){
   });
 }
 function escHtml(s){return s?s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'):''}
+function escJS(s){
+  return (s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,'\\n').replace(/\r/g,'');
+}
 function hlEsc(text,q){
   var s=escHtml(text||'');
   if(!q)return s;
@@ -2195,7 +2198,7 @@ function eRowHTML(e,i,showDate){
   return '<div class="erow" id="er-'+e.id+'">'
     +'<img class="ethumb" id="et-'+e.id+'" src="" alt="" data-entry-id="'+e.id+'" style="cursor:zoom-in">'
     +'<div class="ebody">'
-    +'<div class="enum" style="display:flex;align-items:center;gap:6px">'+(showDate?e.date+' ':('0'+(i+1)).slice(-2)+' ')+'<span class="tag '+(ko?'tag-k':'tag-e')+'">'+(ko?'韩':'英')+'</span>'+(e.text?'<button onclick="event.stopPropagation();speakText(\''+e.text.replace(/'/g,"\\'")+'\',\''+(e.lang||'en')+'\')" style="background:none;border:none;font-size:13px;cursor:pointer;opacity:.4;padding:0;line-height:1">🔊</button>':'')+'</div>'
+    +'<div class="enum" style="display:flex;align-items:center;gap:6px">'+(showDate?e.date+' ':('0'+(i+1)).slice(-2)+' ')+'<span class="tag '+(ko?'tag-k':'tag-e')+'">'+(ko?'韩':'英')+'</span>'+(e.text?'<button onclick="event.stopPropagation();speakText(\''+escJS(e.text)+'\',\''+(e.lang||'en')+'\')" style="background:none;border:none;font-size:13px;cursor:pointer;opacity:.4;padding:0;line-height:1">🔊</button>':'')+'</div>'
     +'<div class="een">'+(e.text||'（待输入字幕）').replace(/\n/g,'<br>')+'</div>'
     +(e.pending&&!e.text?'<div style="display:inline-block;background:#fef3c7;color:#92400e;font-size:11px;padding:2px 8px;border-radius:8px;margin:2px 0 4px">⏳ 点铅笔在此设备输入字幕</div>':'')
     +'<div class="ezh">'+(e.zh||'')+'</div>'
