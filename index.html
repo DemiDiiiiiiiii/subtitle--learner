@@ -2628,23 +2628,29 @@ function toggleMic(){
 function speakText(txt,lang){
   if(!window.speechSynthesis){toast('此浏览器不支持语音播放');return;}
   window.speechSynthesis.cancel();
-  var u=new SpeechSynthesisUtterance(txt);
-  var l=lang==='ko'?'ko-KR':'en-US';
-  u.lang=l;u.rate=lang==='ko'?0.82:0.88;
-  var voices=window.speechSynthesis.getVoices();
-  var v;
-  if(lang==='ko'){
-    v=voices.find(function(v){return /yuna/i.test(v.name);})
-      ||voices.find(function(v){return v.lang==='ko-KR'&&v.localService;})
-      ||voices.find(function(v){return v.lang.startsWith('ko');});
-  }else{
-    v=voices.find(function(v){return /zoe/i.test(v.name);})
-      ||voices.find(function(v){return /samantha|karen|daniel/i.test(v.name)&&v.localService;})
-      ||voices.find(function(v){return v.lang==='en-US'&&v.localService;})
-      ||voices.find(function(v){return v.lang.startsWith('en');});
+  function doSpeak(voices){
+    var u=new SpeechSynthesisUtterance(txt);
+    var l=lang==='ko'?'ko-KR':'en-US';
+    u.lang=l;u.rate=lang==='ko'?0.82:0.88;
+    var v;
+    if(lang==='ko'){
+      v=voices.find(function(v){return /siri.*1|1.*siri/i.test(v.name)&&v.lang&&v.lang.startsWith('ko');})
+        ||voices.find(function(v){return /yuna/i.test(v.name);})
+        ||voices.find(function(v){return v.lang==='ko-KR'&&v.localService;})
+        ||voices.find(function(v){return v.lang.startsWith('ko');});
+    }else{
+      v=voices.find(function(v){return /zoe/i.test(v.name);})
+        ||voices.find(function(v){return /ava/i.test(v.name);})
+        ||voices.find(function(v){return /samantha|karen/i.test(v.name)&&v.localService;})
+        ||voices.find(function(v){return v.lang==='en-US'&&v.localService;})
+        ||voices.find(function(v){return v.lang.startsWith('en');});
+    }
+    if(v)u.voice=v;
+    window.speechSynthesis.speak(u);
   }
-  if(v)u.voice=v;
-  window.speechSynthesis.speak(u);
+  var voices=window.speechSynthesis.getVoices();
+  if(voices&&voices.length){doSpeak(voices);}
+  else{window.speechSynthesis.onvoiceschanged=function(){doSpeak(window.speechSynthesis.getVoices());window.speechSynthesis.onvoiceschanged=null;};}
 }
 
 // ── Conversation exit flow ─────────────────────────────────────────
