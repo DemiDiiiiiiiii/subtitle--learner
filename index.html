@@ -543,14 +543,14 @@ mark.hl-phrase{background:rgba(210,165,55,.25);color:rgba(255,220,100,.95);borde
     <span class="nav-t">设置</span>
   </div>
   <div class="stsec">
-    <div class="strow"><div><div class="stlbl"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(200,165,80,.7)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px;flex-shrink:0"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>关于你</div><div class="stsub">对话练习和故事生成会参考这段描述</div></div></div>
+    <div class="strow"><div><div class="stlbl">关于你</div><div class="stsub">对话练习和故事生成会参考这段描述</div></div></div>
     <textarea id="about-me-ta" placeholder="例如：住在上海的程序员，喜欢看美剧和打游戏，正在学英语和日语…" style="width:100%;min-height:64px;background:rgba(2,8,25,.97);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:10px 12px;font-family:inherit;font-size:13px;color:var(--text);outline:none;resize:vertical;box-sizing:border-box;margin-top:8px"></textarea>
   </div>
 
   <div class="stsec">
     <div class="strow">
       <div>
-        <div class="stlbl"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(200,165,80,.7)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px;flex-shrink:0"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 6v4m0 0l-2-2m2 2l2-2"/><circle cx="12" cy="17" r="1" fill="rgba(200,165,80,.7)" stroke="none"/></svg>多设备同步码</div>
+        <div class="stlbl">多设备同步码</div>
         <div class="stsub">在其他设备输入此码同步数据</div>
         <div class="syncode" id="syn-code">------</div>
       </div>
@@ -564,14 +564,14 @@ mark.hl-phrase{background:rgba(210,165,55,.25);color:rgba(255,220,100,.95);borde
   <div class="stsec">
     <div class="strow"><div><div class="stlbl" id="st-stats"></div><div class="stsub">存储于本地及云端</div></div></div>
     <div class="strow" style="cursor:pointer" onclick="uploadToCloud()">
-      <div><div class="stlbl"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(200,165,80,.7)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px;flex-shrink:0"><path d="M17 18a5 5 0 0 0-1-9.9A7 7 0 1 0 6 18"/><path d="M12 13v6m0 0l-3-3m3 3l3-3"/></svg>立即上传到云端</div><div class="stsub" id="cloud-status">点击手动同步数据到云端</div></div>
+      <div><div class="stlbl">立即上传到云端</div><div class="stsub" id="cloud-status">点击手动同步数据到云端</div></div>
       <span style="color:var(--t3)">›</span>
     </div>
 
   </div>
   <div class="stsec">
     <div class="strow" style="cursor:pointer" onclick="exportData()">
-      <div><div class="stlbl"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(200,165,80,.7)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px;flex-shrink:0"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="12" y1="13" x2="12" y2="19"/><polyline points="9,16 12,19 15,16"/></svg>导出全部数据</div><div class="stsub">导出字幕、词汇、笔记为文本文件</div></div>
+      <div><div class="stlbl">导出全部数据</div><div class="stsub">导出字幕、词汇、笔记为文本文件</div></div>
       <span style="color:var(--t3)">›</span>
     </div>
   </div>
@@ -1287,6 +1287,9 @@ function renderCR(){
   var fw=document.getElementById('fw');
   if(!fw)return;
   fw.onclick=function(e){
+    // 如果用户正在选中文字，不触发翻面
+    var sel=window.getSelection();
+    if(sel&&sel.toString().length>0)return;
     // 翻面前保存笔记/探秘草稿，避免翻面后输入内容和展开状态丢失
     var _nta=document.getElementById('cr-note-ta');
     var _nar=document.getElementById('cr-note-area');
