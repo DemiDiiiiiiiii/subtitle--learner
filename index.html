@@ -658,7 +658,7 @@ if(DB.aboutMe===undefined){DB.aboutMe=DB.entries.length?'住在苏州的中国�
 // Rebuild fps index from all existing entries to ensure global dedup
 DB.entries.forEach(function(e){if(e.fp&&DB.fps.indexOf(e.fp)===-1)DB.fps.push(e.fp);});
 if(!DB.days[TODAY])DB.days[TODAY]=[];
-function saveDB(){var v=JSON.stringify(DB);try{localStorage.setItem(DB_KEY,v);}catch(e){}kvSet('db',v);}
+function saveDB(){var v=JSON.stringify(DB);try{localStorage.setItem(DB_KEY,v);}catch(e){}}
 function saveImg(id,b64){try{localStorage.setItem(IP+id,b64);}catch(e){}kvSet('img-'+id,b64);}
 function getImgLocal(id){try{return localStorage.getItem(IP+id);}catch(e){return null;}}
 function loadImgAsync(id,cb){var l=getImgLocal(id);if(l){cb(l);return;}kvGet('img-'+id).then(function(v){if(v){try{localStorage.setItem(IP+id,v);}catch(e){}cb(v);}}).catch(function(){});}
@@ -676,26 +676,35 @@ kvGet('db').then(function(v){
   try{
     var r=JSON.parse(v);
     if(!r||!r.entries)return;
-    if(!r.days)r.days={};if(!r.fps)r.fps=[];
-    // Cloud is authoritative: overwrite local entries with cloud versions
-    // Add any local-only entries that aren't in cloud yet
-    var cloudMap={};
-    r.entries.forEach(function(e){cloudMap[e.id]=e;});
-    // Add local entries not in cloud (newly created, not yet uploaded)
-    DB.entries.forEach(function(e){
-      if(!cloudMap[e.id])r.entries.push(e);
-    });
-    // Merge days - union of both
-    Object.keys(DB.days).forEach(function(d){
-      if(!r.days[d])r.days[d]=[];
-      DB.days[d].forEach(function(id){if(r.days[d].indexOf(id)===-1)r.days[d].push(id);});
-    });
-    if(!r.days[TODAY])r.days[TODAY]=[];
-    if(!r.fps)r.fps=[];
-    DB.entries.forEach(function(e){if(e.fp&&r.fps.indexOf(e.fp)===-1)r.fps.push(e.fp);});
-    DB=r;
-    try{localStorage.setItem(DB_KEY,JSON.stringify(DB));}catch(e){}
-    refreshHome();
+    var cloudCount=r.entries.length;
+    var localCount=DB.entries.length;
+    if(cloudCount===0&&localCount===0)return;
+    // 相同数量且本地有数据，静默跳过
+    if(cloudCount===localCount&&localCount>0)return;
+    // 需要用户确认才覆盖
+    confirmAct(
+      '云端数据与本地不同',
+      '云端 '+cloudCount+' 条 / 本地 '+localCount+' 条，是否用云端数据覆盖本地？',
+      '覆盖本地',
+      function(){
+        if(!r.days)r.days={};if(!r.fps)r.fps=[];
+        var cloudMap={};
+        r.entries.forEach(function(e){cloudMap[e.id]=e;});
+        DB.entries.forEach(function(e){if(!cloudMap[e.id])r.entries.push(e);});
+        Object.keys(DB.days).forEach(function(d){
+          if(!r.days[d])r.days[d]=[];
+          DB.days[d].forEach(function(id){if(r.days[d].indexOf(id)===-1)r.days[d].push(id);});
+        });
+        if(!r.days[TODAY])r.days[TODAY]=[];
+        if(!r.fps)r.fps=[];
+        DB.entries.forEach(function(e){if(e.fp&&r.fps.indexOf(e.fp)===-1)r.fps.push(e.fp);});
+        DB=r;
+        try{localStorage.setItem(DB_KEY,JSON.stringify(DB));}catch(e){}
+        refreshHome();
+        startInkNote();
+        toast('已从云端加载 '+cloudCount+' 条数据');
+      }
+    );
   }catch(e){}
 });
 function selectChip(c){
@@ -824,15 +833,16 @@ function startInkNote(){
   if(!all.length)return;
   var el=document.getElementById('ink-text');
   if(!el)return;
-  // 每天固定一条
-  var stored=DB.inkDay;
+  // 每天固定一条，用localStorage存，不碰saveDB避免覆盖云端数据
+  var _inkKey='jc-ink-day';
+  var _inkStored=null;
+  try{_inkStored=JSON.parse(localStorage.getItem(_inkKey));}catch(e){}
   var item;
-  if(stored&&stored.date===TODAY&&stored.idx<all.length){
-    item=all[stored.idx];
+  if(_inkStored&&_inkStored.date===TODAY&&_inkStored.idx<all.length){
+    item=all[_inkStored.idx];
   }else{
     var ri=Math.floor(Math.random()*all.length);
-    DB.inkDay={date:TODAY,idx:ri};
-    saveDB();
+    try{localStorage.setItem(_inkKey,JSON.stringify({date:TODAY,idx:ri}));}catch(e){}
     item=all[ri];
   }
   if(!item)return;
@@ -918,11 +928,7 @@ function saveForLater(){
         done++;
         if(done===total){
           saveDB();
-          // Push DB to cloud after all images done
-          kvSet('db',JSON.stringify(DB)).then(function(r){
-            if(r&&r.ok)toast('已保存 '+total+' 张，在电脑上输入同步码即可开始输入字幕 ✓');
-            else toast('图片已存，云端同步可能失败，请手动上传');
-          }).catch(function(){toast('图片已存，请在设置里手动上传到云端');});
+          toast('已保存 '+total+' 张 ✓ — 请记得点同步上传到云端');
           refreshHome();
           goTo('home');
           sess=null;
@@ -2349,10 +2355,7 @@ function saveEdit(id){
   entry.ts=Date.now();
   saveDB();
   var m=document.getElementById('edit-modal');if(m)m.remove();
-  toast('已保存，同步中…');
-  kvSet('db',JSON.stringify(DB)).then(function(r){
-    if(r&&r.ok)toast('已保存并同步到云端 ✓');
-  }).catch(function(){toast('已保存（云端同步失败，请手动上传）');});
+  toast('已保存 ✓ — 请记得同步到云端');
   if(listTabCurrent==='today')renderToday();else renderConvNotes();
 }
 function saveEditAndAnalyze(id){
@@ -2379,7 +2382,7 @@ function saveEditAndAnalyze(id){
       // keep original text, don't overwrite with AI's version
       entry.ts=Date.now();
       saveDB();
-      kvSet('db',JSON.stringify(DB)).catch(function(){});
+
       if(listTabCurrent==='today')renderToday();
       toast('重新分析完成，已同步云端 ✓');
     }catch(e){saveDB();if(listTabCurrent==='today')renderToday();toast('分析结果解析失败，已保存原文');}
