@@ -99,7 +99,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 .nta{width:100%;background:var(--card);border:1px solid var(--bdr);border-radius:var(--rs);padding:12px 14px;color:var(--text);font-size:14px;font-family:inherit;resize:none;min-height:68px;outline:none;line-height:1.6}
 .nta::placeholder{color:var(--t3)}
 /* CARD REVIEW */
-#cardreview{background:#0f1d38}
+#cardreview{background:#1c2f50}
 .flip-wrap{perspective:1000px;width:100%;cursor:pointer}
 .flip-inner{position:relative;width:100%;padding-bottom:58%;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.4,0,.2,1)}
 .flip-inner.flipped{transform:rotateY(180deg)}
@@ -477,15 +477,16 @@ mark.hl-phrase{background:rgba(210,165,55,.25);color:rgba(255,220,100,.95);borde
   <div class="nav" style="flex-shrink:0">
     <div class="back" onclick="goTo('home')">←</div>
     <span class="nav-t">全部词库</span>
-    <span style="margin-left:auto;font-size:13px;color:var(--t3)" id="lib-ct"></span>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+      <button id="llf-all" onclick="setLibLangFilter('all')" style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:3px 12px;font-size:12px;color:var(--text);cursor:pointer">全部</button>
+      <button id="llf-en" onclick="setLibLangFilter('en')" style="background:none;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:3px 12px;font-size:12px;color:var(--t3);cursor:pointer">英</button>
+      <button id="llf-ko" onclick="setLibLangFilter('ko')" style="background:none;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:3px 12px;font-size:12px;color:var(--t3);cursor:pointer">韩</button>
+      <button onclick="toggleLibSearch()" style="background:none;border:none;font-size:16px;color:var(--t3);cursor:pointer;padding:2px">🔍</button>
+      <span style="font-size:13px;color:var(--t3)" id="lib-ct"></span>
+    </div>
   </div>
-  <div class="search-box">
+  <div id="lib-search-box" style="display:none;padding:8px 22px 4px">
     <input class="search-inp" id="search-inp" placeholder="搜索字幕、单词、翻译…" oninput="filterLib(this.value)">
-  </div>
-  <div id="lib-lang-filter" style="flex-shrink:0;padding:6px 22px 2px;gap:8px;display:flex">
-    <button id="llf-all" onclick="setLibLangFilter('all')" style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:4px 14px;font-size:12px;color:var(--text);cursor:pointer">全部</button>
-    <button id="llf-en" onclick="setLibLangFilter('en')" style="background:none;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:4px 14px;font-size:12px;color:var(--t3);cursor:pointer">英</button>
-    <button id="llf-ko" onclick="setLibLangFilter('ko')" style="background:none;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:4px 14px;font-size:12px;color:var(--t3);cursor:pointer">韩</button>
   </div>
   <div id="lib-body" style="flex:1;overflow-y:auto;padding:0 22px 24px"></div>
 </div>
@@ -624,16 +625,24 @@ var UID_KEY = 'jc-uid';
 
 // ── UID / KV ──────────────────────────────────────────────────────
 function getUID(){var id=localStorage.getItem(UID_KEY);if(!id){id=Math.random().toString(36).substr(2,8).toUpperCase();localStorage.setItem(UID_KEY,id);}return id;}
+function fetchWithRetry(url, opts, retries, delay){
+  retries = retries||3; delay = delay||1200;
+  return fetch(url, opts).catch(function(err){
+    if(retries<=1) throw err;
+    return new Promise(function(res){setTimeout(res, delay);})
+      .then(function(){return fetchWithRetry(url, opts, retries-1, delay);});
+  });
+}
 function kvSet(k,v){
   try{
     var c=new AbortController();
     var t=setTimeout(function(){c.abort();},8000);
-    return fetch(WORKER,{method:'POST',headers:{'Content-Type':'application/json','X-Action':'kv-set','X-App-Secret':APP_SECRET},body:JSON.stringify({key:getUID()+'-'+k,value:v}),signal:c.signal})
+    return fetchWithRetry(WORKER,{method:'POST',headers:{'Content-Type':'application/json','X-Action':'kv-set','X-App-Secret':APP_SECRET},body:JSON.stringify({key:getUID()+'-'+k,value:v}),signal:c.signal})
       .then(function(r){clearTimeout(t);return r.json();})
       .catch(function(e){clearTimeout(t);throw e;});
   }catch(e){return Promise.reject(e);}
 }
-function kvGet(k){var c=new AbortController();setTimeout(function(){c.abort();},6000);return fetch(WORKER,{method:'POST',headers:{'Content-Type':'application/json','X-Action':'kv-get','X-Key':getUID()+'-'+k,'X-App-Secret':APP_SECRET},signal:c.signal}).then(function(r){return r.json();}).then(function(d){return d.value||null;}).catch(function(){return null;});}
+function kvGet(k){return fetchWithRetry(WORKER,{method:'POST',headers:{'Content-Type':'application/json','X-Action':'kv-get','X-Key':getUID()+'-'+k,'X-App-Secret':APP_SECRET}}).then(function(r){return r.json();}).then(function(d){return d.value||null;}).catch(function(){return null;});}
 
 // ── DB ────────────────────────────────────────────────────────────
 var DB={entries:[],fps:[],days:{},weakness:''};
@@ -768,7 +777,7 @@ document.addEventListener('click',function(ev){
 });
 
 // ── Utils ─────────────────────────────────────────────────────────
-function goTo(id){document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('on');});document.getElementById(id).classList.add('on');if(id==='home')refreshHome();if(id==='library'){document.getElementById('search-inp').value='';renderLib('');}if(id==='settings'){document.getElementById('syn-code').textContent=getUID();document.getElementById('st-stats').textContent=DB.entries.length+' 条字幕，'+getAllKw().length+' 个词汇';document.getElementById('st-today-cnt').textContent='今日 '+(DB.days[TODAY]||[]).length+' 条';
+function goTo(id){document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('on');});document.getElementById(id).classList.add('on');if(id==='home')refreshHome();if(id==='library'){var si=document.getElementById('search-inp');if(si)si.value='';var sb=document.getElementById('lib-search-box');if(sb)sb.style.display='none';renderLib('');}if(id==='settings'){document.getElementById('syn-code').textContent=getUID();document.getElementById('st-stats').textContent=DB.entries.length+' 条字幕，'+getAllKw().length+' 个词汇';document.getElementById('st-today-cnt').textContent='今日 '+(DB.days[TODAY]||[]).length+' 条';
     var amTa=document.getElementById('about-me-ta');
     if(amTa){
       amTa.value=DB.aboutMe||'';
@@ -1245,13 +1254,13 @@ function renderCR(){
     +'<div style="font-size:11px;color:rgba(255,255,255,.3);margin-bottom:24px;letter-spacing:2px;">'+langLabel+'</div>'
     +'<div style="font-size:28px;font-weight:300;color:rgba(255,255,255,.88);line-height:1.6;margin-bottom:12px;">'+(c.zh||'—')+'</div>'
     +(c.note?'<div style="font-size:12px;color:rgba(255,255,255,.32);margin-top:10px;">'+c.note+'</div>':'')
-    +'<div style="font-size:11px;color:rgba(255,200,80,.4);margin-top:28px;letter-spacing:2px;">点击查看原文</div>'
+    +'<div style="font-size:11px;color:rgba(255,200,80,.75);margin-top:28px;letter-spacing:2px;">点击查看原文</div>'
     +'</div>';
   var spkStyle='background:none;border:none;font-size:15px;cursor:pointer;opacity:.45;padding:2px;flex-shrink:0;line-height:1';
   var back='<div style="text-align:center;width:100%;">'
-    +'<div style="font-size:11px;color:rgba(255,255,255,.3);margin-bottom:20px;letter-spacing:2px;">原文</div>'
+    +'<div style="font-size:11px;color:rgba(255,255,255,.5);margin-bottom:20px;letter-spacing:2px;">原文</div>'
     +'<div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px"><span style="font-size:26px;font-weight:300;color:rgba(180,220,255,.92);letter-spacing:1px;line-height:1.5;">'+c.word+'</span><button onclick="event.stopPropagation();speakText(\''+escJS(c.word)+'\',\''+c.lang+'\')" style="'+spkStyle+'">🔊</button></div>'
-    +(c.ctx&&c.ctx!==c.word?'<div style="font-size:12px;color:rgba(255,255,255,.28);margin-top:14px;font-style:italic;display:flex;align-items:center;justify-content:center;gap:6px"><span>「'+c.ctx+'」</span><button onclick="event.stopPropagation();speakText(\''+escJS(c.ctx)+'\',\''+c.lang+'\')" style="'+spkStyle+'">🔊</button></div>':'')
+    +(c.ctx&&c.ctx!==c.word?'<div style="font-size:12px;color:rgba(255,255,255,.55);margin-top:14px;font-style:italic;display:flex;align-items:center;justify-content:center;gap:6px"><span>「'+c.ctx+'」</span><button onclick="event.stopPropagation();speakText(\''+escJS(c.ctx)+'\',\''+c.lang+'\')" style="'+spkStyle+'">🔊</button></div>':'')
     +'</div>';
 
   el.innerHTML='<div style="padding:0 22px;flex:1;display:flex;flex-direction:column;justify-content:center;gap:20px">'
@@ -1269,6 +1278,7 @@ function renderCR(){
     +'<button onclick="toggleCrNote()" style="background:rgba(210,165,55,.06);border:1px solid rgba(210,165,55,.2);border-radius:12px;padding:10px 14px;font-size:14px;color:rgba(210,165,55,.55);cursor:pointer;font-family:inherit">🪶</button>'
     +'</div>'
     +'<div id="cr-note-area" style="display:none;margin:0 0 8px">'
+    +'<div id="cr-followups" style="display:none;margin-bottom:10px"></div>'
     +'<div style="font-size:11px;color:rgba(210,165,55,.6);letter-spacing:2px;margin-bottom:5px">🪶 笔记</div>'
     +'<textarea id="cr-note-ta" placeholder="写点笔记…" style="width:100%;min-height:70px;background:rgba(2,8,25,.97);border:1px solid rgba(210,165,55,.22);border-radius:10px;padding:10px 12px;font-family:inherit;font-size:13px;color:var(--text);outline:none;resize:vertical"></textarea>'
     +'<button id="cr-note-save" onclick="saveCrNote(this)" style="margin-top:6px;width:100%;background:rgba(210,165,55,.12);border:1px solid rgba(210,165,55,.25);border-radius:8px;padding:7px;font-size:12px;color:rgba(210,165,55,.9);cursor:pointer;font-family:inherit">保存</button>'
@@ -1315,7 +1325,21 @@ function renderCR(){
     var srcEntry=DB.entries.find(function(en){return en.id===c.entryId;});
     noteTa.value=(_draft&&_draft.note!==undefined)?_draft.note:((srcEntry&&srcEntry.notes)?srcEntry.notes:'');
     var _hasNotes=srcEntry&&srcEntry.notes;
-    if((_draft?_draft.noteOpen:window._crNoteOpen)||_hasNotes)noteArea.style.display='block';
+    var _hasFollowups=srcEntry&&srcEntry.followups&&srcEntry.followups.length;
+    if((_draft?_draft.noteOpen:window._crNoteOpen)||_hasNotes||_hasFollowups)noteArea.style.display='block';
+    var fupEl=document.getElementById('cr-followups');
+    if(fupEl){
+      if(_hasFollowups){
+        fupEl.style.display='block';
+        fupEl.innerHTML='<div style="font-size:11px;color:rgba(140,170,255,.55);letter-spacing:2px;margin-bottom:6px">⚗️ 历史问答</div>'
+          +srcEntry.followups.map(function(f){
+            return '<div style="background:rgba(140,170,255,.06);border:1px solid rgba(140,170,255,.15);border-radius:8px;padding:8px 10px;margin-bottom:6px">'
+              +'<div style="font-size:11px;color:rgba(170,195,255,.55);margin-bottom:3px">Q: '+escHtml(f.q||'')+'</div>'
+              +'<div style="font-size:12px;color:rgba(255,255,255,.7);line-height:1.65;white-space:pre-wrap">'+escHtml(f.a||'')+'</div>'
+              +'</div>';
+          }).join('');
+      }else{fupEl.style.display='none';fupEl.innerHTML='';}
+    }
     var saveTimer=null;
     noteTa.addEventListener('input',function(){
       clearTimeout(saveTimer);
@@ -2185,7 +2209,11 @@ function saveEntryKowenAnswer(id,btn){
   if(!en.followups)en.followups=[];
   en.followups.push({q:res.dataset.q||'',a:res.dataset.a||''});
   saveDB();
-  if(listTabCurrent==='today')renderToday();else renderLib(document.getElementById('search-inp').value||'');
+  var wrap=btn.closest('div');
+  if(wrap)wrap.innerHTML='<div style="font-size:12px;color:rgba(180,200,255,.8);padding:4px 0">已保存到词库 ✓</div>';
+  setTimeout(function(){
+    if(listTabCurrent==='today')renderToday();else renderLib(document.getElementById('search-inp').value||'');
+  },800);
 }
 function discardEntryKowenAnswer(btn){
   var wrap=btn.closest('div');
@@ -2201,7 +2229,7 @@ function eRowHTML(e,i,showDate){
   return '<div class="erow" id="er-'+e.id+'">'
     +'<img class="ethumb" id="et-'+e.id+'" src="" alt="" data-entry-id="'+e.id+'" style="cursor:zoom-in">'
     +'<div class="ebody">'
-    +'<div class="enum" style="display:flex;align-items:center;gap:6px">'+(showDate?e.date+' ':('0'+(i+1)).slice(-2)+' ')+'<span class="tag '+(ko?'tag-k':'tag-e')+'">'+(ko?'韩':'英')+'</span>'+(e.text?'<button onclick="event.stopPropagation();speakText(\''+escJS(e.text)+'\',\''+(e.lang||'en')+'\')" style="background:none;border:none;font-size:13px;cursor:pointer;opacity:.4;padding:0;line-height:1">🔊</button>':'')+'</div>'
+    +'<div class="enum" style="display:flex;align-items:center;gap:6px">'+(showDate?e.date+' ':('0'+(i+1)).slice(-2)+' ')+'<span class="tag '+(ko?'tag-k':'tag-e')+'">'+(ko?'韩':'英')+'</span>'+(e.text?'<button onclick="event.stopPropagation();speakText(\''+escJS(e.text)+'\',\''+(e.lang||'en')+'\')" style="background:none;border:none;font-size:13px;cursor:pointer;opacity:.4;padding:0;line-height:1">🔊</button>':'')+'<span style="margin-left:auto;display:flex;align-items:center;gap:6px"><button class="edel" style="font-size:13px;opacity:.5;color:rgba(170,195,255,.7)" data-kowen-id="'+e.id+'">⚗️</button><button class="edel" style="font-size:11px;opacity:.55" data-edit-id="'+e.id+'">✏️</button><button class="edel" data-del-id="'+e.id+'">×</button></span></div>'
     +'<div class="een">'+(e.text||'（待输入字幕）').replace(/\n/g,'<br>')+'</div>'
     +(e.pending&&!e.text?'<div style="display:inline-block;background:#fef3c7;color:#92400e;font-size:11px;padding:2px 8px;border-radius:8px;margin:2px 0 4px">⏳ 点铅笔在此设备输入字幕</div>':'')
     +'<div class="ezh">'+(e.zh||'')+'</div>'
@@ -2217,11 +2245,7 @@ function eRowHTML(e,i,showDate){
     +kws
     +'<div id="ek-'+e.id+'" style="display:none"></div>'
     +'</div>'
-    +'<div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;min-width:30px">'
-    +'<button class="edel" data-del-id="'+e.id+'">×</button>'
-    +'<button class="edel" style="font-size:11px;opacity:.5" data-edit-id="'+e.id+'">✏️</button>'
-    +'<button class="edel" style="font-size:13px;opacity:.5;color:rgba(170,195,255,.6)" data-kowen-id="'+e.id+'">⚗️</button>'
-    +'</div>'
+
     +'</div>';
 }
 function toggleEnote(id){
@@ -2350,6 +2374,15 @@ function renderLib(filter){
   if(!all.length){el.innerHTML='<div style="padding:40px 0;text-align:center;color:var(--t3);font-size:14px">'+(filter?'没有找到相关内容':'词库是空的，先上传截图')+'</div>';return;}
   el.innerHTML=all.map(function(e,i){return eRowHTML(e,i,true);}).join('');
   loadRowImgs(all);bindListBodyEvents();
+}
+function toggleLibSearch(){
+  var box=document.getElementById('lib-search-box');
+  var inp=document.getElementById('search-inp');
+  if(!box)return;
+  var open=box.style.display!=='none';
+  box.style.display=open?'none':'block';
+  if(!open&&inp){inp.value='';inp.focus();renderLib('');}
+  else if(open&&inp){inp.value='';renderLib('');}
 }
 function filterLib(q){renderLib(q);}
 
@@ -2538,7 +2571,7 @@ function applySync(){
   toast('同步码已设置，正在拉取数据…');
   var c=new AbortController();
   setTimeout(function(){c.abort();},10000);
-  fetch(WORKER,{
+  fetchWithRetry(WORKER,{
     method:'POST',
     headers:{'Content-Type':'application/json','X-Action':'kv-get','X-Key':code+'-db','X-App-Secret':APP_SECRET},
     signal:c.signal
@@ -2576,7 +2609,7 @@ function clearAll(){
 
 // ── API ───────────────────────────────────────────────────────────
 function callDS(msgs,max){
-  return fetch(WORKER,{method:'POST',headers:{'Content-Type':'application/json','X-Action':'ds','X-App-Secret':APP_SECRET},body:JSON.stringify({model:'deepseek-chat',max_tokens:max||600,messages:msgs})})
+  return fetchWithRetry(WORKER,{method:'POST',headers:{'Content-Type':'application/json','X-Action':'ds','X-App-Secret':APP_SECRET},body:JSON.stringify({model:'deepseek-chat',max_tokens:max||600,messages:msgs})},2,1500)
   .then(function(r){return r.json();})
   .then(function(d){if(d.error)throw new Error(d.error.message||JSON.stringify(d.error));return(d.choices&&d.choices[0]&&d.choices[0].message&&d.choices[0].message.content)||'';});
 }
