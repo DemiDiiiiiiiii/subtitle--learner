@@ -543,14 +543,14 @@ mark.hl-phrase{background:rgba(210,165,55,.25);color:rgba(255,220,100,.95);borde
     <span class="nav-t">设置</span>
   </div>
   <div class="stsec">
-    <div class="strow"><div><div class="stlbl">关于你</div><div class="stsub">对话练习和故事生成会参考这段描述</div></div></div>
+    <div class="strow"><div><div class="stlbl" style="display:flex;align-items:center"><span style="color:rgba(200,165,80,.55);font-size:13px;margin-right:7px;font-weight:300">◇</span>关于你</div><div class="stsub">对话练习和故事生成会参考这段描述</div></div></div>
     <textarea id="about-me-ta" placeholder="例如：住在上海的程序员，喜欢看美剧和打游戏，正在学英语和日语…" style="width:100%;min-height:64px;background:rgba(2,8,25,.97);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:10px 12px;font-family:inherit;font-size:13px;color:var(--text);outline:none;resize:vertical;box-sizing:border-box;margin-top:8px"></textarea>
   </div>
 
   <div class="stsec">
     <div class="strow">
       <div>
-        <div class="stlbl">多设备同步码</div>
+        <div class="stlbl" style="display:flex;align-items:center"><span style="color:rgba(200,165,80,.55);font-size:13px;margin-right:7px;font-weight:300">◈</span>多设备同步码</div>
         <div class="stsub">在其他设备输入此码同步数据</div>
         <div class="syncode" id="syn-code">------</div>
       </div>
@@ -564,14 +564,14 @@ mark.hl-phrase{background:rgba(210,165,55,.25);color:rgba(255,220,100,.95);borde
   <div class="stsec">
     <div class="strow"><div><div class="stlbl" id="st-stats"></div><div class="stsub">存储于本地及云端</div></div></div>
     <div class="strow" style="cursor:pointer" onclick="uploadToCloud()">
-      <div><div class="stlbl">立即上传到云端</div><div class="stsub" id="cloud-status">点击手动同步数据到云端</div></div>
+      <div><div class="stlbl" style="display:flex;align-items:center"><span style="color:rgba(200,165,80,.55);font-size:13px;margin-right:7px;font-weight:300">△</span>立即上传到云端</div><div class="stsub" id="cloud-status">点击手动同步数据到云端</div></div>
       <span style="color:var(--t3)">›</span>
     </div>
 
   </div>
   <div class="stsec">
     <div class="strow" style="cursor:pointer" onclick="exportData()">
-      <div><div class="stlbl">导出全部数据</div><div class="stsub">导出字幕、词汇、笔记为文本文件</div></div>
+      <div><div class="stlbl" style="display:flex;align-items:center"><span style="color:rgba(200,165,80,.55);font-size:13px;margin-right:7px;font-weight:300">▽</span>导出全部数据</div><div class="stsub">导出字幕、词汇、笔记为文本文件</div></div>
       <span style="color:var(--t3)">›</span>
     </div>
   </div>
@@ -2534,12 +2534,34 @@ function applySync(){
   var inp=document.getElementById('syn-inp');var code=(inp.value||'').trim().toUpperCase();
   if(code.length<4){toast('请输入有效的同步码');return;}
   localStorage.setItem(UID_KEY,code);inp.value='';
-  document.getElementById('syn-code').textContent=code;toast('同步码已设置，正在拉取数据…');
-  kvGet('db').then(function(v){
-    if(!v){toast('云端暂无数据，之后会自动同步');return;}
-    try{DB=JSON.parse(v);if(!DB.days)DB.days={};if(!DB.days[TODAY])DB.days[TODAY]=[];try{localStorage.setItem(DB_KEY,JSON.stringify(DB));}catch(e){}refreshHome();toast('同步成功！');}
-    catch(e){toast('同步失败：'+e.message);}
-  }).catch(function(err){toast('网络错误：'+err.message);});
+  document.getElementById('syn-code').textContent=code;
+  toast('同步码已设置，正在拉取数据…');
+  var c=new AbortController();
+  setTimeout(function(){c.abort();},10000);
+  fetch(WORKER,{
+    method:'POST',
+    headers:{'Content-Type':'application/json','X-Action':'kv-get','X-Key':code+'-db','X-App-Secret':APP_SECRET},
+    signal:c.signal
+  }).then(function(r){
+    if(!r.ok){toast('Worker返回错误：HTTP '+r.status);return;}
+    return r.json();
+  }).then(function(d){
+    if(!d){toast('Worker无响应');return;}
+    var v=d.value||null;
+    if(!v){toast('云端没有找到该同步码的数据，请先在手机端点「同步」上传');return;}
+    try{
+      DB=JSON.parse(v);
+      if(!DB.grammarBank)DB.grammarBank=[];
+      if(!DB.days)DB.days={};
+      if(!DB.days[TODAY])DB.days[TODAY]=[];
+      try{localStorage.setItem(DB_KEY,JSON.stringify(DB));}catch(e){}
+      refreshHome();
+      toast('同步成功！共 '+DB.entries.length+' 条字幕');
+    }catch(e){toast('数据解析失败：'+e.message);}
+  }).catch(function(err){
+    if(err.name==='AbortError'){toast('请求超时，请检查网络连接');}
+    else{toast('网络错误：'+err.message);}
+  });
 }
 function clearToday(){
   var ids=DB.days[TODAY]||[];ids.forEach(function(id){DB.entries=DB.entries.filter(function(e){return e.id!==id;});try{localStorage.removeItem(IP+id);}catch(e){}});
