@@ -161,7 +161,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 .ezh{font-size:13px;color:rgba(255,255,255,.5);line-height:1.55}
 .enote{font-size:12px;color:var(--gold);margin-top:3px;font-style:italic}
 .ekws{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
-.ekwtag{font-size:10px;background:var(--glt);color:var(--gold);padding:2px 7px;border-radius:10px}
+.ekwtag{font-size:12px;background:var(--glt);color:var(--gold);padding:3px 8px;border-radius:10px}
 .edel{width:30px;height:30px;border-radius:50%;background:none;border:1px solid var(--bdr);color:var(--t3);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;transition:all .15s}
 .edel:active{background:var(--rlt);color:var(--red);border-color:rgba(220,38,38,.3)}
 .dgrp{border-bottom:1px solid var(--bdr)}
@@ -333,6 +333,11 @@ mark.hl-phrase{background:rgba(210,165,55,.25);color:rgba(255,220,100,.95);borde
     <!-- hidden for compat -->
     <div id="card-meta" style="display:none"></div>
     <div id="conv-meta" style="display:none"></div>
+
+    <!-- 墨迹明灭 daily note -->
+    <div id="ink-note" style="padding:0 28px;min-height:54px;display:flex;align-items:center;justify-content:center;">
+      <div id="ink-text" style="font-size:13px;color:rgba(210,185,120,.55);line-height:1.7;text-align:center;font-style:italic;letter-spacing:0.3px;opacity:0;transition:opacity 2.2s ease;max-width:280px;white-space:pre-wrap;word-break:break-all;"></div>
+    </div>
     <div style="flex:1;min-height:0;"></div>
 
     <!-- Bottom nav links -->
@@ -665,6 +670,7 @@ var listTabCurrent='today',langFilter='all';
 // ── Boot ──────────────────────────────────────────────────────────
 // Show local data immediately, then sync from cloud
 refreshHome();
+startInkNote();
 kvGet('db').then(function(v){
   if(!v){return;}
   try{
@@ -777,7 +783,7 @@ document.addEventListener('click',function(ev){
 });
 
 // ── Utils ─────────────────────────────────────────────────────────
-function goTo(id){document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('on');});document.getElementById(id).classList.add('on');if(id==='home')refreshHome();if(id==='library'){var si=document.getElementById('search-inp');if(si)si.value='';var sb=document.getElementById('lib-search-box');if(sb)sb.style.display='none';renderLib('');}if(id==='settings'){document.getElementById('syn-code').textContent=getUID();document.getElementById('st-stats').textContent=DB.entries.length+' 条字幕，'+getAllKw().length+' 个词汇';document.getElementById('st-today-cnt').textContent='今日 '+(DB.days[TODAY]||[]).length+' 条';
+function goTo(id){document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('on');});document.getElementById(id).classList.add('on');if(id==='home'){refreshHome();startInkNote();}if(id==='library'){var si=document.getElementById('search-inp');if(si)si.value='';var sb=document.getElementById('lib-search-box');if(sb)sb.style.display='none';renderLib('');}if(id==='settings'){document.getElementById('syn-code').textContent=getUID();document.getElementById('st-stats').textContent=DB.entries.length+' 条字幕，'+getAllKw().length+' 个词汇';document.getElementById('st-today-cnt').textContent='今日 '+(DB.days[TODAY]||[]).length+' 条';
     var amTa=document.getElementById('about-me-ta');
     if(amTa){
       amTa.value=DB.aboutMe||'';
@@ -810,6 +816,29 @@ function confirmAct(msg,sub,okTxt,cb){document.getElementById('modal-msg').textC
 function closeModal(){document.getElementById('modal').classList.remove('show');}
 
 // ── Home ──────────────────────────────────────────────────────────
+function startInkNote(){
+  var all=[];
+  (DB.convNotes||[]).forEach(function(n){if(n.text&&n.text.trim())all.push(n.text.trim());});
+  (DB.storyNotes||[]).forEach(function(n){if(n.note&&n.note.trim())all.push(n.note.trim());});
+  (DB.entries||[]).forEach(function(e){if(e.notes&&e.notes.trim())all.push(e.notes.trim());});
+  if(!all.length)return;
+  var el=document.getElementById('ink-text');
+  if(!el)return;
+  clearInterval(window._inkTimer);
+  var idx=Math.floor(Math.random()*all.length);
+  function showNext(){
+    el.style.opacity='0';
+    setTimeout(function(){
+      idx=(idx+1)%all.length;
+      var t=all[idx];
+      el.textContent=t.length>80?t.slice(0,80)+'…':t;
+      el.style.opacity='1';
+    },2400);
+  }
+  el.textContent=(function(){var t=all[idx];return t.length>80?t.slice(0,80)+'…':t;})();
+  setTimeout(function(){el.style.opacity='1';},100);
+  window._inkTimer=setInterval(showNext,9000);
+}
 function refreshHome(){
   var todayIds=DB.days[TODAY]||[];
   var todayE=todayIds.map(function(id){return DB.entries.find(function(e){return e.id===id;});}).filter(Boolean);
@@ -1431,7 +1460,7 @@ function startConv(topicOverride){
       var opener=(raw.match(/我的开场白[：:\s:]\s*(.*)/)||[])[1]||"Let's begin.";
       sceneName=sceneName.trim();myRole=myRole.trim();aiRole=aiRole.trim();trigger=trigger.trim();opener=opener.trim();
       var rpSetup={name:sceneName,role:myRole,scene:'【'+sceneName+'】 '+trigger,firstMessage:opener};
-      var rpSys='你正在进行角色扮演练习。你扮演：'+aiRole+'。用户扮演：'+myRole+'。背景：'+trigger+'。全程英文，完全入戏，每轮1-3句，推动剧情发展。';
+      var rpSys='你正在进行角色扮演练习。你扮演：'+aiRole+'。用户扮演：'+myRole+'。背景：'+trigger+'。全程英文，完全入戏，每轮1-2句，口语化自然，推动剧情，不要大段独白。';
       conv={setup:rpSetup,msgs:[{role:'system',content:rpSys},{role:'assistant',content:opener}],state:'chatting'};
       document.getElementById('cv-load').style.display='none';
       showQuillBtn();
@@ -1491,7 +1520,8 @@ function startConv(topicOverride){
           +'Sound like someone who has definitely read fic at 2am. Drop 1-2 expressions max, not a glossary dump.';
       }
       var sys='你扮演'+setup.name+'，'+setup.nationality+'人，'+setup.job+'。'+setup.relationship+'。场景：'+setup.scene+'。'
-      +'\n\n你的对话对象是：'+(DB.aboutMe||'正在学习英语和韩语的语言学习者，对外语口语和地道表达感兴趣')+'。你是对方的好朋友，就像真实朋友聊天，全程英文，地道自然。不要用bro/dude/man称呼。'
+      +'\n\n你的对话对象是：'+(DB.aboutMe||'正在学习英语和韩语的语言学习者，对外语口语和地道表达感兴趣')+'。'
+      +'\n\n对话规则（严格遵守）：全程英文，像真实朋友/同事聊天，不要用bro/dude/man。每轮只说1-2句，口语化简短自然，绝对不要写大段解释或总结。职场场景用稍正式的语气，日常聊天口语随意。直接进入对话，不要自我介绍开场。'
       +'\n\n你的人格特质：女性视角鲜明，思维进步开放，对性别议题、职场不平等、社会规训有自己的立场，敢于表达观点不只是附和。偶尔犀利，有时温柔，有幽默感。如果对方说了什么刻板印象或老旧观念，可以自然地反怼或提出不同看法。'
       +'\n\n每隔3-4轮自然地在句尾加一句，要求对方在下一条回复里用上某个具体词汇（从词库里随机选一个或自行选一个地道短语），语气轻松，比如："by the way, try to sneak in \'take it in stride\' somewhere!"'
       +'\n\n如果这些词汇有机会自然融入就用，不必强塞：\n'+wb
