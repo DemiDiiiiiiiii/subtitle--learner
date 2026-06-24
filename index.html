@@ -792,7 +792,7 @@ document.addEventListener('click',function(ev){
 });
 
 // ── Utils ─────────────────────────────────────────────────────────
-function goTo(id){document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('on');});document.getElementById(id).classList.add('on');if(id==='home'){refreshHome();startInkNote();}if(id==='library'){var si=document.getElementById('search-inp');if(si)si.value='';var sb=document.getElementById('lib-search-box');if(sb)sb.style.display='none';renderLib('');}if(id==='settings'){document.getElementById('syn-code').textContent=getUID();document.getElementById('st-stats').textContent=DB.entries.length+' 条字幕，'+getAllKw().length+' 个词汇';document.getElementById('st-today-cnt').textContent='今日 '+(DB.days[TODAY]||[]).length+' 条';
+function goTo(id){document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('on');});document.getElementById(id).classList.add('on');if(id==='home'){refreshHome();startInkNote();}if(id==='library'){listTabCurrent='lib';var si=document.getElementById('search-inp');if(si)si.value='';var sb=document.getElementById('lib-search-box');if(sb)sb.style.display='none';renderLib('');}if(id==='settings'){document.getElementById('syn-code').textContent=getUID();document.getElementById('st-stats').textContent=DB.entries.length+' 条字幕，'+getAllKw().length+' 个词汇';document.getElementById('st-today-cnt').textContent='今日 '+(DB.days[TODAY]||[]).length+' 条';
     var amTa=document.getElementById('about-me-ta');
     if(amTa){
       amTa.value=DB.aboutMe||'';
@@ -1305,11 +1305,16 @@ function renderCR(){
     +(crFlip?back:front)
     +'</div>'
     +(crFlip
-      ?'<div style="display:flex;gap:12px;justify-content:center;">'
+      ?'<div style="display:flex;gap:8px;align-items:center;">'
+        +'<button onclick="event.stopPropagation();if(crIdx>0){crIdx--;crFlip=false;renderCR();}" style="background:none;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:13px 12px;font-size:12px;color:rgba(255,255,255,.3);cursor:pointer;font-family:inherit;flex-shrink:0">←</button>'
         +'<button class="rbtn rno" id="cr-no" style="flex:1;padding:14px;">再看看</button>'
         +'<button class="rbtn ryes" id="cr-yes" style="flex:1;padding:14px;">记住了 ✓</button>'
         +'</div>'
-      :'<div style="font-size:11px;color:rgba(255,255,255,.18);text-align:center;letter-spacing:1px;">← 左滑跳过</div>')
+      :'<div style="display:flex;gap:8px;align-items:center;justify-content:center">'
+        +'<button onclick="event.stopPropagation();if(crIdx>0){crIdx--;crFlip=false;renderCR();}" style="background:none;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:6px 14px;font-size:12px;color:rgba(255,255,255,.3);cursor:pointer;font-family:inherit">← 上一张</button>'
+        +'<button onclick="event.stopPropagation();speakText(\''+escJS(c.word)+'\',\''+c.lang+'\')" style="background:none;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:6px 12px;font-size:13px;color:rgba(255,255,255,.3);cursor:pointer">🔊</button>'
+        +'<button onclick="event.stopPropagation();crList.push(crList[crIdx]);crIdx++;crFlip=false;renderCR();" style="background:none;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:6px 14px;font-size:12px;color:rgba(255,255,255,.3);cursor:pointer;font-family:inherit">跳过 →</button>'
+        +'</div>')
     +'<div style="padding:0 0 8px;display:flex;gap:8px">'
     +'<button onclick="toggleCrAsk()" style="flex:1;background:rgba(140,170,255,.06);border:1px solid rgba(140,170,255,.2);border-radius:12px;padding:10px;font-size:13px;color:rgba(170,195,255,.6);cursor:pointer;font-family:inherit;letter-spacing:2px">⚗️ 服用吐真剂</button>'
     +'<button onclick="toggleCrNote()" style="background:rgba(210,165,55,.06);border:1px solid rgba(210,165,55,.2);border-radius:12px;padding:10px 14px;font-size:14px;color:rgba(210,165,55,.55);cursor:pointer;font-family:inherit">🪶</button>'
@@ -1334,6 +1339,9 @@ function renderCR(){
   var fw=document.getElementById('fw');
   if(!fw)return;
   fw.onclick=function(e){
+    // 如果点击的是输入框或按钮，不触发翻面
+    var tag=(e.target.tagName||'').toLowerCase();
+    if(tag==='input'||tag==='textarea'||tag==='button')return;
     // 如果用户正在选中文字，不触发翻面
     var sel=window.getSelection();
     if(sel&&sel.toString().length>0)return;
