@@ -1296,8 +1296,8 @@ function renderCR(){
   var spkStyle='background:none;border:none;font-size:15px;cursor:pointer;opacity:.45;padding:2px;flex-shrink:0;line-height:1';
   var back='<div style="text-align:center;width:100%;">'
     +'<div style="font-size:11px;color:rgba(255,255,255,.5);margin-bottom:20px;letter-spacing:2px;">原文</div>'
-    +'<div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px"><span style="font-size:26px;font-weight:300;color:rgba(180,220,255,.92);letter-spacing:1px;line-height:1.5;">'+c.word+'</span><button onclick="event.stopPropagation();speakText(\''+escJS(c.word)+'\',\''+c.lang+'\')" style="'+spkStyle+'">🔊</button></div>'
-    +(c.ctx&&c.ctx!==c.word?'<div style="font-size:12px;color:rgba(255,255,255,.55);margin-top:14px;font-style:italic;display:flex;align-items:center;justify-content:center;gap:6px"><span>「'+c.ctx+'」</span><button onclick="event.stopPropagation();speakText(\''+escJS(c.ctx)+'\',\''+c.lang+'\')" style="'+spkStyle+'">🔊</button></div>':'')
+    +'<div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px"><span style="font-size:26px;font-weight:300;color:rgba(180,220,255,.92);letter-spacing:1px;line-height:1.5;">'+c.word+'</span><button onclick="event.stopPropagation();speakText(\''+escJS(c.word)+'\',\''+c.lang+'\')" style="'+spkStyle+'"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><polygon points=\"11,5 6,9 2,9 2,15 6,15 11,19\"/><path d=\"M15.5 8.5a5 5 0 0 1 0 7\"/><path d=\"M19 5a9 9 0 0 1 0 14\"/></svg></button></div>'
+    +(c.ctx&&c.ctx!==c.word?'<div style="font-size:12px;color:rgba(255,255,255,.55);margin-top:14px;font-style:italic;display:flex;align-items:center;justify-content:center;gap:6px"><span>「'+c.ctx+'」</span><button onclick="event.stopPropagation();speakText(\''+escJS(c.ctx)+'\',\''+c.lang+'\')" style="'+spkStyle+'"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><polygon points=\"11,5 6,9 2,9 2,15 6,15 11,19\"/><path d=\"M15.5 8.5a5 5 0 0 1 0 7\"/><path d=\"M19 5a9 9 0 0 1 0 14\"/></svg></button></div>':'')
     +'</div>';
 
   el.innerHTML='<div style="padding:0 22px;flex:1;display:flex;flex-direction:column;justify-content:center;gap:20px">'
@@ -1306,14 +1306,14 @@ function renderCR(){
     +'</div>'
     +(crFlip
       ?'<div style="display:flex;gap:8px;align-items:center;">'
-        +'<button onclick="event.stopPropagation();if(crIdx>0){crIdx--;crFlip=false;renderCR();}" style="background:none;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:13px 12px;font-size:12px;color:rgba(255,255,255,.3);cursor:pointer;font-family:inherit;flex-shrink:0">←</button>'
+        +'<button onclick="event.stopPropagation();if(crIdx>0){crIdx--;crFlip=false;renderCR();}" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:14px 12px;font-size:13px;color:rgba(255,255,255,.3);cursor:pointer;font-family:inherit;flex-shrink:0;line-height:1">←</button>'
         +'<button class="rbtn rno" id="cr-no" style="flex:1;padding:14px;">再看看</button>'
         +'<button class="rbtn ryes" id="cr-yes" style="flex:1;padding:14px;">记住了 ✓</button>'
         +'</div>'
       :'<div style="display:flex;gap:8px;align-items:center;justify-content:center">'
-        +'<button onclick="event.stopPropagation();if(crIdx>0){crIdx--;crFlip=false;renderCR();}" style="background:none;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:6px 14px;font-size:12px;color:rgba(255,255,255,.3);cursor:pointer;font-family:inherit">← 上一张</button>'
-        +'<button onclick="event.stopPropagation();speakText(\''+escJS(c.word)+'\',\''+c.lang+'\')" style="background:none;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:6px 12px;font-size:13px;color:rgba(255,255,255,.3);cursor:pointer">🔊</button>'
-        +'<button onclick="event.stopPropagation();crList.push(crList[crIdx]);crIdx++;crFlip=false;renderCR();" style="background:none;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:6px 14px;font-size:12px;color:rgba(255,255,255,.3);cursor:pointer;font-family:inherit">跳过 →</button>'
+        +'<button onclick="event.stopPropagation();if(crIdx>0){crIdx--;crFlip=false;renderCR();}" style="flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px 10px;font-size:12px;color:rgba(255,255,255,.35);cursor:pointer;font-family:inherit">← 上一张</button>'
+        +'<button onclick="event.stopPropagation();speakText(\''+escJS(c.word)+'\',\''+c.lang+'\')" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px 14px;font-size:13px;color:rgba(255,255,255,.35);cursor:pointer;display:flex;align-items:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><polygon points="11,5 6,9 2,9 2,15 6,15 11,19"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M19 5a9 9 0 0 1 0 14"/></svg></button>'
+        +'<button onclick="event.stopPropagation();crList.push(crList[crIdx]);crIdx++;crFlip=false;renderCR();" style="flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px 10px;font-size:12px;color:rgba(255,255,255,.35);cursor:pointer;font-family:inherit">跳过 →</button>'
         +'</div>')
     +'<div style="padding:0 0 8px;display:flex;gap:8px">'
     +'<button onclick="toggleCrAsk()" style="flex:1;background:rgba(140,170,255,.06);border:1px solid rgba(140,170,255,.2);border-radius:12px;padding:10px;font-size:13px;color:rgba(170,195,255,.6);cursor:pointer;font-family:inherit;letter-spacing:2px">⚗️ 服用吐真剂</button>'
