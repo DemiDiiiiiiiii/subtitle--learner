@@ -1254,34 +1254,7 @@ function renderCR(){
     return;
   }
 
-  // Every 5th card (positions 4,9,14...): translation challenge
-  var isChallenge=(crIdx>0 && crIdx%5===4 && crIdx<crList.length);
   document.getElementById('cr-ct').textContent=(crIdx+1)+' / '+crList.length;
-
-  if(isChallenge){
-    var cIdx=Math.floor(Math.random()*Math.min(crIdx,crList.length));
-    var cw=crList[cIdx];
-    el.innerHTML='<div style="padding:0 28px;flex:1;display:flex;flex-direction:column;justify-content:center;gap:24px">'
-      +'<div style="text-align:center;font-size:11px;letter-spacing:3px;color:rgba(255,200,80,.6);font-family:serif;">— 翻译挑战 —</div>'
-      +'<div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,200,80,.25);border-radius:20px;padding:36px 24px;text-align:center;">'
-      +'<div style="font-size:15px;color:rgba(255,255,255,.55);margin-bottom:16px;line-height:1.8;">「 '+(cw.zh||cw.word)+' 」<br><span style=\"font-size:12px;color:rgba(255,255,255,.3)\">英文怎么说？</span></div>'
-      +'<div id="ch-ans" style="min-height:50px;"></div>'
-      +'</div>'
-      +'<div style="display:flex;gap:12px;justify-content:center;">'
-      +'<button id="ch-show" style="padding:12px 28px;background:rgba(200,150,40,.2);border:1px solid rgba(200,150,40,.35);border-radius:12px;color:rgba(240,210,120,.85);font-size:14px;cursor:pointer;letter-spacing:1px;">看答案</button>'
-      +'<button id="ch-next" style="padding:12px 28px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:12px;color:rgba(255,255,255,.5);font-size:14px;cursor:pointer;">继续</button>'
-      +'</div>'
-      +'</div>';
-    var showBtn=document.getElementById('ch-show');
-    var nextBtn=document.getElementById('ch-next');
-    var ansEl=document.getElementById('ch-ans');
-    if(showBtn)showBtn.onclick=function(){
-      ansEl.innerHTML='<div style="font-size:22px;font-weight:300;color:rgba(200,228,255,.9);letter-spacing:2px;padding:8px 0;">'+cw.word+'</div>';
-      showBtn.style.display='none';
-    };
-    if(nextBtn)nextBtn.onclick=function(){crIdx++;crFlip=false;renderCR();};
-    return;
-  }
 
   // Normal card: Chinese on front, tap to reveal English
   var c=crList[crIdx];
@@ -1301,23 +1274,23 @@ function renderCR(){
     +'</div>';
 
   el.innerHTML='<div style="padding:0 22px;flex:1;display:flex;flex-direction:column;justify-content:center;gap:20px">'
+    +'<div style="position:relative">'
+    +'<button onclick="event.stopPropagation();toggleCrNote()" style="position:absolute;top:-8px;right:-4px;z-index:2;background:none;border:none;font-size:13px;color:rgba(210,165,55,.4);cursor:pointer;padding:6px;line-height:1">🪶</button>'
     +'<div id="fw" style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:24px;padding:44px 28px;cursor:pointer;min-height:210px;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(16px);transition:background .2s;">'
     +(crFlip?back:front)
     +'</div>'
+    +'</div>'
     +(crFlip
-      ?'<div style="display:flex;gap:8px;align-items:center;">'
-        +'<button onclick="event.stopPropagation();if(crIdx>0){crIdx--;crFlip=false;renderCR();}" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:14px 12px;font-size:13px;color:rgba(255,255,255,.3);cursor:pointer;font-family:inherit;flex-shrink:0;line-height:1">←</button>'
+      ?'<div style="display:flex;gap:10px;">'
         +'<button class="rbtn rno" id="cr-no" style="flex:1;padding:14px;">再看看</button>'
         +'<button class="rbtn ryes" id="cr-yes" style="flex:1;padding:14px;">记住了 ✓</button>'
         +'</div>'
-      :'<div style="display:flex;gap:8px;align-items:center;justify-content:center">'
+      :'<div style="display:flex;gap:8px;">'
         +'<button onclick="event.stopPropagation();if(crIdx>0){crIdx--;crFlip=false;renderCR();}" style="flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px 10px;font-size:12px;color:rgba(255,255,255,.35);cursor:pointer;font-family:inherit">← 上一张</button>'
-        +'<button onclick="event.stopPropagation();speakText(\''+escJS(c.word)+'\',\''+c.lang+'\')" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px 14px;font-size:13px;color:rgba(255,255,255,.35);cursor:pointer;display:flex;align-items:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><polygon points="11,5 6,9 2,9 2,15 6,15 11,19"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M19 5a9 9 0 0 1 0 14"/></svg></button>'
         +'<button onclick="event.stopPropagation();crList.push(crList[crIdx]);crIdx++;crFlip=false;renderCR();" style="flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px 10px;font-size:12px;color:rgba(255,255,255,.35);cursor:pointer;font-family:inherit">跳过 →</button>'
         +'</div>')
-    +'<div style="padding:0 0 8px;display:flex;gap:8px">'
-    +'<button onclick="toggleCrAsk()" style="flex:1;background:rgba(140,170,255,.06);border:1px solid rgba(140,170,255,.2);border-radius:12px;padding:10px;font-size:13px;color:rgba(170,195,255,.6);cursor:pointer;font-family:inherit;letter-spacing:2px">⚗️ 服用吐真剂</button>'
-    +'<button onclick="toggleCrNote()" style="background:rgba(210,165,55,.06);border:1px solid rgba(210,165,55,.2);border-radius:12px;padding:10px 14px;font-size:14px;color:rgba(210,165,55,.55);cursor:pointer;font-family:inherit">🪶</button>'
+    +'<div style="padding:0 0 8px">'
+    +'<button onclick="toggleCrAsk()" style="width:100%;background:rgba(140,170,255,.06);border:1px solid rgba(140,170,255,.2);border-radius:12px;padding:10px;font-size:13px;color:rgba(170,195,255,.6);cursor:pointer;font-family:inherit;letter-spacing:2px">⚗️ 服用吐真剂</button>'
     +'</div>'
     +'<div id="cr-note-area" style="display:none;margin:0 0 8px">'
     +'<div id="cr-followups" style="display:none;margin-bottom:10px"></div>'
