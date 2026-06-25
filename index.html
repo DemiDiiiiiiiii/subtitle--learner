@@ -271,7 +271,7 @@ mark.hl-phrase{background:rgba(210,165,55,.25);color:rgba(255,220,100,.95);borde
       <div class="stat" onclick="goTo('library')">
         <div class="stat-n" id="h-total">0</div><div class="stat-l">冥想盆 →</div>
       </div>
-      <div class="stat" onclick="goTo('list');listTab('today')">
+      <div class="stat" onclick="goTo('library')">
         <div class="stat-n" id="h-today" style="color:var(--blue)">0</div><div class="stat-l">今日物料 →</div>
       </div>
 
@@ -344,7 +344,7 @@ mark.hl-phrase{background:rgba(210,165,55,.25);color:rgba(255,220,100,.95);borde
     <div style="display:flex;justify-content:center;align-items:center;flex-wrap:wrap;padding:12px 0 16px;gap:0">
       <button onclick="goTo('library')" style="background:none;border:none;font-size:11px;color:rgba(255,255,255,.25);cursor:pointer;padding:4px 8px;font-family:inherit;letter-spacing:0.3px;">冥想盆</button>
       <span style="font-size:10px;color:rgba(255,255,255,.12);">·</span>
-      <button onclick="goTo('list');listTab('today')" style="background:none;border:none;font-size:11px;color:rgba(255,255,255,.25);cursor:pointer;padding:4px 8px;font-family:inherit;letter-spacing:0.3px;">今日物料</button>
+      <button onclick="goTo('library')" style="background:none;border:none;font-size:11px;color:rgba(255,255,255,.25);cursor:pointer;padding:4px 8px;font-family:inherit;letter-spacing:0.3px;">今日物料</button>
       <span style="font-size:10px;color:rgba(255,255,255,.12);">·</span>
       <button onclick="goTo('list');listTab('notes')" style="background:none;border:none;font-size:11px;color:rgba(255,255,255,.25);cursor:pointer;padding:4px 8px;font-family:inherit;letter-spacing:0.3px;font-family:'Cinzel',serif;">我的魔法书</button>
       <span style="font-size:10px;color:rgba(255,255,255,.12);">·</span>
@@ -1151,7 +1151,7 @@ function renderDone(el){
     +'<button class="btn btn-white" id="done-story-btn">生成小故事</button>'
     +'<button class="btn btn-ghost" id="done-home-btn">回主页</button>'
     +'</div></div>';
-  var dlb=document.getElementById('done-list-btn');if(dlb)dlb.onclick=function(){goTo('list');listTab('today');};
+  var dlb=document.getElementById('done-list-btn');if(dlb)dlb.onclick=function(){goTo('library');};
   var dsb=document.getElementById('done-story-btn');if(dsb)dsb.onclick=function(){goTo('story');resetStory();};
   var dhb=document.getElementById('done-home-btn');if(dhb)dhb.onclick=function(){goTo('home');};
 }
@@ -1875,11 +1875,11 @@ function renderConvNotes(){
       ?'<span style="font-size:10px;background:#e0f2fe;color:#0369a1;padding:1px 6px;border-radius:6px;margin-left:6px">故事</span>'
       :'<span style="font-size:10px;background:var(--glt);color:var(--gold);padding:1px 6px;border-radius:6px;margin-left:6px">对话</span>';
     var editBtn=n.type==='conv'
-      ?'<button style="background:none;border:none;font-size:13px;color:var(--gold);cursor:pointer;padding:2px 6px" onclick="event.stopPropagation();editConvNote('+n.idx+')">✏️</button>'
+      ?'<button style="background:none;border:none;font-size:13px;color:var(--gold);cursor:pointer;padding:2px 6px" onclick="event.stopPropagation();editConvNote('+n.idx+')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>'
       :n.type==='chatlog'?''
       :'<button style="background:none;border:none;font-size:13px;color:var(--gold);cursor:pointer;padding:2px 6px" onclick="event.stopPropagation();editStoryNote('+n.idx+')">✏️</button>';
     var kowenBtn=(n.type==='conv'||n.type==='story')
-      ?'<button style="background:none;border:none;font-size:13px;color:rgba(170,195,255,.6);cursor:pointer;padding:2px 6px" onclick="event.stopPropagation();toggleNoteKowen(\''+n.type+'\','+n.idx+')">⚗️</button>'
+      ?'<button style="background:none;border:none;font-size:13px;color:rgba(170,195,255,.6);cursor:pointer;padding:2px 6px" onclick="event.stopPropagation();toggleNoteKowen(\''+n.type+'\','+n.idx+')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M8 12a4 4 0 0 0 8 0"/><line x1="12" y1="3" x2="12" y2="5"/><line x1="18.5" y1="6" x2="17" y2="7.5"/></svg></button>'
       :'';
     var delBtn=n.type==='conv'
       ?'<button style="background:none;border:none;font-size:13px;color:var(--red);cursor:pointer;padding:2px 6px" onclick="event.stopPropagation();delConvNote('+n.idx+')">×</button>'
@@ -2248,7 +2248,7 @@ function eRowHTML(e,i,showDate){
   return '<div class="erow" id="er-'+e.id+'">'
     +'<img class="ethumb" id="et-'+e.id+'" src="" alt="" data-entry-id="'+e.id+'" style="cursor:zoom-in">'
     +'<div class="ebody">'
-    +'<div class="enum" style="display:flex;align-items:center;gap:6px">'+(showDate?e.date+' ':('0'+(i+1)).slice(-2)+' ')+'<span class="tag '+(ko?'tag-k':'tag-e')+'">'+(ko?'韩':'英')+'</span>'+(e.text?'<button onclick="event.stopPropagation();speakText(\''+escJS(e.text)+'\',\''+(e.lang||'en')+'\')" style="background:none;border:none;font-size:13px;cursor:pointer;opacity:.4;padding:0;line-height:1">🔊</button>':'')+'<span style="margin-left:auto;display:flex;align-items:center;gap:2px"><button class="edel" style="font-size:12px;background:none;border:none;color:rgba(170,195,255,.5);padding:2px 5px" data-kowen-id="'+e.id+'">⚗️</button><button class="edel" style="font-size:11px;background:none;border:none;opacity:.4;padding:2px 5px" data-edit-id="'+e.id+'">✏️</button><button class="edel" style="font-size:13px;background:none;border:none;opacity:.35;padding:2px 5px" data-del-id="'+e.id+'">×</button></span></div>'
+    +'<div class="enum" style="display:flex;align-items:center;gap:6px">'+(showDate?e.date+' ':('0'+(i+1)).slice(-2)+' ')+'<span class="tag '+(ko?'tag-k':'tag-e')+'">'+(ko?'韩':'英')+'</span>'+(e.text?'<button onclick="event.stopPropagation();speakText(\''+escJS(e.text)+'\',\''+(e.lang||'en')+'\')" style="background:none;border:none;font-size:13px;cursor:pointer;opacity:.4;padding:0;line-height:1"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polygon points="11,5 6,9 2,9 2,15 6,15 11,19"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg></button>':'')+'<span style="margin-left:auto;display:flex;align-items:center;gap:2px"><button class="edel" style="font-size:12px;background:none;border:none;color:rgba(170,195,255,.5);padding:2px 5px" data-kowen-id="'+e.id+'">⚗️</button><button class="edel" style="font-size:11px;background:none;border:none;opacity:.4;padding:2px 5px" data-edit-id="'+e.id+'">✏️</button><button class="edel" style="font-size:13px;background:none;border:none;opacity:.35;padding:2px 5px" data-del-id="'+e.id+'">×</button></span></div>'
     +'<div class="een">'+(e.text||'（待输入字幕）').replace(/\n/g,'<br>')+'</div>'
     +(e.pending&&!e.text?'<div style="display:inline-block;background:#fef3c7;color:#92400e;font-size:11px;padding:2px 8px;border-radius:8px;margin:2px 0 4px">⏳ 点铅笔在此设备输入字幕</div>':'')
     +'<div class="ezh">'+(e.zh||'')+'</div>'
