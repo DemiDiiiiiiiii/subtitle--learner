@@ -985,10 +985,10 @@ function renderStudy(){
       }).join('')+'</div>':'')
       +'<div style="display:flex;gap:8px;margin:10px 0 8px;align-items:center">'
       +'<input id="s-followup" type="text" placeholder="写下你的疑惑…" style="flex:1;background:rgba(2,8,25,.97);border:1px solid rgba(140,170,255,.28);border-radius:10px;padding:9px 12px;font-family:inherit;font-size:13px;color:var(--text);outline:none">'
-      +'<button onclick="followupS()" style="background:rgba(140,170,255,.13);border:1px solid rgba(140,170,255,.28);border-radius:10px;padding:9px 14px;color:rgba(180,200,255,.9);font-size:13px;cursor:pointer;white-space:nowrap;font-family:inherit">⚗️ 服下</button>'
+      +'<button onclick="followupS()" style="background:rgba(140,170,255,.13);border:1px solid rgba(140,170,255,.28);border-radius:10px;padding:9px 14px;color:rgba(180,200,255,.9);font-size:13px;cursor:pointer;white-space:nowrap;font-family:inherit">问</button>'
       +'<button onclick="toggleStudyNotes()" style="background:none;border:none;font-size:20px;cursor:pointer;padding:0 2px;opacity:.6">🪶</button>'
       +'</div>'
-      +'<div id="s-followup-loading" style="display:none;font-size:12px;color:var(--t3);padding:0 0 4px">⚗️ 吐真剂正在起效…</div>'
+      +'<div id="s-followup-loading" style="display:none;font-size:12px;color:var(--t3);padding:0 0 4px">💫 正在感应…</div>'
       +'<div id="s-notes-area" style="display:none;margin-bottom:8px">'
       +'<textarea class="nta" id="s-notes" placeholder="随手记…"></textarea>'
       +'</div>'
@@ -1290,7 +1290,7 @@ function renderCR(){
         +'<button onclick="event.stopPropagation();crList.push(crList[crIdx]);crIdx++;crFlip=false;renderCR();" style="flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px 10px;font-size:12px;color:rgba(255,255,255,.35);cursor:pointer;font-family:inherit">跳过 →</button>'
         +'</div>')
     +'<div style="padding:0 0 8px">'
-    +'<button onclick="toggleCrAsk()" style="width:100%;background:rgba(140,170,255,.06);border:1px solid rgba(140,170,255,.2);border-radius:12px;padding:10px;font-size:13px;color:rgba(170,195,255,.6);cursor:pointer;font-family:inherit;letter-spacing:2px">⚗️ 服用吐真剂</button>'
+    +'<button onclick="toggleCrAsk()" style="width:100%;background:rgba(140,170,255,.06);border:1px solid rgba(140,170,255,.2);border-radius:12px;padding:10px;font-size:13px;color:rgba(170,195,255,.6);cursor:pointer;font-family:inherit;letter-spacing:2px">💫 问</button>'
     +'</div>'
     +'<div id="cr-note-area" style="display:none;margin:0 0 8px">'
     +'<div id="cr-followups" style="display:none;margin-bottom:10px"></div>'
@@ -1299,12 +1299,12 @@ function renderCR(){
     +'<button id="cr-note-save" onclick="saveCrNote(this)" style="margin-top:6px;width:100%;background:rgba(210,165,55,.12);border:1px solid rgba(210,165,55,.25);border-radius:8px;padding:7px;font-size:12px;color:rgba(210,165,55,.9);cursor:pointer;font-family:inherit">保存</button>'
     +'</div>'
     +'<div id="cr-ask-area" style="display:none;margin-top:8px">'
-    +'<div style="font-size:11px;color:rgba(140,170,255,.65);letter-spacing:2px;margin-bottom:5px">⚗️ 吐真剂</div>'
+    +'<div style="font-size:11px;color:rgba(140,170,255,.65);letter-spacing:2px;margin-bottom:5px">💫 问</div>'
     +'<div style="display:flex;gap:8px">'
     +'<input id="cr-ask-inp" type="text" placeholder="写下你的疑惑…" style="flex:1;background:rgba(2,8,25,.97);border:1px solid rgba(140,170,255,.25);border-radius:10px;padding:9px 12px;font-family:inherit;font-size:13px;color:var(--text);outline:none">'
-    +'<button onclick="sendCrAsk()" style="background:rgba(140,170,255,.15);border:1px solid rgba(140,170,255,.3);border-radius:10px;padding:9px 14px;color:rgba(180,200,255,.9);font-size:13px;cursor:pointer;font-family:inherit">⚗️ 服下</button>'
+    +'<button onclick="sendCrAsk()" style="background:rgba(140,170,255,.15);border:1px solid rgba(140,170,255,.3);border-radius:10px;padding:9px 14px;color:rgba(180,200,255,.9);font-size:13px;cursor:pointer;font-family:inherit">问</button>'
     +'</div>'
-    +'<div id="cr-ask-loading" style="display:none;font-size:12px;color:var(--t3);padding:4px 2px">⚗️ 吐真剂正在起效…</div>'
+    +'<div id="cr-ask-loading" style="display:none;font-size:12px;color:var(--t3);padding:4px 2px">💫 正在感应…</div>'
     +'<div id="cr-ask-result" style="margin-top:8px;font-size:14px;line-height:1.7;color:rgba(255,255,255,.8);background:rgba(255,255,255,.04);border-radius:10px;padding:10px 12px;display:none"></div>'
     +'</div>'
     +'</div>';
@@ -1349,7 +1349,7 @@ function renderCR(){
     if(fupEl){
       if(_hasFollowups){
         fupEl.style.display='block';
-        fupEl.innerHTML='<div style="font-size:11px;color:rgba(140,170,255,.55);letter-spacing:2px;margin-bottom:6px">⚗️ 历史问答</div>'
+        fupEl.innerHTML='<div style="font-size:11px;color:rgba(140,170,255,.55);letter-spacing:2px;margin-bottom:6px">💫 历史问答</div>'
           +srcEntry.followups.map(function(f){
             return '<div style="background:rgba(140,170,255,.06);border:1px solid rgba(140,170,255,.15);border-radius:8px;padding:8px 10px;margin-bottom:6px">'
               +'<div style="font-size:11px;color:rgba(170,195,255,.55);margin-bottom:3px">Q: '+escHtml(f.q||'')+'</div>'
@@ -1875,7 +1875,7 @@ function renderConvNotes(){
       ?'<span style="font-size:10px;background:#e0f2fe;color:#0369a1;padding:1px 6px;border-radius:6px;margin-left:6px">故事</span>'
       :'<span style="font-size:10px;background:var(--glt);color:var(--gold);padding:1px 6px;border-radius:6px;margin-left:6px">对话</span>';
     var editBtn=n.type==='conv'
-      ?'<button style="background:none;border:none;font-size:13px;color:var(--gold);cursor:pointer;padding:2px 6px" onclick="event.stopPropagation();editConvNote('+n.idx+')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(220,185,80,.9)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22L4 8l8-6 8 6-8 14z"/><path d="M12 22V14"/><path d="M4 8h16"/></svg></button>'
+      ?'<button style="background:none;border:none;font-size:13px;color:var(--gold);cursor:pointer;padding:2px 6px" onclick="event.stopPropagation();editConvNote('+n.idx+')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(220,185,80,.95)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22L4 8l8-6 8 6-8 14z"/><path d="M12 22V14"/><path d="M4 8h16"/></svg></button>'
       :n.type==='chatlog'?''
       :'<button style="background:none;border:none;font-size:13px;color:var(--gold);cursor:pointer;padding:2px 6px" onclick="event.stopPropagation();editStoryNote('+n.idx+')">✏️</button>';
     var kowenBtn=(n.type==='conv'||n.type==='story')
@@ -1913,7 +1913,7 @@ function toggleNoteKowen(type,idx){
   el.innerHTML='<div style="padding:10px 0 4px">'
     +'<div style="display:flex;gap:8px;align-items:center">'
     +'<input id="nki-'+key+'" type="text" placeholder="写下你的疑惑…" style="flex:1;background:rgba(2,8,25,.9);border:1px solid rgba(140,170,255,.28);border-radius:10px;padding:8px 12px;font-size:13px;color:rgba(255,255,255,.85);outline:none;font-family:inherit">'
-    +'<button onclick="event.stopPropagation();submitNoteKowen(\''+type+'\','+idx+')" style="background:rgba(140,170,255,.13);border:1px solid rgba(140,170,255,.28);border-radius:10px;padding:8px 12px;color:rgba(180,200,255,.9);font-size:12px;cursor:pointer;white-space:nowrap;font-family:inherit">服下 ⚗️</button>'
+    +'<button onclick="event.stopPropagation();submitNoteKowen(\''+type+'\','+idx+')" style="background:rgba(140,170,255,.13);border:1px solid rgba(140,170,255,.28);border-radius:10px;padding:8px 12px;color:rgba(180,200,255,.9);font-size:12px;cursor:pointer;white-space:nowrap;font-family:inherit">问</button>'
     +'</div>'
     +'<div id="nkr-'+key+'" style="margin-top:8px;display:none"></div>'
     +'</div>';
@@ -1931,7 +1931,7 @@ function submitNoteKowen(type,idx){
   else if(type==='story'){var n=DB.storyNotes&&DB.storyNotes[idx];noteText=n?n.note:'';}
   inp.value='';
   res.style.display='block';
-  res.innerHTML='<div style="font-size:12px;color:var(--t3);padding:6px 0">⚗️ 吐真剂正在起效…</div>';
+  res.innerHTML='<div style="font-size:12px;color:var(--t3);padding:6px 0">💫 正在感应…</div>';
   callDS([{role:'user',content:'你是语言教练，用中文简洁回答，不超过150字。\n\n用户正在复习的笔记：\n'+noteText+'\n\n用户问题：'+q}],400)
   .then(function(r){
     res.innerHTML='<div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px 12px;font-size:13px;color:rgba(255,255,255,.8);line-height:1.7;white-space:pre-wrap">'+escHtml(r)+'</div>'
@@ -2020,7 +2020,7 @@ function toggleGrammarKowen(gi){
   el.innerHTML='<div style="padding-top:10px">'
     +'<div style="display:flex;gap:8px;align-items:center">'
     +'<input id="gki-'+key+'" type="text" placeholder="写下你的疑惑，如：和-아서有什么区别…" style="flex:1;background:rgba(2,8,25,.9);border:1px solid rgba(140,170,255,.28);border-radius:10px;padding:8px 12px;font-size:13px;color:rgba(255,255,255,.85);outline:none;font-family:inherit">'
-    +'<button onclick="submitGrammarKowen('+gi+')" style="background:rgba(140,170,255,.13);border:1px solid rgba(140,170,255,.28);border-radius:10px;padding:8px 12px;color:rgba(180,200,255,.9);font-size:12px;cursor:pointer;white-space:nowrap;font-family:inherit">服下 ⚗️</button>'
+    +'<button onclick="submitGrammarKowen('+gi+')" style="background:rgba(140,170,255,.13);border:1px solid rgba(140,170,255,.28);border-radius:10px;padding:8px 12px;color:rgba(180,200,255,.9);font-size:12px;cursor:pointer;white-space:nowrap;font-family:inherit">问</button>'
     +'</div>'
     +'<div id="gkr-'+key+'" style="margin-top:8px;display:none"></div>'
     +'</div>';
@@ -2040,7 +2040,7 @@ function submitGrammarKowen(gi){
   var exTxt=(g.examples||[]).slice(0,3).map(function(e){return e.text;}).join(' / ');
   inp.value='';
   res.style.display='block';
-  res.innerHTML='<div style="font-size:12px;color:var(--t3);padding:6px 0">⚗️ 吐真剂正在起效…</div>';
+  res.innerHTML='<div style="font-size:12px;color:var(--t3);padding:6px 0">💫 正在感应…</div>';
   callDS([{role:'user',content:'你是韩语语法教练，用中文简洁回答，不超过200字。\n\n语法型：'+g.pattern+'\n释义：'+g.meaning+'\n用户的例句：'+exTxt+'\n\n用户问题：'+q}],500)
   .then(function(r){
     res.innerHTML='<div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px 12px;font-size:13px;color:rgba(255,255,255,.8);line-height:1.7;white-space:pre-wrap">'+escHtml(r)+'</div>'
@@ -2190,7 +2190,7 @@ function toggleEntryKowen(id){
   el.innerHTML='<div style="margin-top:6px">'
     +'<div style="display:flex;gap:8px;align-items:center">'
     +'<input id="eki-'+id+'" type="text" placeholder="写下你的疑惑…" style="flex:1;background:rgba(2,8,25,.9);border:1px solid rgba(140,170,255,.28);border-radius:10px;padding:8px 12px;font-size:13px;color:rgba(255,255,255,.85);outline:none;font-family:inherit">'
-    +'<button onclick="event.stopPropagation();submitEntryKowen(\''+id+'\')" style="background:rgba(140,170,255,.13);border:1px solid rgba(140,170,255,.28);border-radius:10px;padding:8px 12px;color:rgba(180,200,255,.9);font-size:12px;cursor:pointer;white-space:nowrap;font-family:inherit">服下 ⚗️</button>'
+    +'<button onclick="event.stopPropagation();submitEntryKowen(\''+id+'\')" style="background:rgba(140,170,255,.13);border:1px solid rgba(140,170,255,.28);border-radius:10px;padding:8px 12px;color:rgba(180,200,255,.9);font-size:12px;cursor:pointer;white-space:nowrap;font-family:inherit">问</button>'
     +'</div>'
     +'<div id="ekr-'+id+'" style="margin-top:8px;display:none"></div>'
     +'</div>';
@@ -2209,7 +2209,7 @@ function submitEntryKowen(id){
   if(!en)return;
   inp.value='';
   res.style.display='block';
-  res.innerHTML='<div style="font-size:12px;color:var(--t3);padding:6px 0">⚗️ 吐真剂正在起效…</div>';
+  res.innerHTML='<div style="font-size:12px;color:var(--t3);padding:6px 0">💫 正在感应…</div>';
   var ctx='字幕原文："'+en.text+'"\n中文译文：'+(en.zh||'')+(en.keywords&&en.keywords.length?'\n关键词：'+en.keywords.map(function(k){return k.word+'('+k.zh+')';}).join('、'):'');
   callDS([{role:'user',content:ctx+'\n\n用户问题：'+q+'\n\n请用中文简洁回答，不超过150字。'}],400)
   .then(function(r){
@@ -2248,7 +2248,7 @@ function eRowHTML(e,i,showDate){
   return '<div class="erow" id="er-'+e.id+'">'
     +'<img class="ethumb" id="et-'+e.id+'" src="" alt="" data-entry-id="'+e.id+'" style="cursor:zoom-in">'
     +'<div class="ebody">'
-    +'<div class="enum" style="display:flex;align-items:center;gap:6px">'+(showDate?e.date+' ':('0'+(i+1)).slice(-2)+' ')+'<span class="tag '+(ko?'tag-k':'tag-e')+'">'+(ko?'韩':'英')+'</span>'+(e.text?'<button onclick="event.stopPropagation();speakText(\''+escJS(e.text)+'\',\''+(e.lang||'en')+'\')" style="background:none;border:none;font-size:13px;cursor:pointer;opacity:.4;padding:0;line-height:1"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polygon points="11,5 6,9 2,9 2,15 6,15 11,19"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg></button>':'')+'<span style="margin-left:auto;display:flex;align-items:center;gap:2px"><button class="edel" style="font-size:12px;background:none;border:none;color:rgba(170,195,255,.5);padding:2px 5px" data-kowen-id="'+e.id+'"><svg width="13" height="13" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7" fill="rgba(180,210,255,.7)" stroke="rgba(180,210,255,.35)" stroke-width="2.5"/></svg></button><button class="edel" style="font-size:11px;background:none;border:none;opacity:.4;padding:2px 5px" data-edit-id="'+e.id+'"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(220,185,80,.9)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20 L4 8 L12 4 L20 8 Z"/><path d="M12 20 L12 11"/><path d="M4 8 L20 8"/></svg></button><button class="edel" style="font-size:13px;background:none;border:none;opacity:.35;padding:2px 5px" data-del-id="'+e.id+'">×</button></span></div>'
+    +'<div class="enum" style="display:flex;align-items:center;gap:6px">'+(showDate?e.date+' ':('0'+(i+1)).slice(-2)+' ')+'<span class="tag '+(ko?'tag-k':'tag-e')+'">'+(ko?'韩':'英')+'</span>'+(e.text?'<button onclick="event.stopPropagation();speakText(\''+escJS(e.text)+'\',\''+(e.lang||'en')+'\')" style="background:none;border:none;font-size:13px;cursor:pointer;opacity:.4;padding:0;line-height:1"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polygon points="11,5 6,9 2,9 2,15 6,15 11,19"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg></button>':'')+'<span style="margin-left:auto;display:flex;align-items:center;gap:2px"><button class="edel" style="font-size:12px;background:none;border:none;color:rgba(170,195,255,.5);padding:2px 5px" data-kowen-id="'+e.id+'">💫</button><button class="edel" style="font-size:11px;background:none;border:none;opacity:.4;padding:2px 5px" data-edit-id="'+e.id+'"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(220,185,80,.9)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20 L4 8 L12 4 L20 8 Z"/><path d="M12 20 L12 11"/><path d="M4 8 L20 8"/></svg></button><button class="edel" style="font-size:13px;background:none;border:none;opacity:.35;padding:2px 5px" data-del-id="'+e.id+'">×</button></span></div>'
     +'<div class="een">'+(e.text||'（待输入字幕）').replace(/\n/g,'<br>')+'</div>'
     +(e.pending&&!e.text?'<div style="display:inline-block;background:#fef3c7;color:#92400e;font-size:11px;padding:2px 8px;border-radius:8px;margin:2px 0 4px">⏳ 点铅笔在此设备输入字幕</div>':'')
     +'<div class="ezh">'+(e.zh||'')+'</div>'
