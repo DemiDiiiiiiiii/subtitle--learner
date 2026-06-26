@@ -1879,7 +1879,7 @@ function renderConvNotes(){
       :n.type==='chatlog'?''
       :'<button style="background:none;border:none;font-size:13px;color:var(--gold);cursor:pointer;padding:2px 6px" onclick="event.stopPropagation();editStoryNote('+n.idx+')">✏️</button>';
     var kowenBtn=(n.type==='conv'||n.type==='story')
-      ?'<button style="background:none;border:none;font-size:13px;color:rgba(170,195,255,.6);cursor:pointer;padding:2px 6px" onclick="event.stopPropagation();toggleNoteKowen(\''+n.type+'\','+n.idx+')"><svg width="13" height="13" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7" fill="rgba(180,210,255,.7)" stroke="rgba(180,210,255,.4)" stroke-width="2.5"/></svg></button>'
+      ?'<button style="background:none;border:none;font-size:13px;color:rgba(170,195,255,.6);cursor:pointer;padding:2px 6px" onclick="event.stopPropagation();toggleNoteKowen(\''+n.type+'\','+n.idx+')">💫</button>'
       :'';
     var delBtn=n.type==='conv'
       ?'<button style="background:none;border:none;font-size:13px;color:var(--red);cursor:pointer;padding:2px 6px" onclick="event.stopPropagation();delConvNote('+n.idx+')">×</button>'
@@ -2003,7 +2003,7 @@ function renderGrammarBank(){
       +'</div>'
       +'<div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">'
       +'<span style="font-size:10px;color:var(--t3);text-align:center">'+(g.examples||[]).length+'句</span>'
-      +'<button onclick="toggleGrammarKowen('+gi+')" style="background:none;border:none;font-size:13px;color:rgba(170,195,255,.6);cursor:pointer;padding:2px">⚗️</button>'
+      +'<button onclick="toggleGrammarKowen('+gi+')" style="background:none;border:none;font-size:13px;color:rgba(170,195,255,.6);cursor:pointer;padding:2px">💫</button>'
       +'<button onclick="delGrammar(\''+g.id+'\')" style="background:none;border:none;font-size:13px;color:var(--t3);cursor:pointer;padding:2px">×</button>'
       +'</div></div></div>';
   }).join('');
