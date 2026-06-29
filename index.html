@@ -652,6 +652,19 @@ function kvGet(k){return fetchWithRetry(WORKER,{method:'POST',headers:{'Content-
 // ── DB ────────────────────────────────────────────────────────────
 var DB={entries:[],fps:[],days:{},weakness:''};
 var TODAY=new Date().toLocaleDateString('zh-CN');
+// 清理旧图片缓存（一次性），释放localStorage空间
+try{
+  var _cleaned=localStorage.getItem('jc-img-cleaned');
+  if(!_cleaned){
+    var _keys=[];
+    for(var _i=0;_i<localStorage.length;_i++){
+      var _k=localStorage.key(_i);
+      if(_k&&_k.indexOf('jc-img-')===0)_keys.push(_k);
+    }
+    _keys.forEach(function(k){localStorage.removeItem(k);});
+    localStorage.setItem('jc-img-cleaned','1');
+  }
+}catch(e){}
 try{var _s=localStorage.getItem(DB_KEY)||sessionStorage.getItem(DB_KEY);if(_s)DB=JSON.parse(_s);}catch(e){}
 if(!DB.entries)DB.entries=[];if(!DB.fps)DB.fps=[];if(!DB.days)DB.days={};if(!DB.weakness)DB.weakness='';if(!DB.chatLogs)DB.chatLogs=[];if(!DB.grammarBank)DB.grammarBank=[];
 if(DB.aboutMe===undefined){DB.aboutMe=DB.entries.length?'住在苏州的中国女生，在外资制造业公司做FP&A财务分析，好奇心强，兴趣广泛（跑步、登山、骑行、读文学），是Super Junior团粉（E.L.F）':'';}
@@ -659,7 +672,7 @@ if(DB.aboutMe===undefined){DB.aboutMe=DB.entries.length?'住在苏州的中国�
 DB.entries.forEach(function(e){if(e.fp&&DB.fps.indexOf(e.fp)===-1)DB.fps.push(e.fp);});
 if(!DB.days[TODAY])DB.days[TODAY]=[];
 function saveDB(){var v=JSON.stringify(DB);try{localStorage.setItem(DB_KEY,v);}catch(e){}}
-function saveImg(id,b64){try{localStorage.setItem(IP+id,b64);}catch(e){}kvSet('img-'+id,b64);}
+function saveImg(id,b64){kvSet('img-'+id,b64);}
 function getImgLocal(id){try{return localStorage.getItem(IP+id);}catch(e){return null;}}
 function loadImgAsync(id,cb){var l=getImgLocal(id);if(l){cb(l);return;}kvGet('img-'+id).then(function(v){if(v){try{localStorage.setItem(IP+id,v);}catch(e){}cb(v);}}).catch(function(){});}
 
