@@ -652,7 +652,7 @@ function kvGet(k){return fetchWithRetry(WORKER,{method:'POST',headers:{'Content-
 // ── DB ────────────────────────────────────────────────────────────
 var DB={entries:[],fps:[],days:{},weakness:''};
 var TODAY=new Date().toLocaleDateString('zh-CN');
-try{var _s=localStorage.getItem(DB_KEY);if(_s)DB=JSON.parse(_s);}catch(e){}
+try{var _s=localStorage.getItem(DB_KEY)||sessionStorage.getItem(DB_KEY);if(_s)DB=JSON.parse(_s);}catch(e){}
 if(!DB.entries)DB.entries=[];if(!DB.fps)DB.fps=[];if(!DB.days)DB.days={};if(!DB.weakness)DB.weakness='';if(!DB.chatLogs)DB.chatLogs=[];if(!DB.grammarBank)DB.grammarBank=[];
 if(DB.aboutMe===undefined){DB.aboutMe=DB.entries.length?'住在苏州的中国女生，在外资制造业公司做FP&A财务分析，好奇心强，兴趣广泛（跑步、登山、骑行、读文学），是Super Junior团粉（E.L.F）':'';}
 // Rebuild fps index from all existing entries to ensure global dedup
@@ -699,7 +699,13 @@ kvGet('db').then(function(v){
         if(!r.fps)r.fps=[];
         DB.entries.forEach(function(e){if(e.fp&&r.fps.indexOf(e.fp)===-1)r.fps.push(e.fp);});
         DB=r;
-        try{localStorage.setItem(DB_KEY,JSON.stringify(DB));}catch(e){}
+        var _dbStr=JSON.stringify(DB);
+        var saved=false;
+        try{localStorage.setItem(DB_KEY,_dbStr);saved=true;}catch(e){}
+        try{sessionStorage.setItem(DB_KEY,_dbStr);}catch(e){}
+        if(!saved){
+          toast('⚠️ 本地存储空间不足，数据在本次会话中有效，请尽快同步到云端');
+        }
         refreshHome();
         startInkNote();
         toast('已从云端加载 '+cloudCount+' 条数据');
@@ -1027,7 +1033,15 @@ function renderStudy(){
       confirmAct('退出学习？','已输入内容不会丢失','退出',function(){goTo('home');sess=null;});
     }
   };
-  if(sess.state==='input')setTimeout(function(){var t=document.getElementById('s-ta');if(t)t.focus();},300);
+  if(sess.state==='input')setTimeout(function(){
+    var t=document.getElementById('s-ta');
+    if(t){
+      t.focus();
+      var draft=sessionStorage.getItem('jc-draft');
+      if(draft&&!t.value)t.value=draft;
+      t.addEventListener('input',function(){sessionStorage.setItem('jc-draft',t.value);});
+    }
+  },300);
   if(sess.state==='result'){var ni=document.getElementById('s-notes');if(ni){ni.value=sess.notes||'';ni.oninput=function(){sess.notes=ni.value;};}}
 }
 function sessDelKw(ki){
@@ -1044,7 +1058,7 @@ function editInputS(){
 function submitS(){
   var ta=document.getElementById('s-ta'),txt=ta?ta.value.trim():'';
   if(!txt){toast('请先输入字幕内容');return;}
-  sess.state='analyzing';renderStudy();
+  sess.state='analyzing';sessionStorage.removeItem('jc-draft');renderStudy();
   callDS([{role:'user',content:'分析以下影视字幕（英文或韩文），只返回JSON不要markdown：\n"'+txt+'"\n\n{"zh":"整体中文翻译","lang":"en或ko","keywords":[{"word":"词或短语","zh":"含义","note":"地道用法说明，韩文注明반말/존댓말"}],"grammar":[{"pattern":"语法型如-느라고","meaning":"一句话含义"}]}\n\n规则：①只提取短语和搭配（2个以上单词），不提取单个孤立单词；②跳过CET-4及以下常见词；③最多6个，优先选地道表达；④若为韩语，grammar提取连接语尾/终结语尾/表达型（如-느라고、-기 때문에、-아/어 버리다），不提取助词이/가/을/를，最多4个；英语grammar返回[]；⑤若为韩语关键词，且该词是汉字词（汉源词），在note开头用「汉字：XX」标注对应汉字，再写用法说明，如「汉字：始作。表示开始做某事...」；不是汉字词则不标注，正常写用法说明。'}],500)
   .then(function(raw){
     try{
