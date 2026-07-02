@@ -652,18 +652,14 @@ function kvGet(k){return fetchWithRetry(WORKER,{method:'POST',headers:{'Content-
 // ── DB ────────────────────────────────────────────────────────────
 var DB={entries:[],fps:[],days:{},weakness:''};
 var TODAY=new Date().toLocaleDateString('zh-CN');
-// 清理旧图片缓存（一次性），释放localStorage空间
+// 每次启动清理图片缓存，释放localStorage空间
 try{
-  var _cleaned=localStorage.getItem('jc-img-cleaned');
-  if(!_cleaned){
-    var _keys=[];
-    for(var _i=0;_i<localStorage.length;_i++){
-      var _k=localStorage.key(_i);
-      if(_k&&_k.indexOf('jc-img-')===0)_keys.push(_k);
-    }
-    _keys.forEach(function(k){localStorage.removeItem(k);});
-    localStorage.setItem('jc-img-cleaned','1');
+  var _imgKeys=[];
+  for(var _i=0;_i<localStorage.length;_i++){
+    var _k=localStorage.key(_i);
+    if(_k&&_k.indexOf('jc-img-')===0)_imgKeys.push(_k);
   }
+  _imgKeys.forEach(function(k){localStorage.removeItem(k);});
 }catch(e){}
 try{var _s=localStorage.getItem(DB_KEY)||sessionStorage.getItem(DB_KEY);if(_s)DB=JSON.parse(_s);}catch(e){}
 if(!DB.entries)DB.entries=[];if(!DB.fps)DB.fps=[];if(!DB.days)DB.days={};if(!DB.weakness)DB.weakness='';if(!DB.chatLogs)DB.chatLogs=[];if(!DB.grammarBank)DB.grammarBank=[];
@@ -714,10 +710,19 @@ kvGet('db').then(function(v){
         DB=r;
         var _dbStr=JSON.stringify(DB);
         var saved=false;
-        try{localStorage.setItem(DB_KEY,_dbStr);saved=true;}catch(e){}
+        try{localStorage.removeItem(DB_KEY);localStorage.setItem(DB_KEY,_dbStr);saved=true;}catch(e){}
         try{sessionStorage.setItem(DB_KEY,_dbStr);}catch(e){}
         if(!saved){
-          toast('⚠️ 本地存储空间不足，数据在本次会话中有效，请尽快同步到云端');
+          toast('⚠️ 本地存储写入失败。请在Safari设置中清除本站数据后重试。');
+        } else {
+          // 验证写入成功
+          try{
+            var _verify=localStorage.getItem(DB_KEY);
+            if(!_verify||JSON.parse(_verify).entries.length!==DB.entries.length){
+              saved=false;
+              toast('⚠️ 本地存储验证失败，请清除Safari网站数据后重试');
+            }
+          }catch(e){}
         }
         refreshHome();
         startInkNote();
@@ -922,8 +927,18 @@ function saveForLater(){
   var total=sess.imgs.length;
   var done=0;
   var ids=[];
-  toast('正在保存并上传图片，请稍候…');
-  sess.imgs.forEach(function(img,i){
+  toast('正在保存图片，请稍候…');
+  // 逐张处理，避免同时加载所有图片撑爆内存
+  function processOne(i){
+    if(i>=total){
+      saveDB();
+      toast('已保存 '+total+' 张 ✓ — 请记得点同步上传到云端');
+      refreshHome();
+      goTo('home');
+      sess=null;
+      return;
+    }
+    var img=sess.imgs[i];
     var id=Date.now()+'-pending-'+i+'-'+Math.random().toString(36).slice(2,6);
     ids.push(id);
     var entry={id:id,text:'',lang:'en',zh:'',keywords:[],notes:'',date:TODAY,ts:Date.now(),pending:true,fp:img.fp};
@@ -931,7 +946,6 @@ function saveForLater(){
     DB.fps.push(img.fp);
     if(!DB.days[TODAY])DB.days[TODAY]=[];
     DB.days[TODAY].push(id);
-    // Compress and upload image, then push DB
     try{
       var imgEl=new Image();
       imgEl.onload=function(){
@@ -941,24 +955,24 @@ function saveForLater(){
         c.getContext('2d').drawImage(imgEl,0,0,c.width,c.height);
         var b64=c.toDataURL('image/jpeg',.82).split(',')[1];
         saveImg(id,b64);
-        // Push image to cloud immediately
         kvSet('img-'+id,b64).catch(function(){});
+        // 显式释放内存
+        c.width=1;c.height=1;
         URL.revokeObjectURL(imgEl.src);
-        done++;
-        if(done===total){
-          saveDB();
-          toast('已保存 '+total+' 张 ✓ — 请记得点同步上传到云端');
-          refreshHome();
-          goTo('home');
-          sess=null;
-        }
+        imgEl.src='';
+        // 处理下一张
+        setTimeout(function(){processOne(i+1);},50);
+      };
+      imgEl.onerror=function(){
+        URL.revokeObjectURL(imgEl.src);
+        setTimeout(function(){processOne(i+1);},50);
       };
       imgEl.src=img.src;
     }catch(e){
-      done++;
-      if(done===total){saveDB();refreshHome();goTo('home');sess=null;}
+      setTimeout(function(){processOne(i+1);},50);
     }
-  });
+  }
+  processOne(0);
 }
 function beginStudy(){if(!sess||!sess.imgs.length){toast('没有图片');return;}sess.idx=0;sess.state='input';sess.res=null;sess.notes='';sess.hist=[];goTo('study');renderStudy();}
 
