@@ -1861,7 +1861,9 @@ function closeConv(doSave){hideQuillBtn();
     saveDB();window._quillNotes=[];
   }
   if(doSave&&pendingWeak){var lines=(DB.weakness||'').split('\n').filter(Boolean);lines.push(new Date().toLocaleDateString('zh-CN')+': '+pendingWeak);DB.weakness=lines.slice(-5).join('\n');saveDB();}
-  pendingWeak='';document.getElementById('fb-sheet').classList.remove('show');goTo('home');
+  pendingWeak='';document.getElementById('fb-sheet').classList.remove('show');
+  var target=(conv&&conv.returnTo)||'home';
+  goTo(target);
 }
 
 // ── List ──────────────────────────────────────────────────────────
@@ -2002,9 +2004,34 @@ function submitNoteKowen(type,idx){
   res.innerHTML='<div style="font-size:12px;color:var(--t3);padding:6px 0">💫 正在感应…</div>';
   callDS([{role:'user',content:'你是语言教练，用中文简洁回答，不超过150字。\n\n用户正在复习的笔记：\n'+noteText+'\n\n用户问题：'+q}],400)
   .then(function(r){
+    if(!window._pendingKowen)window._pendingKowen={};
+    window._pendingKowen[key]={q:q,a:r};
     res.innerHTML='<div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px 12px;font-size:13px;color:rgba(255,255,255,.8);line-height:1.7;white-space:pre-wrap">'+escHtml(r)+'</div>'
-      +'<div style="font-size:11px;color:var(--t3);margin-top:5px">回答不保存，如需留存请手动复制到笔记 ✏️</div>';
+      +'<div style="display:flex;gap:8px;margin-top:8px">'
+      +'<button class="btn btn-ghost" style="flex:1;padding:8px;font-size:12px" onclick="event.stopPropagation();discardKowenAnswer(\''+type+'\','+idx+')">放弃</button>'
+      +'<button class="btn btn-gold" style="flex:1;padding:8px;font-size:12px" onclick="event.stopPropagation();saveKowenAnswer(\''+type+'\','+idx+')">保存到笔记</button>'
+      +'</div>';
   }).catch(function(){res.innerHTML='<div style="font-size:12px;color:rgba(220,80,80,.6);padding:6px 0">网络错误，请重试</div>';});
+}
+function saveKowenAnswer(type,idx){
+  var key=type+'-'+idx;
+  var pending=window._pendingKowen&&window._pendingKowen[key];
+  if(!pending)return;
+  var qa='\nQ: '+pending.q+'\nA: '+pending.a;
+  if(type==='conv'){var n=DB.convNotes&&DB.convNotes[idx];if(n)n.notes=(n.notes||'')+qa;}
+  else if(type==='story'){var n=DB.storyNotes&&DB.storyNotes[idx];if(n)n.note=(n.note||'')+qa;}
+  saveDB();
+  delete window._pendingKowen[key];
+  toast('已保存到笔记');
+  var el=document.getElementById('nk-'+key);
+  if(el){el.style.display='none';el.innerHTML='';}
+  renderConvNotes();
+}
+function discardKowenAnswer(type,idx){
+  var key=type+'-'+idx;
+  if(window._pendingKowen)delete window._pendingKowen[key];
+  var el=document.getElementById('nk-'+key);
+  if(el){el.style.display='none';el.innerHTML='';}
 }
 
 // ── Grammar Bank ──────────────────────────────────────────────────
@@ -2491,7 +2518,7 @@ function storyChat(){
   document.getElementById('cv-load').style.display='flex';
   document.getElementById('cv-main').style.display='none';
   var setup={name:'语言老师',emoji:'📖',scene:'故事讨论',firstMessage:'我们来聊聊这篇故事吧！你有什么想问的，或者有哪些表达想深入了解？'};
-  conv={setup:setup,msgs:[{role:'system',content:sys},{role:'assistant',content:setup.firstMessage}],state:'chatting'};
+  conv={setup:setup,msgs:[{role:'system',content:sys},{role:'assistant',content:setup.firstMessage}],state:'chatting',returnTo:'story'};
   var cid=document.getElementById('cv-id');
   if(cid)cid.innerHTML='<div class="idrow"><div class="idav">📖</div><div><div class="idname">语言老师</div><div class="idsub">故事讨论模式</div></div></div><div class="idscene">针对刚才的小故事，随时提问</div>';
   var ca=document.getElementById('chat');if(ca)ca.innerHTML='';
@@ -2520,7 +2547,7 @@ function genStory(){
   var lines=list.map(function(e,i){return (i+1)+'. '+e.text+(e.zh?'（'+e.zh+'）':'');}).join('\n');
   var stNow=Date.now();list.forEach(function(e){if(e.keywords)e.keywords.forEach(function(k){k.lastSeen=stNow;});});saveDB();
   document.getElementById('st-cfg').style.display='none';document.getElementById('st-shim').style.display='flex';
-  callDS([{role:'user',content:'用以下影视字幕编一个短故事，自然融入这些原句（不要逐句堆砌）。\n\n字幕素材：\n'+lines+'\n\n要求：场景「'+scene+'」，风格「'+style+'」，语言：'+(lang==='中英双语'?'中英双语，每段先英文后中文':lang==='纯英文'?'全程英文':'全程中文')+'。\n\n背景参考（自然融入，不要生硬提及）：主角是'+(DB.aboutMe||'正在学习英语和韩语的语言学习者，对外语口语和地道表达感兴趣')+'，喜欢看韩剧美剧。\n\n150-250字，有画面感，直接开始写，不要标题。'}],700)
+  callDS([{role:'user',content:'用以下影视字幕编一个短故事，自然融入这些原句（不要逐句堆砌）。\n\n字幕素材：\n'+lines+'\n\n要求：场景「'+scene+'」，风格「'+style+'」，语言：'+(lang==='中英双语'?'中英双语，每段先英文后中文':lang==='纯英文'?'全程英文':'全程中文')+'。\n\n背景参考（自然融入，不要生硬提及）：主角是'+(DB.aboutMe||'正在学习英语和韩语的语言学习者，对外语口语和地道表达感兴趣')+'，喜欢看韩剧美剧。\n\n150-250字，有画面感，直接开始写，不要标题。'}],1200)
   .then(function(txt){
     document.getElementById('st-shim').style.display='none';
     document.getElementById('st-txt').textContent=txt;
@@ -2541,7 +2568,7 @@ function genStory(){
       '<button class="btn btn-gold" style="padding:9px" onclick="saveStoryNote()">保存笔记</button>'+
       '</div>'+
       // Row 3: chat with AI
-      '<button class="btn btn-white" onclick="storyChat()">💬 和 AI 讨论这篇故事</button>';
+      '<button class="btn btn-white" onclick="storyChat()">💫 讨论</button>';
     var stTxt=document.getElementById('st-txt');
     if(stTxt&&stTxt.parentNode)stTxt.parentNode.insertBefore(bar,stTxt.nextSibling);
     // Speak button
