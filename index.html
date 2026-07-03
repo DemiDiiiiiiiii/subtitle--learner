@@ -2985,7 +2985,14 @@ function saveConvFeedback(){
       }
     }
 
+    function isHomeVisible(){
+      var h=document.getElementById('home');
+      return !!(h && h.classList.contains('on'));
+    }
     function loop(){
+      if(!isHomeVisible()){
+        setTimeout(loop,400);return;
+      }
       ctx.clearRect(0,0,canvas.width,canvas.height);
       drawParticles();
 
@@ -3137,7 +3144,14 @@ function saveConvFeedback(){
     if(!alive) confettiDone=true;
   }
 
+  function isHomeVisible(){
+    var h=document.getElementById('home');
+    return !!(h && h.classList.contains('on'));
+  }
   function loop(){
+    if(!isHomeVisible()){
+      setTimeout(loop,400);return;
+    }
     ctx.clearRect(0,0,canvas.width,canvas.height);
     drawStars();
     if(!confettiDone) drawConfetti();
