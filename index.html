@@ -667,7 +667,11 @@ if(DB.aboutMe===undefined){DB.aboutMe=DB.entries.length?'住在苏州的中国�
 // Rebuild fps index from all existing entries to ensure global dedup
 DB.entries.forEach(function(e){if(e.fp&&DB.fps.indexOf(e.fp)===-1)DB.fps.push(e.fp);});
 if(!DB.days[TODAY])DB.days[TODAY]=[];
-function saveDB(){var v=JSON.stringify(DB);try{localStorage.setItem(DB_KEY,v);}catch(e){}}
+var _saveDBWarned=false;
+function saveDB(){var v=JSON.stringify(DB);try{localStorage.setItem(DB_KEY,v);}catch(e){
+  try{sessionStorage.setItem(DB_KEY,v);}catch(e2){}
+  if(!_saveDBWarned){_saveDBWarned=true;try{toast('⚠️ 本地存储写入失败，请尽快点「同步」上传云端备份',3500);}catch(e3){}}
+}}
 function saveImg(id,b64){kvSet('img-'+id,b64);}
 function getImgLocal(id){try{return localStorage.getItem(IP+id);}catch(e){return null;}}
 function loadImgAsync(id,cb){var l=getImgLocal(id);if(l){cb(l);return;}kvGet('img-'+id).then(function(v){if(v){try{localStorage.setItem(IP+id,v);}catch(e){}cb(v);}}).catch(function(){});}
@@ -908,7 +912,7 @@ function startStudy(files){
   shuffle(files);
   var fresh=files.filter(function(f){return DB.fps.indexOf(f.name+'|'+f.size)===-1;});
   if(!fresh.length){toast('这批图片都处理过了，请选新的截图');return;}
-  var dupes=files.length-fresh.length;if(fresh.length===0){toast('这批图片都处理过了，请选新的截图');return;}if(dupes>0)toast('已过滤 '+dupes+' 张重复（词库中已有）');
+  var dupes=files.length-fresh.length;if(dupes>0)toast('已过滤 '+dupes+' 张重复（词库中已有）');
   sess={imgs:fresh.slice(0,25).map(function(f){return{file:f,fp:f.name+'|'+f.size,src:URL.createObjectURL(f),thumb:null};}),idx:0,state:'input',res:null,notes:'',hist:[]};
   goTo('preview');renderPreview();
   genPreviewThumbs(0);
@@ -981,7 +985,6 @@ function saveForLater(){
         c.width=Math.round(imgEl.width*s);c.height=Math.round(imgEl.height*s);
         c.getContext('2d').drawImage(imgEl,0,0,c.width,c.height);
         var b64=c.toDataURL('image/jpeg',.82).split(',')[1];
-        saveImg(id,b64);
         kvSet('img-'+id,b64).catch(function(){});
         // 显式释放内存
         c.width=1;c.height=1;
@@ -2634,7 +2637,12 @@ function uploadToCloud(){
   var st=document.getElementById('cloud-status');
   if(st)st.textContent='上传中…';
   var v=JSON.stringify(DB);
-  kvSet('db',v).then(function(r){
+  // 覆盖前先把云端旧数据备份到 db-prev（后悔药，失败不阻塞上传）
+  kvGet('db').then(function(old){
+    if(old&&old!==v)return kvSet('db-prev',old).catch(function(){});
+  }).catch(function(){}).then(function(){
+    return kvSet('db',v);
+  }).then(function(r){
     if(!r||!r.ok){
       if(st)st.textContent='上传失败：服务器错误';
       toast('上传失败，请重试');
@@ -2654,17 +2662,15 @@ function uploadToCloud(){
       return;
     }
     if(st)st.textContent='上传中，正在同步 '+imgKeys.length+' 张图片…';
-    var done=0;
-    imgKeys.forEach(function(k){
+    // 逐张串行上传，避免并发请求过多触发 Worker 限制
+    (function nextImg(idx){
+      if(idx>=imgKeys.length){finish();return;}
+      var k=imgKeys[idx];
       var b64=null;try{b64=localStorage.getItem(k);}catch(e){}
-      if(!b64){done++;if(done===imgKeys.length)finish();return;}
+      if(!b64){nextImg(idx+1);return;}
       var id=k.replace('jc-img-','');
-      kvSet('img-'+id,b64).then(function(){
-        done++;if(done===imgKeys.length)finish();
-      }).catch(function(){
-        done++;if(done===imgKeys.length)finish();
-      });
-    });
+      kvSet('img-'+id,b64).then(function(){nextImg(idx+1);}).catch(function(){nextImg(idx+1);});
+    })(0);
     function finish(){
       if(st)st.textContent='全部上传成功 ✓ ('+new Date().toLocaleTimeString('zh-CN')+')';
       toast('数据和图片已全部同步到云端！');
@@ -2713,8 +2719,11 @@ function clearToday(){
 }
 function clearAll(){
   confirmAct('再次确认删除全部？','此操作完全不可撤销','确认清除',function(){
-    DB={entries:[],fps:[],days:{},weakness:''};DB.days[TODAY]=[];saveDB();
-    try{localStorage.clear();}catch(e){}refreshHome();toast('已清除全部数据');
+    DB={entries:[],fps:[],days:{},weakness:''};DB.days[TODAY]=[];
+    var _uid=null;try{_uid=localStorage.getItem(UID_KEY);}catch(e){}
+    try{localStorage.clear();}catch(e){}
+    if(_uid){try{localStorage.setItem(UID_KEY,_uid);}catch(e){}}
+    saveDB();refreshHome();toast('已清除全部数据');
   });
 }
 
@@ -3063,6 +3072,8 @@ function saveConvFeedback(){
   function resize(){
     canvas.width=window.innerWidth;
     canvas.height=window.innerHeight;
+    // 循环停止后如果发生 resize（旋转屏幕），画布会被清空，这里补画一帧
+    if(confettiDone){try{drawStars();}catch(e){}}
   }
   resize();
   window.addEventListener('resize',resize);
@@ -3181,8 +3192,12 @@ function saveConvFeedback(){
     }
     ctx.clearRect(0,0,canvas.width,canvas.height);
     drawStars();
-    if(!confettiDone) drawConfetti();
-    requestAnimationFrame(loop);
+    if(!confettiDone){
+      drawConfetti();
+      requestAnimationFrame(loop);
+      return;
+    }
+    // 雪花放完：星星是静态的，最后一帧保留在画布上，循环到此结束，不再每帧空转耗电发热
   }
   loop();
 })();
