@@ -675,6 +675,10 @@ function saveDB(){var v=JSON.stringify(DB);try{localStorage.setItem(DB_KEY,v);}c
 function saveImg(id,b64){kvSet('img-'+id,b64);}
 function getImgLocal(id){try{return localStorage.getItem(IP+id);}catch(e){return null;}}
 function loadImgAsync(id,cb){var l=getImgLocal(id);if(l){cb(l);return;}kvGet('img-'+id).then(function(v){if(v){try{localStorage.setItem(IP+id,v);}catch(e){}cb(v);}}).catch(function(){});}
+// 记录已经确认同步到云端的图片id，避免每次"同步"都重复上传没变化过的老图片
+var SYNCED_KEY='jc-synced-imgs';
+function getSyncedImgIds(){try{return JSON.parse(localStorage.getItem(SYNCED_KEY)||'[]');}catch(e){return [];}}
+function markImgSynced(id){try{var s=getSyncedImgIds();if(s.indexOf(id)===-1){s.push(id);localStorage.setItem(SYNCED_KEY,JSON.stringify(s));}}catch(e){}}
 
 // ── State ─────────────────────────────────────────────────────────
 var sess=null,conv=null,crList=[],crIdx=0,crFlip=false,pendingWeak='';
@@ -1210,13 +1214,23 @@ function prevS(){
 }
 function skipS(){sess.hist[sess.idx]={res:null,notes:''};sess.res=null;sess.notes='';advS();}
 function saveNext(){
-  var r=sess.res;sess.hist[sess.idx]={res:r,notes:sess.notes};
+  var r=sess.res;
+  var prevEntryId=sess.hist[sess.idx]&&sess.hist[sess.idx].entryId;
+  sess.hist[sess.idx]={res:r,notes:sess.notes,entryId:prevEntryId};
   if(r){
-    var id=Date.now()+'-'+sess.idx;
+    var existing=prevEntryId?DB.entries.find(function(e){return e.id===prevEntryId;}):null;
+    var id=existing?existing.id:(Date.now()+'-'+sess.idx);
     var entry={id:id,text:r.orig,lang:r.lang,zh:r.zh,keywords:r.keywords||[],notes:sess.notes||'',followups:r.followups||[],date:TODAY,ts:Date.now(),fp:sess.imgs[sess.idx].fp};
-    DB.entries.push(entry);DB.fps.push(sess.imgs[sess.idx].fp);
-    if(!DB.days[TODAY])DB.days[TODAY]=[];
-    DB.days[TODAY].push(id);saveDB();
+    if(existing){
+      // 这张图之前已经保存过，覆盖旧记录而不是新增一条，避免"修改输入"后出现重复词条
+      Object.assign(existing,entry);
+    }else{
+      DB.entries.push(entry);DB.fps.push(sess.imgs[sess.idx].fp);
+      if(!DB.days[TODAY])DB.days[TODAY]=[];
+      DB.days[TODAY].push(id);
+    }
+    sess.hist[sess.idx].entryId=id;
+    saveDB();
     compressImg(id,sess.imgs[sess.idx].file);
     if(r.lang==='ko'&&r.grammar&&r.grammar.length)processGrammar(r.grammar,id,r.orig);
   }
@@ -2661,12 +2675,16 @@ function uploadToCloud(){
       toast('上传失败，请重试');
       return;
     }
-    // Also upload all images from localStorage
+    // Also upload all images from localStorage（跳过之前已确认同步成功的，减少耗时）
     var imgKeys=[];
     try{
+      var _synced=getSyncedImgIds();
       for(var i=0;i<localStorage.length;i++){
         var k=localStorage.key(i);
-        if(k&&k.startsWith('jc-img-'))imgKeys.push(k);
+        if(k&&k.startsWith('jc-img-')){
+          var _id=k.replace('jc-img-','');
+          if(_synced.indexOf(_id)===-1)imgKeys.push(k);
+        }
       }
     }catch(e){}
     if(!imgKeys.length){
@@ -2682,7 +2700,7 @@ function uploadToCloud(){
       var b64=null;try{b64=localStorage.getItem(k);}catch(e){}
       if(!b64){nextImg(idx+1);return;}
       var id=k.replace('jc-img-','');
-      kvSet('img-'+id,b64).then(function(){nextImg(idx+1);}).catch(function(){nextImg(idx+1);});
+      kvSet('img-'+id,b64).then(function(){markImgSynced(id);nextImg(idx+1);}).catch(function(){nextImg(idx+1);});
     })(0);
     function finish(){
       if(st)st.textContent='全部上传成功 ✓ ('+new Date().toLocaleTimeString('zh-CN')+')';
