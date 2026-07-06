@@ -920,6 +920,11 @@ function startStudy(files){
 // 逐张生成小尺寸预览缩略图，避免一次性把 20+ 张原图同时解码渲染撑爆手机浏览器内存导致页面崩溃重载
 function genPreviewThumbs(i){
   if(!sess||!sess.imgs||i>=sess.imgs.length)return;
+  var previewEl=document.getElementById('preview');
+  if(!(previewEl&&previewEl.classList.contains('on'))){
+    // 离开预览页时暂停解码，避免和输入/语音抢占主线程；回到预览页会自动继续
+    setTimeout(function(){genPreviewThumbs(i);},400);return;
+  }
   var item=sess.imgs[i];
   if(!item||item.thumb){setTimeout(function(){genPreviewThumbs(i+1);},0);return;}
   try{
