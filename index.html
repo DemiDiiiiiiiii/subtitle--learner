@@ -907,7 +907,15 @@ function refreshHome(){
 }
 
 // ── Preview ───────────────────────────────────────────────────────
+// 释放一个学习会话里所有截图占用的 blob URL，避免多次上传后内存持续累积
+function revokeSessImgs(s){
+  if(!s||!s.imgs)return;
+  s.imgs.forEach(function(img){
+    if(img&&img.src){try{URL.revokeObjectURL(img.src);}catch(e){}}
+  });
+}
 function startStudy(files){
+  revokeSessImgs(sess); // 清理上一批可能遗留的图片内存
   files=Array.from(files);if(!files.length){toast('没有选到图片');return;}
   shuffle(files);
   var fresh=files.filter(function(f){return DB.fps.indexOf(f.name+'|'+f.size)===-1;});
@@ -971,7 +979,7 @@ function saveForLater(){
       toast('已保存 '+total+' 张 ✓ — 请记得点同步上传到云端');
       refreshHome();
       goTo('home');
-      sess=null;
+      revokeSessImgs(sess);sess=null;
       return;
     }
     var img=sess.imgs[i];
@@ -1089,10 +1097,10 @@ function renderStudy(){
             if(!alreadySaved){DB.entries.push(entry);if(!DB.days[TODAY])DB.days[TODAY]=[];DB.days[TODAY].push(id);}
           }
         });
-        saveDB();goTo('home');sess=null;
+        saveDB();goTo('home');revokeSessImgs(sess);sess=null;
       });
     } else {
-      confirmAct('退出学习？','已输入内容不会丢失','退出',function(){goTo('home');sess=null;});
+      confirmAct('退出学习？','已输入内容不会丢失','退出',function(){goTo('home');revokeSessImgs(sess);sess=null;});
     }
   };
   if(sess.state==='input')setTimeout(function(){
@@ -1227,9 +1235,9 @@ function renderDone(el){
     +'<button class="btn btn-white" id="done-story-btn">生成小故事</button>'
     +'<button class="btn btn-ghost" id="done-home-btn">回主页</button>'
     +'</div></div>';
-  var dlb=document.getElementById('done-list-btn');if(dlb)dlb.onclick=function(){goTo('library');};
-  var dsb=document.getElementById('done-story-btn');if(dsb)dsb.onclick=function(){goTo('story');resetStory();};
-  var dhb=document.getElementById('done-home-btn');if(dhb)dhb.onclick=function(){goTo('home');};
+  var dlb=document.getElementById('done-list-btn');if(dlb)dlb.onclick=function(){goTo('library');revokeSessImgs(sess);sess=null;};
+  var dsb=document.getElementById('done-story-btn');if(dsb)dsb.onclick=function(){goTo('story');resetStory();revokeSessImgs(sess);sess=null;};
+  var dhb=document.getElementById('done-home-btn');if(dhb)dhb.onclick=function(){goTo('home');revokeSessImgs(sess);sess=null;};
 }
 function compressImg(id,file){
   try{
